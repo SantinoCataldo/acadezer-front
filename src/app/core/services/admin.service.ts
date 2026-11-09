@@ -2,50 +2,22 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {
-  InmobiliariaResponse,
-  RegisterRequest,
-  UserResponse,
-  UserUpdateRequest
-} from '../models';
+import type { AdminStatsResponse, UserResponse } from '../models';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly http = inject(HttpClient);
-  private readonly adminUrl = `${environment.apiUrl}/api/admin`;
-  private readonly usersUrl = `${environment.apiUrl}/api/users`;
-
-  getAgencies(): Observable<InmobiliariaResponse[]> {
-    return this.http.get<InmobiliariaResponse[]>(`${this.adminUrl}/inmobiliarias`);
-  }
-
-  blockUser(userId: number): Observable<UserResponse> {
-    return this.http.patch<UserResponse>(`${this.adminUrl}/usuarios/${userId}/bloquear`, {});
-  }
-
-  activateUser(userId: number): Observable<UserResponse> {
-    return this.http.patch<UserResponse>(`${this.adminUrl}/usuarios/${userId}/activar`, {});
-  }
+  private readonly baseUrl = `${environment.apiUrl}/api/admin`;
 
   getUsers(): Observable<UserResponse[]> {
-    return this.http.get<UserResponse[]>(this.usersUrl);
+    return this.http.get<UserResponse[]>(`${this.baseUrl}/users`);
   }
 
-  getUserById(id: number): Observable<UserResponse> {
-    return this.http.get<UserResponse>(`${this.usersUrl}/${id}`);
+  setEnabled(userId: number, enabled: boolean): Observable<UserResponse> {
+    return this.http.patch<UserResponse>(`${this.baseUrl}/users/${userId}/enabled`, { enabled });
   }
 
-  createUser(data: RegisterRequest): Observable<UserResponse> {
-    return this.http.post<UserResponse>(this.usersUrl, data);
-  }
-
-  updateUser(id: number, data: UserUpdateRequest): Observable<UserResponse> {
-    return this.http.put<UserResponse>(`${this.usersUrl}/${id}`, data);
-  }
-
-  deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.usersUrl}/${id}`);
+  getStats(): Observable<AdminStatsResponse> {
+    return this.http.get<AdminStatsResponse>(`${this.baseUrl}/stats`);
   }
 }

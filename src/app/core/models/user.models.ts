@@ -1,19 +1,21 @@
-import { UserRole, UserStatus } from './auth.models';
+import type { UserRole } from './auth.models';
 
 export interface UserResponse {
   id: number;
   nombre: string;
   email: string;
   role: UserRole;
-  status: UserStatus;
-  inmobiliariaId: number;
-  inmobiliariaNombre: string;
+  enabled: boolean;
 }
 
-export interface UserUpdateRequest {
-  nombre?: string;
-  email?: string;
-  password?: string;
-  role?: UserRole;
-  status?: UserStatus;
+export interface AdminStatsResponse {
+  usuarios: number;
+  usuariosHabilitados: number;
+  estudiantes: number;
+  administradores: number;
+  materias: number;
+  apuntes: number;
+  pendientes: number;
+  evaluaciones: number;
+  asistencias: number;
 }
