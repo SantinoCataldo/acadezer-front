@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import type { AuthRequest, AuthResponse, RegisterRequest, UserResponse, UserRole } from '../models';
 import { TokenStorageService } from './token-storage.service';
 import { accessTokenExpiresAt, isAuthResponse, isUserResponse } from './session-validation';
+import { createRequestAction } from './request-action';
 
 type SessionState =
   | { status: 'anonymous' | 'checking' | 'unavailable' }
@@ -29,6 +30,8 @@ export class AuthService {
   });
   readonly isAuthenticated = computed(() => this.status() === 'authenticated');
   readonly isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
+  readonly loginAction = createRequestAction();
+  readonly registerAction = createRequestAction();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
@@ -38,31 +41,35 @@ export class AuthService {
   }
 
   login(credentials: AuthRequest): Observable<AuthResponse> {
-    return defer(() => {
-      const revision = ++this.revision;
-      this.restoration = undefined;
-      return this.http.post<unknown>(`${this.baseUrl}/auth`, credentials).pipe(
-        map((response) => {
-          if (!isAuthResponse(response) || !accessTokenExpiresAt(response.accessToken)) {
-            throw new Error('La API devolvió una sesión inválida');
-          }
-          return response;
-        }),
-        tap((response) => {
-          if (revision !== this.revision) return;
-          this.storage.saveAccessToken(response.accessToken);
-          this.acceptUser(response.usuario, response.accessToken);
-        }),
-      );
-    });
+    return this.loginAction.run(() =>
+      defer(() => {
+        const revision = ++this.revision;
+        this.restoration = undefined;
+        return this.http.post<unknown>(`${this.baseUrl}/auth`, credentials).pipe(
+          map((response) => {
+            if (!isAuthResponse(response) || !accessTokenExpiresAt(response.accessToken)) {
+              throw new Error('La API devolvió una sesión inválida');
+            }
+            return response;
+          }),
+          tap((response) => {
+            if (revision !== this.revision) return;
+            this.storage.saveAccessToken(response.accessToken);
+            this.acceptUser(response.usuario, response.accessToken);
+          }),
+        );
+      }),
+    );
   }
 
   register(data: RegisterRequest): Observable<UserResponse> {
-    return this.http.post<unknown>(`${this.baseUrl}/auth/register`, data).pipe(
-      map((response) => {
-        if (!isUserResponse(response)) throw new Error('La API devolvió un usuario inválido');
-        return response;
-      }),
+    return this.registerAction.run(() =>
+      this.http.post<unknown>(`${this.baseUrl}/auth/register`, data).pipe(
+        map((response) => {
+          if (!isUserResponse(response)) throw new Error('La API devolvió un usuario inválido');
+          return response;
+        }),
+      ),
     );
   }
 

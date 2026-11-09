@@ -53,7 +53,7 @@ El backend agrega STUDENT y ADMIN. Se integra después del recorrido principal; 
 - **RNF-01 · Accesibilidad:** teclado, foco visible, etiquetas y confirmaciones claras; sonido opcional y respeto por movimiento reducido. El recorrido debe poder completarse sin sonido o animación.
 - **RNF-02 · Responsive:** validar a 375 px y escritorio, sin desbordamiento horizontal ni controles inaccesibles.
 - **RNF-03 · Seguridad:** Bearer solo al origen de Acadezer y rutas protegidas, incluido /auth/me. No incluir secretos del proveedor de IA en Angular. No considerar un JWT decodificado prueba de autorización.
-- **RNF-04 · Estado asíncrono:** carga, vacío, error y recuperación por operación; impedir doble envío y generación simultánea accidental. No reintentar automáticamente solicitudes de IA ni mutaciones.
+- **RNF-04 · Estado asíncrono:** carga, vacío, error y recuperación por operación; impedir doble envío. Ante 429 en login, registro o preguntas, mostrar message y bloquear la acción por Retry-After (entero positivo; mínimo 1 s si falta o es inválido), sin borrar JWT ni reintentar automáticamente. La espera de concurrencia no garantiza disponibilidad al terminar. Ver [contrato 429](./docs/MANEJO_429.md).
 - **RNF-05 · Fechas:** tratar LocalDate como YYYY-MM-DD, sin convertir fechas de clase o entrega en instantes UTC. Definir «hoy» en la zona del usuario.
 - **RNF-06 · Mantenibilidad:** TypeScript estricto, sin any, componentes standalone, Signals, inject, control de flujo moderno y formularios reactivos tipados. Tailwind v4, sin SCSS.
 - **RNF-07 · Evidencia:** build y comprobaciones relevantes por commit de código. Las pruebas no deben invocar al proveedor real de IA o tocar una base compartida accidentalmente.

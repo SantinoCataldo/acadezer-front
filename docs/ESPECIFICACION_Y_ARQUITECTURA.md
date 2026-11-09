@@ -6,7 +6,7 @@ Versión 3.0 · 9 de noviembre de 2026. Reemplaza la especificación inmobiliari
 
 Frontend base: main, commit 942aa65 más cambios locales. La sesión, sus DTO, interceptores, guards y servicio administrativo se adaptaron localmente; los demás recursos y pantallas siguen pendientes. El router solo declara Home y comodín. Los cambios locales de diseño y layout se preservan separados.
 
-Backend de referencia: [Acadezer 5f61e8533471af1959efcffd4ccb806f61267df2](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2). Se leyeron controladores, DTO, servicios y seguridad. Pasaron 47 pruebas aisladas del backend y 35 del frontend. Las comprobaciones anónimas de Render pasaron; resta un recorrido autenticado. Ver [evidencia y hallazgos](./REVISION_SEGURIDAD.md).
+Backend de referencia: [Acadezer 5f61e8533471af1959efcffd4ccb806f61267df2](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2). Se leyeron controladores, DTO, servicios y seguridad. Pasaron 47 pruebas aisladas de ese backend y 55 del frontend. El contrato adicional de 429 fue comunicado por el equipo backend, aún sin publicar; no cambia los DTO exitosos. Las comprobaciones anónimas de Render pasaron; resta un recorrido autenticado. Ver [evidencia y hallazgos](./REVISION_SEGURIDAD.md) y [manejo de 429](./MANEJO_429.md).
 
 Los documentos diferencian siempre comportamiento previsto, código existente y validación ejecutada. El backend de referencia entrega el dominio académico; este repositorio conserva temporalmente nombres, endpoints y dependencias del dominio anterior.
 

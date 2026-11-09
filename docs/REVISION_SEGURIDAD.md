@@ -8,7 +8,7 @@ Backend revisado: [5f61e8533471af1959efcffd4ccb806f61267df2](https://github.com/
 
 La integración mencionada por el usuario es Render, no Resend. El despliegue usa Neon. No se cambió esa configuración, no se creó ni borró información de la base compartida y no se llamó al proveedor de IA.
 
-S-01, S-02 y S-03 están corregidos con pruebas. S-04 y S-05 son trabajo pendiente de backend. Las pantallas y rutas académicas siguen pendientes: los guards implementados deberán conectarse al agregarlas.
+S-01, S-02 y S-03 están corregidos con pruebas. El equipo backend informó la implementación local de S-04/S-05 y su contrato 429: falta revisar esa versión y comprobar su despliegue autorizado. Ver [manejo de 429](./MANEJO_429.md). Las pantallas y rutas académicas siguen pendientes: los guards implementados deberán conectarse al agregarlas.
 
 ## 1. Render y evidencia sobre persistencia
 
@@ -48,13 +48,14 @@ El perfil test existente usa H2 aislada y proveedor IA simulado; no se modificó
 
 Se comprueba aislamiento entre propietarios y también frente a ADMIN; bloqueo de cuentas; JWT vencido, falsificado o de tipo distinto; registro sin elevación de rol; validaciones; consulta de propiedad antes de IA y errores del proveedor.
 
-### Frontend: 35 casos aprobados y build correcto
+### Frontend: 55 casos aprobados
 
 Comandos: `bun run test --watch=false` y `bun run build`.
 
 - 25 casos de autenticación/interceptor: token limitado al origen, /auth/me, claves heredadas, perfil local falsificado, sesión vencida o inválida, fallos transitorios, logout durante solicitudes pendientes, 401 concurrentes y respuestas atrasadas de otra sesión.
 - 8 casos de guards: restauración pendiente, sesión ausente, fallo transitorio, roles válidos/incorrectos y rutas de invitados.
 - 2 casos de aplicación; se corrigió el test generado obsoleto de «Hello, inmo» para comprobar la navegación lazy real a Home, sin cambiar la interfaz.
+- 20 casos adicionales de 429 y doble envío; la utilidad y login/registro respetan Retry-After sin modificar sesión ni reintentar. El consumidor de preguntas podrá usar el mismo controlador cuando se cree su pantalla.
 
 Antes de corregir, las pruebas reprodujeron el envío del token a terceros y la aceptación de un perfil local falsificado. Ahora pasan. Todo HTTP de estas pruebas es simulado; no usa cuentas de Neon ni IA real.
 
@@ -102,6 +103,6 @@ Referencia: [OWASP API4, consumo de recursos](https://api-security.owasp.org/edi
 
 ## 5. Estado para continuar
 
-Los cambios corrigen la base de seguridad de la sesión antes de conectar pantallas. Los modelos de sesión, sus servicios y el interceptor se agrupan en un commit porque retirar refreshToken afecta a los tres; guards y prueba de navegación se separan. Consultar el historial para identificar las entregas. Los 38 requisitos siguen siendo 30 funcionales y 8 no funcionales.
+Los cambios corrigen la base de seguridad de la sesión antes de conectar pantallas. Los modelos de sesión, sus servicios y el interceptor se agrupan en un commit porque retirar refreshToken afecta a los tres; guards y prueba de navegación se separan. Consultar el historial para identificar las entregas. Los 38 requisitos siguen siendo 30 funcionales y 8 no funcionales. El manejo de 429 tiene nuevas modificaciones locales aún sin commit ni push.
 
-Pendientes: completar modelos/servicios académicos, conectar guards a rutas, implementar pantallas y cerrar S-04/S-05 en backend antes de uso público amplio. La configuración de Neon permanece intacta.
+Pendientes: completar modelos/servicios académicos, conectar guards a rutas, implementar pantallas y verificar publicación de S-04/S-05 antes de uso público amplio. Su implementación local fue comunicada por el equipo backend; no se da por desplegada. La configuración de Neon permanece intacta.

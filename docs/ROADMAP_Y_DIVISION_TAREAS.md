@@ -10,7 +10,7 @@ Antes de cada push, presentar al usuario los commits y el destino y pedir su apr
 
 Los modelos y servicios inmobiliarios ya tienen commits en el historial. Estos nuevos commits describirán la migración académica; no reescribirán ni dividirán retroactivamente ese historial.
 
-La [revisión de seguridad](./REVISION_SEGURIDAD.md) registra 47 pruebas de backend y 35 de frontend aprobadas. S-01 a S-03 se corrigieron en sesión, DTO, interceptor y guards. Render respondió a salud, rechazo de acceso anónimo y CORS; falta el recorrido académico autenticado. La base del despliegue sigue siendo Neon. S-04 y S-05 requieren límites de login e IA en backend.
+La [revisión de seguridad](./REVISION_SEGURIDAD.md) registra 47 pruebas del backend revisado y 55 del frontend aprobadas. S-01 a S-03 se corrigieron en sesión, DTO, interceptor y guards. Render respondió a salud, rechazo de acceso anónimo y CORS; falta el recorrido académico autenticado. La base sigue siendo Neon. El equipo backend comunicó S-04/S-05 implementados localmente, aún sin publicar. Angular ya tiene control de espera 429 y dobles envíos para login/registro, reutilizable en práctica; falta conectarlo a pantallas y verificar el contrato desplegado.
 
 Para publicar esta corrección, se agrupan modelos de sesión, servicios e interceptor: retirar refreshToken requiere cambios coordinados para mantener compilable cada commit. Guards y prueba de navegación van separados. Esto no marca como terminada la migración de modelos o servicios de materias y sus recursos, que sigue pendiente.
 

@@ -59,5 +59,6 @@ El login devuelve `accessToken`, `tokenType`, `expiresIn` y `usuario`. **Acadeze
 - [Arquitectura, contratos y validaciones](./docs/ESPECIFICACION_Y_ARQUITECTURA.md).
 - [Orden de commits y criterios de salida](./docs/ROADMAP_Y_DIVISION_TAREAS.md).
 - [Revisión de seguridad y evidencia de pruebas](./docs/REVISION_SEGURIDAD.md).
+- [Manejo de HTTP 429 y contrato de límites](./docs/MANEJO_429.md).
 
-Actualización: 9 de noviembre de 2026. Pasaron 47 pruebas aisladas del backend y 35 del frontend; build correcto. Las comprobaciones anónimas de Render pasaron. Consultar el informe de seguridad para alcance, correcciones y pendientes de backend/Neon.
+Actualización: 9 de noviembre de 2026. Pasaron 47 pruebas aisladas del backend revisado y 55 del frontend. Las comprobaciones anónimas de Render pasaron. El nuevo contrato de límites fue comunicado por backend, pero su implementación y despliegue aún no se verificaron; ver el documento de HTTP 429.

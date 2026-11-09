@@ -195,4 +195,52 @@ describe('Acadezer session', () => {
     expect(localStorage.length).toBe(1);
     expect(localStorage.getItem('theme')).toBe('dark');
   });
+
+  it('blocks duplicate login and exposes its 429 cooldown without touching an existing session', () => {
+    vi.useFakeTimers();
+    const token = testToken();
+    const auth = startLogin(token);
+    const credentials = { email: student.email, password: 'password' };
+    auth.login(credentials).subscribe({ error: () => undefined });
+    auth.login(credentials).subscribe();
+    requests.expectOne(`${environment.apiUrl}/auth`).flush(
+      { message: 'Esperá antes de ingresar' },
+      {
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: { 'Retry-After': '2' },
+      },
+    );
+    expect(auth.loginAction.errorMessage()).toBe('Esperá antes de ingresar');
+    expect(auth.loginAction.disabled()).toBe(true);
+    expect(auth.isAuthenticated()).toBe(true);
+    expect(TestBed.inject(TokenStorageService).getAccessToken()).toBe(token);
+    vi.advanceTimersByTime(2000);
+    expect(auth.loginAction.disabled()).toBe(false);
+    requests.expectNone(`${environment.apiUrl}/auth`);
+  });
+
+  it('blocks duplicate registration and keeps its cooldown separate from login', () => {
+    vi.useFakeTimers();
+    const auth = TestBed.inject(AuthService);
+    const data = { nombre: student.nombre, email: student.email, password: 'password' };
+    auth.register(data).subscribe({ error: () => undefined });
+    auth.register(data).subscribe();
+    requests.expectOne(`${environment.apiUrl}/auth/register`).flush(
+      { message: 'Registro limitado' },
+      {
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: { 'Retry-After': '2' },
+      },
+    );
+    expect(auth.registerAction.errorMessage()).toBe('Registro limitado');
+    expect(auth.registerAction.disabled()).toBe(true);
+    expect(auth.loginAction.disabled()).toBe(false);
+    auth.register(data).subscribe();
+    requests.expectNone(`${environment.apiUrl}/auth/register`);
+    vi.advanceTimersByTime(2000);
+    expect(auth.registerAction.disabled()).toBe(false);
+    requests.expectNone(`${environment.apiUrl}/auth/register`);
+  });
 });
