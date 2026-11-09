@@ -1,6 +1,8 @@
 # Requisitos · Acadezer
 
-Versión 1.0 académica · 9 de noviembre de 2026.
+Versión 1.1 académica · Borrador para revisión · 9 de noviembre de 2026.
+
+Total: **38 requisitos**, distribuidos en **30 funcionales** (27 principales y 3 de administración secundaria) y **8 no funcionales**. Las operaciones de consulta, edición y eliminación tienen criterios propios; no se agrega alcance de backend para alcanzar esta cantidad.
 
 Este documento reemplaza el alcance inmobiliario para el trabajo futuro. Define comportamiento objetivo, no funcionalidades ya integradas en Angular. Contrato base: backend [5f61e85](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2).
 
@@ -9,19 +11,28 @@ Este documento reemplaza el alcance inmobiliario para el trabajo futuro. Define 
 | ID | Requisito | Criterio de aceptación |
 | --- | --- | --- |
 | AUTH-01 | Registro de estudiante. | Enviar nombre, email y contraseña; manejar 201 con usuario y conflicto de email. El registro no inicia sesión automáticamente. |
-| AUTH-02 | Login. | Guardar accessToken y usuario recibidos. No solicitar ni almacenar refresh token. |
-| AUTH-03 | Restauración y expiración. | Consultar /auth/me para validar la sesión recuperada. Ante expiración o 401, cerrar sesión local y llevar al login sin bucles. |
+| AUTH-02 | Login. | Mantener el usuario recibido en memoria y accessToken en sessionStorage, con fallback en memoria si no está disponible. No solicitar ni almacenar refresh token. |
+| AUTH-03 | Restauración y expiración. | Consultar /auth/me al recuperar la sesión de una pestaña. Ante expiración o 401, cerrar sesión y llevar al login sin bucles; un fallo transitorio de red no elimina el token. No prometer persistencia tras cerrar la pestaña. |
 | AUTH-04 | Logout. | Descartar token y datos privados locales; no prometer revocación de JWT en servidor. |
 | AUTH-05 | Aislamiento de datos. | Mostrar recursos del usuario autenticado y manejar 404/403. El backend es la autoridad sobre propiedad y permisos. |
-| MAT-01 | CRUD de materias. | Nombre obligatorio hasta 150 caracteres; descripción opcional hasta 2000. |
+| MAT-01 | Crear y editar materias. | Nombre obligatorio hasta 150 caracteres; descripción opcional hasta 2000. Al guardar, mostrar los datos confirmados por la API. |
 | MAT-02 | Borrado de materia. | Confirmar que se borran también apuntes, pendientes, evaluaciones y asistencias asociados. |
-| APU-01 | CRUD de apuntes de texto. | Título obligatorio hasta 200 caracteres y contenido obligatorio hasta 20000; asociación a una materia propia. |
-| PEN-01 | CRUD de pendientes. | Título hasta 200 caracteres, descripción opcional hasta 2000 y fecha límite opcional. Nacen incompletos. |
+| MAT-03 | Consultar materias y su detalle. | Listar las materias propias; al seleccionar una, consultar sus datos y acceder a sus apuntes, pendientes, evaluaciones y asistencias. Si no hay materias, ofrecer crear la primera. |
+| APU-01 | Crear y editar apuntes de texto. | Título obligatorio hasta 200 caracteres y contenido obligatorio hasta 20000; asociación a una materia propia. |
+| APU-02 | Consultar apuntes. | Listar los apuntes de la materia seleccionada y abrir su contenido guardado. Identificar cuándo hay cambios locales que todavía no se guardaron. |
+| APU-03 | Eliminar un apunte. | Pedir confirmación, eliminar únicamente el apunte elegido y actualizar su listado. Si la operación falla, conservarlo y mostrar el error. |
+| PEN-01 | Crear y editar pendientes. | Título obligatorio hasta 200 caracteres, descripción opcional hasta 2000 y fecha límite opcional. Nacen incompletos. |
 | PEN-02 | Completar y reabrir pendientes. | PATCH explícito con completado true/false; un PUT de contenido no reemplaza esta operación. |
 | PEN-03 | Próximos pendientes. | Consultar un rango desde/hasta y mostrar los no completados con fecha. Los pendientes sin fecha siguen visibles en su materia. |
-| EVA-01 | CRUD de evaluaciones. | Nombre hasta 200 caracteres, fecha obligatoria y calificación opcional entre 0 y 10 con hasta dos decimales. Una nota 0 es válida y distinta de null. |
-| ASI-01 | CRUD de asistencias. | Fecha obligatoria y estado PRESENTE, AUSENTE o JUSTIFICADA. |
+| PEN-04 | Consultar pendientes por materia. | Mostrar título, descripción, fecha cuando exista y estado de cada pendiente; incluir tanto completados como incompletos y pendientes sin fecha. |
+| PEN-05 | Eliminar un pendiente. | Confirmar la eliminación del pendiente seleccionado y actualizar tanto el listado de su materia como próximos pendientes cuando esté visible. |
+| EVA-01 | Crear y editar evaluaciones. | Nombre obligatorio hasta 200 caracteres, fecha obligatoria y calificación opcional entre 0 y 10 con hasta dos decimales. Una nota 0 es válida y distinta de null. |
+| EVA-02 | Consultar evaluaciones. | Listar evaluaciones de una materia y consultar sus datos. Mostrar una calificación null como pendiente de calificación, sin convertirla en cero ni asignar aprobado/desaprobado. |
+| EVA-03 | Eliminar una evaluación. | Confirmar y borrar la evaluación seleccionada, sin modificar otras evaluaciones o recursos de la materia. Actualizar el listado al completar la operación. |
+| ASI-01 | Crear y editar asistencias. | Fecha obligatoria y estado PRESENTE, AUSENTE o JUSTIFICADA. |
 | ASI-02 | Unicidad de asistencia. | Una sola asistencia por materia y fecha; informar conflicto y permitir editar el registro existente. |
+| ASI-03 | Consultar asistencias. | Mostrar los registros de la materia con su fecha y estado. Una fecha sin registro no se interpreta automáticamente como ausencia. |
+| ASI-04 | Eliminar una asistencia. | Confirmar la eliminación del registro elegido y retirarlo del listado al completar la operación. No reemplazarlo por una ausencia automática. |
 | IA-01 | Preguntas desde un apunte. | Guardar primero el apunte y solicitar exactamente cinco preguntas/respuestas al endpoint de generación. |
 | IA-02 | Práctica y persistencia. | Ocultar respuestas hasta que el estudiante quiera verlas e informar que las preguntas no se guardan en el servidor. |
 | IA-03 | Fallos y límites. | Manejar contenido insuficiente, IA no configurada, timeout y proveedor fallido; conservar el apunte. No inventar preguntas como si fueran de la API. |
@@ -58,6 +69,6 @@ Pendientes antes de las etapas correspondientes:
 
 1. Identidad visual de Acadezer. El DESIGN.md existente pertenece al proyecto anterior y no se adopta automáticamente.
 2. URL real del backend desplegado y CORS de producción.
-3. Política de almacenamiento del access token y limpieza de las claves heredadas durante la migración.
+3. Completar validación funcional autenticada contra el despliegue y corregir los límites de login/IA pendientes en backend, según el informe de seguridad. La política local de sesión ya usa sessionStorage sin persistir el perfil y elimina selectivamente las claves heredadas.
 
 No se requieren cambios en el backend para el recorrido principal descrito. Cualquier diferencia con el servidor ejecutado se registra contra el commit de referencia antes de ajustar contratos.

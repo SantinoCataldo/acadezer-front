@@ -4,9 +4,9 @@ Versión 3.0 · 9 de noviembre de 2026. Reemplaza la especificación inmobiliari
 
 ## 1. Estado y fuentes
 
-Frontend base: main, commit dd4cd83. Tiene infraestructura Angular y código de InmoMarketing que aún no se adapta. El router solo declara Home y comodín. Los cambios locales de diseño y layout no forman parte del commit documental.
+Frontend base: main, commit 942aa65 más cambios locales. La sesión, sus DTO, interceptores, guards y servicio administrativo se adaptaron localmente; los demás recursos y pantallas siguen pendientes. El router solo declara Home y comodín. Los cambios locales de diseño y layout se preservan separados.
 
-Backend revisado estáticamente: [Acadezer 5f61e8533471af1959efcffd4ccb806f61267df2](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2). Se leyeron controladores, DTO, servicios, seguridad y pruebas relevantes; no se ejecutaron pruebas ni se verificó despliegue. Los contratos siguientes describen ese código, no una certificación del servidor en producción.
+Backend de referencia: [Acadezer 5f61e8533471af1959efcffd4ccb806f61267df2](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2). Se leyeron controladores, DTO, servicios y seguridad. Pasaron 47 pruebas aisladas del backend y 35 del frontend. Las comprobaciones anónimas de Render pasaron; resta un recorrido autenticado. Ver [evidencia y hallazgos](./REVISION_SEGURIDAD.md).
 
 Los documentos diferencian siempre comportamiento previsto, código existente y validación ejecutada. El backend de referencia entrega el dominio académico; este repositorio conserva temporalmente nombres, endpoints y dependencias del dominio anterior.
 
@@ -87,7 +87,7 @@ No existe /auth/refresh ni refreshToken en Acadezer. Eliminar el flujo heredado 
 
 El login obtiene el perfil del campo usuario; no reconstruirlo a partir de claims supuestos. Al recuperar una sesión local, consultar /auth/me y distinguir comprobación pendiente, sesión válida y sesión ausente. Un error transitorio de red no es prueba de credenciales inválidas. Al vencer el token o recibir 401 de una ruta protegida, limpiar sesión y redirigir al login una sola vez. Un 401 de login muestra error de credenciales; un 403 no inicia renovación.
 
-Logout es local. La API no revoca el JWT mediante un endpoint de logout. La política definitiva de almacenamiento del access token debe documentarse al implementarlo; localStorage no es almacenamiento inmune a XSS. Limpiar selectivamente las claves heredadas de sesión, sin borrar preferencias o almacenamiento ajeno.
+Logout es local. La API no revoca el JWT mediante un endpoint de logout. El token se mantiene en sessionStorage para recargas de la pestaña, con fallback en memoria si storage está bloqueado; el perfil solo permanece en memoria y se restaura desde /auth/me. Se eliminan selectivamente las tres claves de sesión inmobiliarias. SessionStorage también es accesible a JavaScript y no protege ante XSS.
 
 El interceptor debe adjuntar Bearer solo a rutas protegidas del origen configurado, incluido GET /auth/me. Excluir POST /auth, POST /auth/register y GET /health. No usar una regla que excluya indiscriminadamente todo /auth/**.
 
@@ -156,4 +156,4 @@ Cada commit de código debe compilar. Los modelos académicos pueden añadirse p
 
 Verificaciones futuras: login/registro reales, /auth/me protegido, expiración sin refresh, Bearer ausente en terceros, aislamiento entre usuarios, nota 0 frente a null, fechas sin desfase, asistencia duplicada, borrado de materia, y errores de IA sin perder el apunte. Pruebas automatizadas con transporte/proveedor simulado, sin llamadas facturables.
 
-La URL de Acadezer y CORS de despliegue deben verificarse antes de conectar el frontend. Los environment actuales todavía apuntan a InmoMarketing y se cambiarán en su etapa, no en documentación.
+La URL de Acadezer y CORS de despliegue deben verificarse antes de integrar el frontend. Ambos environment ya apuntan a https://acadezer.onrender.com por un cambio local del usuario; su revisión e inclusión en commit quedan para servicios/conexión. Esta revisión solo modifica documentación.

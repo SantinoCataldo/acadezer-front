@@ -6,7 +6,7 @@ Proyecto de facultad para dos integrantes. El alcance se concentra en un recorri
 
 ## Estado del repositorio
 
-Este frontend está en transición desde InmoMarketing. **La documentación ya describe Acadezer; el código todavía conserva el dominio inmobiliario.** Los modelos, servicios, interceptores, guards, identidad y conexión con la nueva API se adaptarán en commits separados.
+Este frontend está en transición desde InmoMarketing. **La sesión, sus modelos, el interceptor, los guards y el servicio administrativo tienen adaptación a Acadezer.** Los demás recursos académicos, identidad, rutas y pantallas siguen pendientes. La migración se organiza en commits separados; consultar el historial para identificar cada entrega.
 
 El nombre técnico `inmo` permanece en package.json y angular.json por ahora. El router actual solo contiene Home y un comodín. No se considera implementada una pantalla por estar descrita en estos documentos.
 
@@ -42,21 +42,22 @@ bun run build
 bun run test
 ```
 
-Estos comandos no acreditan que Acadezer esté integrado. **Ambos archivos de environment todavía apuntan al backend inmobiliario.** La URL de Acadezer se configurará en el commit de servicios/conexión; no usar las operaciones heredadas para probar el dominio académico.
+Estos comandos no acreditan que todas las pantallas de Acadezer estén integradas. **Ambos archivos de environment ya apuntan a `https://acadezer.onrender.com` por un cambio local del usuario.** La sesión usa el contrato nuevo; los servicios inmobiliarios restantes no deben usarse para probar el dominio académico.
 
 ## Backend y contrato
 
 - [Repositorio Acadezer](https://github.com/SantinoCataldo/acadezer).
 - [Contrato inspeccionado: commit 5f61e8533471af1959efcffd4ccb806f61267df2](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2).
 - Desarrollo previsto: `http://localhost:8080`; CORS del backend admite `http://localhost:4200` por defecto.
-- La URL desplegada no se verificó. Consultar el README del backend para Java, base de datos y variables de entorno.
+- Render respondió a las comprobaciones de salud, rechazo de acceso anónimo y CORS; falta una consulta académica autenticada para completar la validación funcional. Consultar el README del backend para Java, base de datos y variables de entorno.
 
-El login devuelve `accessToken`, `tokenType`, `expiresIn` y `usuario`. **Acadezer no tiene refresh token.** Al vencer el token se debe volver a iniciar sesión. `GET /auth/me` requiere Bearer y permite recuperar el usuario vigente. Las claves de IA permanecen exclusivamente en el backend.
+El login devuelve `accessToken`, `tokenType`, `expiresIn` y `usuario`. **Acadezer no tiene refresh token.** El frontend mantiene el perfil en memoria y el token en sessionStorage (o memoria si storage no está disponible); una recarga valida al usuario con `/auth/me`. Al vencer el token se vuelve a iniciar sesión. Las claves de IA permanecen exclusivamente en el backend.
 
 ## Documentación
 
 - [Requisitos del producto](./requirements.md).
 - [Arquitectura, contratos y validaciones](./docs/ESPECIFICACION_Y_ARQUITECTURA.md).
 - [Orden de commits y criterios de salida](./docs/ROADMAP_Y_DIVISION_TAREAS.md).
+- [Revisión de seguridad y evidencia de pruebas](./docs/REVISION_SEGURIDAD.md).
 
-Actualización documental: 9 de noviembre de 2026. Se revisó código del backend; no se ejecutaron sus pruebas ni se validó un despliegue durante esta revisión.
+Actualización: 9 de noviembre de 2026. Pasaron 47 pruebas aisladas del backend y 35 del frontend; build correcto. Las comprobaciones anónimas de Render pasaron. Consultar el informe de seguridad para alcance, correcciones y pendientes de backend/Neon.
