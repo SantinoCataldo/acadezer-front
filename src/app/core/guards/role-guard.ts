@@ -1,26 +1,25 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../services';
-import { UserRole } from '../models';
+import { map } from 'rxjs';
+import { AuthService } from '../services/auth.service';
+import { isUserRole } from '../services/session-validation';
 
 export const roleGuard: CanActivateFn = (route) => {
-  const authService = inject(AuthService);
+  const auth = inject(AuthService);
   const router = inject(Router);
-
-  if (!authService.isAuthenticated()) {
-    return router.createUrlTree(['/login']);
-  }
-
-  const expectedRole = route.data?.['role'] as UserRole | undefined;
-  const expectedRoles = route.data?.['roles'] as UserRole[] | undefined;
-
-  if (expectedRole && authService.hasRole(expectedRole)) {
-    return true;
-  }
-
-  if (expectedRoles && expectedRoles.some((r) => authService.hasRole(r))) {
-    return true;
-  }
-
-  return router.createUrlTree(['/']);
+  return auth.restoreSession().pipe(
+    map((authenticated) => {
+      if (!authenticated)
+        return auth.status() === 'unavailable' ? false : router.createUrlTree(['/login']);
+      const role: unknown = route.data['role'];
+      const roles: unknown = route.data['roles'];
+      const allowed = isUserRole(role)
+        ? auth.hasRole(role)
+        : Array.isArray(roles) &&
+          roles.length > 0 &&
+          roles.every(isUserRole) &&
+          roles.some((value) => auth.hasRole(value));
+      return allowed ? true : router.createUrlTree(['/']);
+    }),
+  );
 };
