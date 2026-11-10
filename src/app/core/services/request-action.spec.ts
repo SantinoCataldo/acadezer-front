@@ -119,7 +119,7 @@ describe('rate-limited request action', () => {
     auth.login({ email: student.email, password: 'password' }).subscribe();
     requests
       .expectOne(`${environment.apiUrl}/auth`)
-      .flush({ accessToken: token, tokenType: 'Bearer', expiresIn: 60, usuario: student });
+      .flush({ accessToken: token, refreshToken: 'refresh-1', tokenType: 'Bearer', expiresIn: 60, usuario: student });
     const action = createAction();
     action.run(() => http.post(url, {})).subscribe({ error: () => undefined });
     reject('10');

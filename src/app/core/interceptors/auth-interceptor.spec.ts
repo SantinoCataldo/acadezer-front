@@ -84,6 +84,7 @@ describe('authentication security', () => {
     auth.login({ email: student.email, password: 'secret-password' }).subscribe();
     requests.expectOne(`${environment.apiUrl}/auth`).flush({
       accessToken: testToken(),
+      refreshToken: 'refresh-1',
       tokenType: 'Bearer',
       expiresIn: 60,
       usuario: student,

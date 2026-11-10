@@ -80,8 +80,9 @@ export class AuthService {
   }
 
   restoreSession(): Observable<boolean> {
-    if (this.storage.restorationBlocked()) return of(false);
     const token = this.storage.getAccessToken();
+    if (this.isAuthenticated() && token && accessTokenExpiresAt(token)) return of(true);
+    if (this.storage.restorationBlocked()) return of(false);
     if (!token || !accessTokenExpiresAt(token)) {
       return this.refreshSession().pipe(
         map(() => true),

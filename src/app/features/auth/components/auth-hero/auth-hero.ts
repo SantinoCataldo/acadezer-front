@@ -7,7 +7,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { gsap } from 'gsap';
 import { authAppearance } from '@features/auth/auth-theme';
 
@@ -20,7 +19,7 @@ interface StudyStep {
 
 @Component({
   selector: 'app-auth-hero',
-  imports: [RouterLink],
+  imports: [],
   templateUrl: './auth-hero.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

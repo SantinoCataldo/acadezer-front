@@ -1,0 +1,17 @@
+<main class="grid min-h-dvh bg-[var(--theme-canvas)] p-3 pb-20 sm:p-4 sm:pb-20 md:grid-cols-[minmax(0,0.95fr)_minmax(340px,1.05fr)] md:pb-4">
+  <app-auth-hero />
+
+  <div
+    class="relative flex min-w-0 items-center justify-center px-3 py-16 sm:px-8 md:px-5 xl:px-12"
+    style="--text-field-label-background: var(--theme-canvas)"
+  >
+    <a
+      routerLink="/"
+      class="group absolute left-3 top-3 inline-flex min-h-11 items-center gap-2 rounded-[13px] px-3 text-sm font-medium text-[var(--theme-muted)] transition-[color,transform] duration-150 hover:scale-[0.99] hover:text-[var(--theme-foreground)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none sm:left-8 sm:top-4 md:left-5 md:top-4 xl:left-12"
+    >
+      <span class="material-symbols-rounded text-lg transition-transform duration-150 group-hover:-translate-x-1 motion-reduce:transition-none" aria-hidden="true">arrow_back</span>
+      Volver al inicio
+    </a>
+    <router-outlet />
+  </div>
+</main>

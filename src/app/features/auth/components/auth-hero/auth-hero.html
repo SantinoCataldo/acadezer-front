@@ -2,10 +2,9 @@
   class="relative flex min-h-[240px] flex-col justify-between overflow-hidden rounded-[26px] bg-[var(--theme-surface)] p-6 sm:p-8 md:min-h-[calc(100dvh-2rem)] md:p-7 lg:p-10 xl:p-12"
   aria-label="Acadezer, tu espacio de estudio"
 >
-  <a
-    routerLink="/"
+  <div
     data-hero-brand
-    class="relative z-10 flex w-fit items-center gap-2.5 rounded-lg outline-offset-4 focus-visible:outline-2 focus-visible:outline-[var(--theme-accent)]"
+    class="relative z-10 flex w-fit items-center gap-2.5"
   >
     <span [class]="'flex size-10 items-center justify-center ' + appearance.mark">
       <span class="material-symbols-rounded text-[22px]" aria-hidden="true">menu_book</span>
@@ -13,14 +12,11 @@
     <span [class]="'text-lg font-semibold tracking-[-0.04em] ' + appearance.foreground">
       acadezer<span [class]="appearance.brand">.</span>
     </span>
-  </a>
+  </div>
 
   <div class="relative z-10 mt-10 max-w-2xl md:my-auto md:py-10">
     <div data-hero-copy>
-      <p [class]="'text-[10px] font-semibold uppercase tracking-[0.2em] ' + appearance.brand">
-        Tu espacio de estudio
-      </p>
-      <h2 class="mt-5 max-w-xl text-[clamp(1.8rem,3.2vw,3.25rem)] font-semibold leading-[1.08] tracking-[-0.05em] text-[var(--theme-foreground)]">
+      <h2 class="max-w-xl text-[clamp(1.8rem,3.2vw,3.25rem)] font-semibold leading-[1.08] tracking-[-0.05em] text-[var(--theme-foreground)]">
         Todo lo que estudiás, en un solo lugar.
       </h2>
       <p [class]="'mt-5 max-w-md text-sm leading-6 sm:text-base ' + appearance.muted">
