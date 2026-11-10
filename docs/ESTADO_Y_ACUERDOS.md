@@ -31,12 +31,14 @@ Responsabilidad principal:
 
 No duplicar el logout que ya está en “Mi espacio”, ni crear enlaces muertos a materias/apuntes que todavía no tienen pantalla. Coordinar antes de cambiar `app.routes.ts`, guards, `AuthService`, el layout auth o tokens globales: son superficies compartidas con el trabajo de autenticación y tema.
 
-### Otra persona: autenticación, tema y onboarding
+### Vos: producto, autenticación y verificación manual
 
 - Mantener integración de sesión, pantallas de login/registro, renovación/logout y manejo de errores.
 - Mantener tokens, paleta, selector de tema y estados visuales accesibles.
 - Mantener onboarding y su destino de primera entrada.
 - Coordinar cualquier cambio de shell o rutas que afecte al área autenticada.
+- Probar manualmente los flujos de login, registro, renovación/logout y onboarding; registrar qué pasó y cualquier error reproducible.
+- Priorizar el alcance funcional pendiente y revisar los commits antes de integrarlos o publicarlos.
 
 ### Forma de colaborar
 
@@ -49,4 +51,4 @@ No duplicar el logout que ya está en “Mi espacio”, ni crear enlaces muertos
 
 ## Próximo paso sugerido
 
-Seba puede comenzar por el navbar/footer y navegación móvil con enlaces existentes. En paralelo, la otra persona puede planificar el primer recurso académico (materias) sin editar la estructura compartida hasta acordar rutas y shell.
+Seba puede comenzar por el navbar/footer y navegación móvil con enlaces existentes. La implementación CRUD de materias todavía no tiene responsable confirmado; definir quién la toma antes de empezar. No inferir que queda incluida en “navegación general”.
