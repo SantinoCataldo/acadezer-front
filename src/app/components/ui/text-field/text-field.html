@@ -28,7 +28,7 @@
       (focus)="focused.set(true)"
       (blur)="handleBlur()"
       class="h-14 w-full rounded-[14px] border bg-transparent text-base text-[var(--theme-foreground)] outline-none transition-[border-color,border-width] duration-150 placeholder:text-transparent focus:placeholder:text-[var(--theme-muted)] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
-      [style.border-color]="errorText() ? 'var(--theme-error)' : focused() ? 'var(--theme-accent)' : 'var(--theme-border)'"
+      [style.border-color]="errorText() ? 'var(--theme-error)' : focused() ? 'var(--theme-accent-content)' : 'var(--theme-border)'"
       [style.border-width.px]="focused() ? 2 : 1"
     />
 
@@ -37,7 +37,7 @@
       [style.left]="prefix() ? '2.75rem' : '0.75rem'"
       [style.top]="floatingLabel() ? '0' : '50%'"
       [style.transform]="'translateY(-50%)'"
-      [style.color]="errorText() ? 'var(--theme-error)' : focused() ? 'var(--theme-accent)' : 'var(--theme-muted)'"
+      [style.color]="errorText() ? 'var(--theme-error)' : focused() ? 'var(--theme-accent-content)' : 'var(--theme-muted)'"
       class="pointer-events-none absolute z-10 max-w-[calc(100%-1.5rem)] truncate px-1 text-base leading-none transition-[top,transform,font-size,color] duration-150 motion-reduce:transition-none"
       [style.background-color]="'var(--text-field-label-background, var(--theme-surface))'"
       [style.font-size]="floatingLabel() ? '0.75rem' : '1rem'"
@@ -58,7 +58,7 @@
         (click)="togglePasswordVisibility()"
         [attr.aria-label]="passwordVisible() ? 'Ocultar ' + label().toLowerCase() : 'Mostrar ' + label().toLowerCase()"
         [attr.aria-pressed]="passwordVisible()"
-        class="absolute inset-y-0 right-1 flex min-w-11 cursor-pointer items-center justify-center rounded-md text-[var(--theme-muted)] outline-offset-[-3px] transition-colors hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-[var(--theme-accent)]"
+        class="absolute inset-y-0 right-1 flex min-w-11 cursor-pointer items-center justify-center rounded-md text-[var(--theme-muted)] outline-offset-[-3px] transition-colors hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-[var(--theme-accent-content)]"
       >
         <span class="material-symbols-outlined text-xl" aria-hidden="true">
           {{ passwordVisible() ? 'visibility_off' : 'visibility' }}

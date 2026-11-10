@@ -12,11 +12,11 @@ interface SeedOption {
 }
 
 const paletteColors = [
-  { label: 'Rojo', color: '#E8434C' },
-  { label: 'Naranja', color: '#FF8A1D' },
+  { label: 'Rojo', color: '#DB3443' },
+  { label: 'Naranja', color: '#F97316' },
   { label: 'Verde', color: '#10E37B' },
   { label: 'Azul', color: '#1673EF' },
-  { label: 'Violeta', color: '#8317EB' },
+  { label: 'Violeta', color: '#7652E8' },
   { label: 'Magenta', color: '#CB13DC' },
   { label: 'Rosa', color: '#D980B8' },
 ];
@@ -39,7 +39,6 @@ export class ThemeSwitcher {
     { id: 'dark', label: 'Oscuro' },
     { id: 'system', label: 'Sistema' },
   ];
-
   selectSeed(seed: SeedOption): void {
     this.preferences.setVariant('tonalSpot');
     this.preferences.setSeed(seed.color);
