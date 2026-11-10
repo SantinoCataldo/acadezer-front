@@ -14,17 +14,15 @@ export class TokenStorageService {
     } catch {
       this.token = null;
     }
-    for (const key of ['inmo_access_token', 'inmo_refresh_token', 'inmo_user_profile', 'acadezer_refresh_token']) {
-      try {
-        localStorage.removeItem(key);
-      } catch {
-        /* Storage may be disabled by the browser. */
-      }
-      try {
-        sessionStorage.removeItem(key);
-      } catch {
-        /* Keep the in-memory session usable. */
-      }
+    try {
+      this.clearLegacySessionKeys(localStorage);
+    } catch {
+      // Storage can be unavailable in privacy-restricted contexts.
+    }
+    try {
+      this.clearLegacySessionKeys(sessionStorage);
+    } catch {
+      // Keep the memory session usable.
     }
   }
 
@@ -61,6 +59,19 @@ export class TokenStorageService {
       sessionStorage.removeItem(this.key);
     } catch {
       /* The in-memory token is already cleared. */
+    }
+  }
+
+  private clearLegacySessionKeys(storage: Storage): void {
+    for (let index = storage.length - 1; index >= 0; index -= 1) {
+      const key = storage.key(index);
+      if (
+        key &&
+        (key.startsWith('inmo_') ||
+          (key.startsWith('acadezer_') && key.endsWith('_refresh_token')))
+      ) {
+        storage.removeItem(key);
+      }
     }
   }
 }

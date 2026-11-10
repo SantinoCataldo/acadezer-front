@@ -1,3 +1,25 @@
-<main class="flex min-h-[60vh] items-center justify-center bg-[var(--theme-canvas)] p-8">
-  <h1 class="text-3xl font-bold tracking-tight text-[var(--theme-foreground)]">Home</h1>
+<main class="min-h-[calc(100dvh-6rem)] bg-[var(--theme-canvas)] px-5 py-8 text-[var(--theme-foreground)] sm:px-8 sm:py-12">
+  <section class="mx-auto w-full max-w-5xl">
+    <header class="flex flex-wrap items-center justify-between gap-5">
+      <div>
+        <p class="text-sm text-[var(--theme-muted)]">Tu espacio de estudio</p>
+        <h1 class="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+          Hola, {{ currentUser()?.nombre ?? 'estudiante' }}
+        </h1>
+      </div>
+
+      <button
+        type="button"
+        (click)="logout()"
+        class="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-foreground)] transition-colors hover:bg-[var(--theme-surface)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent)]"
+      >
+        <span class="material-symbols-rounded text-lg" aria-hidden="true">logout</span>
+        Cerrar sesión
+      </button>
+    </header>
+
+    <p class="mt-4 max-w-xl leading-7 text-[var(--theme-muted)]">
+      Ya podés organizar tus materias, guardar apuntes y repasar con preguntas.
+    </p>
+  </section>
 </main>

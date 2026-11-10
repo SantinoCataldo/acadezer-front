@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "inmo": {
+    "acadezer": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -31,6 +31,11 @@
           },
           "configurations": {
             "production": {
+              "optimization": {
+                "fonts": {
+                  "inline": false
+                }
+              },
               "budgets": [
                 {
                   "type": "initial",
@@ -63,10 +68,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "inmo:build:production"
+              "buildTarget": "acadezer:build:production"
             },
             "development": {
-              "buildTarget": "inmo:build:development"
+              "buildTarget": "acadezer:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -6,13 +6,11 @@ Proyecto de facultad para dos integrantes. El alcance se concentra en un recorri
 
 ## Estado del repositorio
 
-Este frontend está en transición desde InmoMarketing. **La sesión, sus modelos, el interceptor, los guards y el servicio administrativo tienen adaptación a Acadezer.** Los demás recursos académicos, identidad, rutas y pantallas siguen pendientes. La migración se organiza en commits separados; consultar el historial para identificar cada entrega.
-
-El nombre técnico `inmo` permanece en package.json y angular.json por ahora. El router actual solo contiene Home y un comodín. No se considera implementada una pantalla por estar descrita en estos documentos.
+El nombre visible y técnico del proyecto es Acadezer. Login, registro en dos pasos, restauración de sesión, preferencias de tema y cierre de sesión están conectados al backend. El inicio muestra la sesión activa; las pantallas de materias, apuntes, asistencia y evaluaciones siguen pendientes.
 
 ## Producto previsto
 
-- Registro, login y restauración de sesión con el usuario real de la API.
+- Registro, login, restauración y cierre de sesión con el usuario real de la API.
 - Materias con apuntes, pendientes, evaluaciones y asistencias.
 - Inicio con próximos pendientes y accesos a materias.
 - Calificaciones de 0 a 10, opcionales y con hasta dos decimales.
