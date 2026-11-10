@@ -58,7 +58,9 @@ describe('session guards', () => {
   }
 
   it('redirects unauthenticated access to login', async () => {
-    expect(destination(await evaluate(authGuard))).toBe('/login');
+    const decision = evaluate(authGuard);
+    requests.expectOne(`${environment.apiUrl}/auth/refresh`).flush({}, { status: 401, statusText: 'Unauthorized' });
+    expect(destination(await decision)).toBe('/login');
   });
 
   it('waits for the server to validate a restored session', async () => {
@@ -100,7 +102,9 @@ describe('session guards', () => {
   });
 
   it('allows guests to open login and registration', async () => {
-    expect(await evaluate(guestGuard)).toBe(true);
+    const decision = evaluate(guestGuard);
+    requests.expectOne(`${environment.apiUrl}/auth/refresh`).flush({}, { status: 401, statusText: 'Unauthorized' });
+    expect(await decision).toBe(true);
   });
 
   it('redirects authenticated users away from guest pages', async () => {

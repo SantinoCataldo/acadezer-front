@@ -1,10 +1,11 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth.service';
 import { TokenStorageService } from '../services/token-storage.service';
+import { accessTokenExpiresAt } from '../services/session-validation';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const document = inject(DOCUMENT);
@@ -20,11 +21,21 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const storage = inject(TokenStorageService);
   const auth = inject(AuthService);
   const token = storage.getAccessToken();
-  const outgoing = token
-    ? request.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
-    : request;
-  return next(outgoing).pipe(
+  const send = (accessToken: string | null) => next(accessToken
+    ? request.clone({ setHeaders: { Authorization: `Bearer ${accessToken}` } })
+    : request);
+  if (token && !accessTokenExpiresAt(token)) {
+    return auth.refreshSession().pipe(switchMap((freshToken) => send(freshToken)));
+  }
+  return send(token).pipe(
     catchError((error: unknown) => {
+      if (token && error instanceof HttpErrorResponse && error.status === 401 &&
+          token === storage.getAccessToken()) {
+        return auth.refreshSession().pipe(switchMap((freshToken) => {
+          if (request.method === 'GET' || request.method === 'HEAD') return send(freshToken);
+          return throwError(() => error);
+        }));
+      }
       if (token && error instanceof HttpErrorResponse && error.status === 401)
         auth.expireSession(token);
       return throwError(() => error);

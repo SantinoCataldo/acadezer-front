@@ -1,7 +1,7 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, catchError, defer, finalize, map, of, shareReplay, tap } from 'rxjs';
+import { Observable, catchError, defer, finalize, map, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { AuthRequest, AuthResponse, RegisterRequest, UserResponse, UserRole } from '../models';
 import { TokenStorageService } from './token-storage.service';
@@ -20,8 +20,10 @@ export class AuthService {
   private readonly session = signal<SessionState>({ status: 'anonymous' });
   private readonly baseUrl = environment.apiUrl.replace(/\/$/, '');
   private restoration?: Observable<boolean>;
+  private refreshRequest?: Observable<string>;
   private expiryTimer?: ReturnType<typeof setTimeout>;
   private revision = 0;
+  private logoutRevision = -1;
 
   readonly status = computed(() => this.session().status);
   readonly currentUser = computed(() => {
@@ -45,7 +47,7 @@ export class AuthService {
       defer(() => {
         const revision = ++this.revision;
         this.restoration = undefined;
-        return this.http.post<unknown>(`${this.baseUrl}/auth`, credentials).pipe(
+        return this.http.post<unknown>(`${this.baseUrl}/auth`, credentials, { withCredentials: true }).pipe(
           map((response) => {
             if (!isAuthResponse(response) || !accessTokenExpiresAt(response.accessToken)) {
               throw new Error('La API devolvió una sesión inválida');
@@ -53,7 +55,11 @@ export class AuthService {
             return response;
           }),
           tap((response) => {
-            if (revision !== this.revision) return;
+            if (revision !== this.revision) {
+              if (this.revision === this.logoutRevision) this.revokeSession();
+              return;
+            }
+            this.storage.allowRestoration();
             this.storage.saveAccessToken(response.accessToken);
             this.acceptUser(response.usuario, response.accessToken);
           }),
@@ -74,10 +80,13 @@ export class AuthService {
   }
 
   restoreSession(): Observable<boolean> {
+    if (this.storage.restorationBlocked()) return of(false);
     const token = this.storage.getAccessToken();
     if (!token || !accessTokenExpiresAt(token)) {
-      this.clearSession();
-      return of(false);
+      return this.refreshSession().pipe(
+        map(() => true),
+        catchError(() => of(false)),
+      );
     }
     if (this.isAuthenticated()) return of(true);
     if (this.restoration) return this.restoration;
@@ -85,12 +94,13 @@ export class AuthService {
     this.session.set({ status: 'checking' });
     const request = this.http.get<unknown>(`${this.baseUrl}/auth/me`).pipe(
       map((user) => {
-        if (revision !== this.revision || token !== this.storage.getAccessToken()) return false;
-        if (!isUserResponse(user) || !user.enabled || !accessTokenExpiresAt(token)) {
+        const currentToken = this.storage.getAccessToken();
+        if (revision !== this.revision || !currentToken) return false;
+        if (!isUserResponse(user) || !user.enabled || !accessTokenExpiresAt(currentToken)) {
           this.clearSession();
           return false;
         }
-        this.acceptUser(user, token);
+        this.acceptUser(user, currentToken);
         return true;
       }),
       catchError((error: unknown) => {
@@ -119,8 +129,62 @@ export class AuthService {
     return this.currentUser()?.role === role;
   }
 
+  refreshSession(): Observable<string> {
+    if (this.refreshRequest) return this.refreshRequest;
+    const revision = this.revision;
+    const request = this.http.post<unknown>(`${this.baseUrl}/auth/refresh`, null, {
+      withCredentials: true,
+      headers: { 'X-CSRF-Protection': '1' },
+    }).pipe(
+      map((response) => {
+        if (!isAuthResponse(response) || !accessTokenExpiresAt(response.accessToken)) {
+          throw new Error('La API devolvió una sesión inválida');
+        }
+        return response;
+      }),
+      switchMap((response) => {
+        if (revision !== this.revision) {
+          return throwError(() => new Error('La sesión cambió durante la renovación'));
+        }
+        this.storage.saveAccessToken(response.accessToken);
+        this.acceptUser(response.usuario, response.accessToken);
+        return of(response.accessToken);
+      }),
+      catchError((error: unknown) => {
+        if (revision === this.revision) {
+          if (error instanceof HttpErrorResponse && error.status === 401) {
+            const wasAuthenticated = this.isAuthenticated();
+            this.clearSession();
+            if (wasAuthenticated) void this.router.navigate(['/login']);
+          } else {
+            this.session.set({ status: 'unavailable' });
+          }
+        }
+        return throwError(() => error);
+      }),
+      finalize(() => {
+        if (this.refreshRequest === request) this.refreshRequest = undefined;
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
+    this.refreshRequest = request;
+    return request;
+  }
+
   logout(): void {
+    const pendingRefresh = this.refreshRequest;
     this.clearSession();
+    const revision = this.revision;
+    this.logoutRevision = revision;
+    this.storage.blockRestoration();
+    if (pendingRefresh) {
+      pendingRefresh.subscribe({
+        error: () => { if (revision === this.revision) this.revokeSession(); },
+        complete: () => { if (revision === this.revision) this.revokeSession(); },
+      });
+    } else {
+      this.revokeSession();
+    }
     void this.router.navigate(['/login']);
   }
 
@@ -128,10 +192,20 @@ export class AuthService {
     if (this.storage.getAccessToken() === token) this.logout();
   }
 
+  private revokeSession(): void {
+    this.http.post<void>(`${this.baseUrl}/auth/logout`, null, {
+      withCredentials: true,
+      headers: { 'X-CSRF-Protection': '1' },
+    }).subscribe({
+      error: () => undefined,
+    });
+  }
+
   private clearSession(): void {
     this.revision++;
     clearTimeout(this.expiryTimer);
     this.restoration = undefined;
+    this.refreshRequest = undefined;
     this.storage.clear();
     this.session.set({ status: 'anonymous' });
   }
@@ -142,7 +216,6 @@ export class AuthService {
       clearTimeout(this.expiryTimer);
       const expiresAt = accessTokenExpiresAt(token);
       if (!expiresAt) {
-        this.expireSession(token);
         return;
       }
       this.expiryTimer = setTimeout(

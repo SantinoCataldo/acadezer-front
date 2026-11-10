@@ -36,17 +36,19 @@ describe('Acadezer session', () => {
     auth.login({ email: student.email, password: 'secret-password' }).subscribe();
     const login = requests.expectOne(`${environment.apiUrl}/auth`);
     expect(login.request.headers.has('Authorization')).toBe(false);
+    expect(login.request.withCredentials).toBe(true);
     login.flush({ accessToken: token, tokenType: 'Bearer', expiresIn: 60, usuario: student });
     return auth;
   }
 
-  it('accepts the server user and stores only the access token in session storage', () => {
+  it('accepts the server user and stores tokens in session storage', () => {
     const token = testToken();
     const auth = startLogin(token);
     expect(auth.currentUser()).toEqual(student);
     expect(auth.isAuthenticated()).toBe(true);
     expect(sessionStorage.getItem('acadezer_access_token')).toBe(token);
     expect(localStorage.length).toBe(0);
+    expect(sessionStorage.getItem('acadezer_refresh_token')).toBeNull();
     expect(sessionStorage.length).toBe(1);
   });
 
@@ -66,6 +68,33 @@ describe('Acadezer session', () => {
     expect(auth.isAuthenticated()).toBe(true);
   });
 
+  it('restores a session from the cookie when no access token remains', () => {
+    const auth = TestBed.inject(AuthService);
+    auth.restoreSession().subscribe((value) => expect(value).toBe(true));
+    const refresh = requests.expectOne(`${environment.apiUrl}/auth/refresh`);
+    expect(refresh.request.withCredentials).toBe(true);
+    expect(refresh.request.headers.get('X-CSRF-Protection')).toBe('1');
+    refresh.flush({ accessToken: testToken(), tokenType: 'Bearer', expiresIn: 60, usuario: student });
+    expect(auth.isAuthenticated()).toBe(true);
+  });
+
+  it('does not restore a session after a failed logout in the same tab', () => {
+    const auth = startLogin();
+    auth.logout();
+    requests.expectOne(`${environment.apiUrl}/auth/logout`).flush({}, { status: 503, statusText: 'Unavailable' });
+    auth.restoreSession().subscribe((value) => expect(value).toBe(false));
+    requests.expectNone(`${environment.apiUrl}/auth/refresh`);
+  });
+
+  it('keeps the session when refresh is forbidden by CSRF or origin configuration', () => {
+    const auth = startLogin();
+    auth.refreshSession().subscribe({ error: () => undefined });
+    requests.expectOne(`${environment.apiUrl}/auth/refresh`).flush({}, { status: 403, statusText: 'Forbidden' });
+    expect(auth.status()).toBe('unavailable');
+    expect(TestBed.inject(TokenStorageService).getAccessToken()).not.toBeNull();
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
+  });
+
   it.each(['malformed-token', testToken(Date.now() - 60_000)])(
     'rejects an invalid or expired token without a network request: %s',
     (token) => {
@@ -73,6 +102,7 @@ describe('Acadezer session', () => {
       const auth = TestBed.inject(AuthService);
       auth.restoreSession().subscribe((value) => expect(value).toBe(false));
       requests.expectNone(`${environment.apiUrl}/auth/me`);
+      requests.expectOne(`${environment.apiUrl}/auth/refresh`).flush({}, { status: 401, statusText: 'Unauthorized' });
       expect(TestBed.inject(TokenStorageService).getAccessToken()).toBeNull();
     },
   );
@@ -100,10 +130,10 @@ describe('Acadezer session', () => {
     requests
       .expectOne(`${environment.apiUrl}/auth/me`)
       .flush({}, { status: 401, statusText: 'Unauthorized' });
+    requests.expectOne(`${environment.apiUrl}/auth/refresh`).flush({}, { status: 401, statusText: 'Unauthorized' });
     expect(auth.isAuthenticated()).toBe(false);
     expect(TestBed.inject(TokenStorageService).getAccessToken()).toBeNull();
-    expect(TestBed.inject(Router).navigate).toHaveBeenCalledTimes(1);
-    requests.expectNone(`${environment.apiUrl}/auth/refresh`);
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -125,6 +155,7 @@ describe('Acadezer session', () => {
     auth.restoreSession().subscribe((value) => expect(value).toBe(false));
     const me = requests.expectOne(`${environment.apiUrl}/auth/me`);
     auth.logout();
+    requests.expectOne(`${environment.apiUrl}/auth/logout`).flush(null, { status: 204, statusText: 'No Content' });
     me.flush(student);
     expect(auth.currentUser()).toBeNull();
   });
@@ -134,7 +165,9 @@ describe('Acadezer session', () => {
     auth.login({ email: student.email, password: 'secret-password' }).subscribe();
     const login = requests.expectOne(`${environment.apiUrl}/auth`);
     auth.logout();
+    requests.expectOne(`${environment.apiUrl}/auth/logout`).flush(null, { status: 204, statusText: 'No Content' });
     login.flush({ accessToken: testToken(), tokenType: 'Bearer', expiresIn: 60, usuario: student });
+    requests.expectOne(`${environment.apiUrl}/auth/logout`).flush(null, { status: 204, statusText: 'No Content' });
     expect(auth.isAuthenticated()).toBe(false);
     expect(TestBed.inject(TokenStorageService).getAccessToken()).toBeNull();
   });
@@ -153,26 +186,74 @@ describe('Acadezer session', () => {
     expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
   });
 
-  it('redirects only once when concurrent protected requests reject the same token', () => {
+  it('shares one refresh for concurrent rejected requests and rotates the token', () => {
     const auth = startLogin();
     const http = TestBed.inject(HttpClient);
-    http.get(`${environment.apiUrl}/api/materias`).subscribe({ error: () => undefined });
-    http.get(`${environment.apiUrl}/api/pendientes/proximos`).subscribe({ error: () => undefined });
-    for (const request of requests.match((req) =>
-      req.url.startsWith(`${environment.apiUrl}/api/`),
-    )) {
-      request.flush({}, { status: 401, statusText: 'Unauthorized' });
+    http.get(`${environment.apiUrl}/api/materias`).subscribe();
+    http.get(`${environment.apiUrl}/api/pendientes`).subscribe();
+    const originals = requests.match((req) => req.url.startsWith(`${environment.apiUrl}/api/`));
+    for (const request of originals) request.flush({}, { status: 401, statusText: 'Unauthorized' });
+    const refresh = requests.expectOne(`${environment.apiUrl}/auth/refresh`);
+    expect(refresh.request.body).toBeNull();
+    expect(refresh.request.withCredentials).toBe(true);
+    expect(refresh.request.headers.get('X-CSRF-Protection')).toBe('1');
+    expect(refresh.request.headers.has('Authorization')).toBe(false);
+    const newToken = testToken(Date.now() + 120_000);
+    refresh.flush({ accessToken: newToken, tokenType: 'Bearer', expiresIn: 60, usuario: student });
+    for (const request of requests.match((req) => req.url.startsWith(`${environment.apiUrl}/api/`))) {
+      expect(request.request.headers.get('Authorization')).toBe(`Bearer ${newToken}`);
+      request.flush([]);
     }
-    expect(auth.isAuthenticated()).toBe(false);
-    expect(TestBed.inject(Router).navigate).toHaveBeenCalledTimes(1);
+    expect(auth.isAuthenticated()).toBe(true);
+    expect(sessionStorage.getItem('acadezer_refresh_token')).toBeNull();
   });
 
-  it('expires an idle session at the token deadline', () => {
+  it('renews an expired access token before a request', () => {
     vi.useFakeTimers();
     const auth = startLogin(testToken(Date.now() + 2000));
     vi.advanceTimersByTime(2100);
+    TestBed.inject(HttpClient).get(`${environment.apiUrl}/api/materias`).subscribe();
+    requests.expectNone(`${environment.apiUrl}/api/materias`);
+    const newToken = testToken(Date.now() + 60_000);
+    requests.expectOne(`${environment.apiUrl}/auth/refresh`).flush({ accessToken: newToken, tokenType: 'Bearer', expiresIn: 60, usuario: student });
+    const resumed = requests.expectOne(`${environment.apiUrl}/api/materias`);
+    expect(resumed.request.headers.get('Authorization')).toBe(`Bearer ${newToken}`);
+    resumed.flush([]);
+    expect(auth.isAuthenticated()).toBe(true);
+  });
+
+  it('does not replay a rejected write after renewal', () => {
+    startLogin();
+    const http = TestBed.inject(HttpClient);
+    http.post(`${environment.apiUrl}/api/apuntes/1/preguntas`, {}).subscribe({ error: () => undefined });
+    requests.expectOne(`${environment.apiUrl}/api/apuntes/1/preguntas`).flush({}, { status: 401, statusText: 'Unauthorized' });
+    requests.expectOne(`${environment.apiUrl}/auth/refresh`).flush({ accessToken: testToken(), tokenType: 'Bearer', expiresIn: 60, usuario: student });
+    requests.expectNone(`${environment.apiUrl}/api/apuntes/1/preguntas`);
+  });
+
+  it('keeps credentials on refresh rate limiting', () => {
+    const auth = startLogin();
+    auth.refreshSession().subscribe({ error: () => undefined });
+    requests.expectOne(`${environment.apiUrl}/auth/refresh`).flush({}, { status: 429, statusText: 'Too Many Requests' });
+    expect(sessionStorage.getItem('acadezer_refresh_token')).toBeNull();
+    expect(auth.status()).toBe('unavailable');
+    expect(TestBed.inject(Router).navigate).not.toHaveBeenCalled();
+  });
+
+  it('revokes a rotated token received after logout', () => {
+    const auth = startLogin();
+    auth.refreshSession().subscribe({ error: () => undefined });
+    const refresh = requests.expectOne(`${environment.apiUrl}/auth/refresh`);
+    auth.logout();
+    requests.expectNone(`${environment.apiUrl}/auth/logout`);
+    refresh.flush({ accessToken: testToken(), tokenType: 'Bearer', expiresIn: 60, usuario: student });
+    const logout = requests.expectOne(`${environment.apiUrl}/auth/logout`);
+    expect(logout.request.body).toBeNull();
+    expect(logout.request.withCredentials).toBe(true);
+    expect(logout.request.headers.get('X-CSRF-Protection')).toBe('1');
+    logout.flush(null, { status: 204, statusText: 'No Content' });
     expect(auth.isAuthenticated()).toBe(false);
-    expect(TestBed.inject(TokenStorageService).getAccessToken()).toBeNull();
+    expect(sessionStorage.getItem('acadezer_refresh_token')).toBeNull();
   });
 
   it('registers a student without silently logging in', () => {
