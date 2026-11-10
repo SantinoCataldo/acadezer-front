@@ -14,20 +14,32 @@
     @if (registered()) {
       <div role="status" class="auth-step-enter">
         <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.045em] text-[var(--theme-foreground)]">
-          Cuenta creada
+          @if (autoLoginFailed()) {
+            Cuenta creada
+          } @else {
+            ¡Bienvenido a Acadezer!
+          }
         </h1>
         <p [class]="'mt-2 text-sm leading-relaxed ' + appearance.muted">
-          Ya podés iniciar sesión con tu correo y contraseña.
+          @if (autoLoginPending()) {
+            Estamos preparando tu espacio de estudio…
+          } @else if (autoLoginFailed()) {
+            La cuenta se creó, pero no pudimos iniciar sesión automáticamente. Probá ingresar con los mismos datos.
+          } @else {
+            Tu cuenta está lista. Ya iniciamos sesión.
+          }
         </p>
-        <a
-          routerLink="/login"
-          [class]="
-            'button-feedback mt-7 flex min-h-12 w-full items-center justify-center px-4 py-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 ' +
-            appearance.button
-          "
-        >
-          Ir a iniciar sesión
-        </a>
+        @if (autoLoginFailed()) {
+          <a
+            routerLink="/login"
+            [class]="
+              'button-feedback mt-7 flex min-h-12 w-full items-center justify-center px-4 py-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 ' +
+              appearance.button
+            "
+          >
+            Ir a iniciar sesión
+          </a>
+        }
       </div>
     } @else {
       <h1 class="text-[28px] font-semibold leading-tight tracking-[-0.045em] text-[var(--theme-foreground)]">

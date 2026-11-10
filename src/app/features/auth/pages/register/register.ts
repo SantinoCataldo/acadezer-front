@@ -7,7 +7,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { switchMap, tap } from 'rxjs';
 import { TextField } from '@components/ui/text-field/text-field';
 import { AuthService } from '@core/services/auth.service';
 import { AuthHero } from '@features/auth/components/auth-hero/auth-hero';
@@ -22,10 +23,13 @@ import { authAppearance } from '@features/auth/auth-theme';
 })
 export class Register {
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly appearance = authAppearance;
   readonly registered = signal(false);
+  readonly autoLoginPending = signal(false);
+  readonly autoLoginFailed = signal(false);
   readonly step = signal<1 | 2>(1);
   readonly action = this.auth.registerAction;
 
@@ -101,12 +105,32 @@ export class Register {
 
     const { nombre, email, password } = this.form.getRawValue();
 
+    const normalizedEmail = email.trim();
     this.auth
-      .register({ nombre: nombre.trim(), email: email.trim(), password })
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .register({ nombre: nombre.trim(), email: normalizedEmail, password })
+      .pipe(
+        tap(() => {
+          this.registered.set(true);
+          this.autoLoginPending.set(true);
+        }),
+        switchMap(() => this.auth.login({ email: normalizedEmail, password })),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
-        next: () => this.registered.set(true),
-        error: () => undefined,
+        next: () => {
+          this.autoLoginPending.set(false);
+          this.form.controls.password.reset();
+          this.form.controls.confirmPassword.reset();
+          void this.router.navigateByUrl('/');
+        },
+        error: () => {
+          this.autoLoginPending.set(false);
+          if (this.registered()) {
+            this.form.controls.password.reset();
+            this.form.controls.confirmPassword.reset();
+            this.autoLoginFailed.set(true);
+          }
+        },
       });
   }
 }

@@ -30,6 +30,7 @@ Usar Inter para toda la interfaz y Material Symbols Rounded / Outlined para icon
 - Evitar bordes y sombras decorativos alrededor del panel completo de autenticación. Usar separación, superficie y radio para construir jerarquía.
 - El selector de tema permanece compacto al cerrarse y abre su panel anclado al botón. Tiene entrada y salida coherentes.
 - Formularios conservan los valores cuando hay errores y presentan el estado de carga en la acción que los envía.
+- Tras crear una cuenta, el frontend intenta iniciar sesión con las credenciales recién enviadas y abre el inicio; si falla ese paso, confirma que la cuenta ya existe y ofrece ir al login.
 
 ## Composición de acceso y registro
 
