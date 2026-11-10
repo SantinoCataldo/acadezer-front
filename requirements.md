@@ -4,16 +4,16 @@ Versión 1.1 académica · Borrador para revisión · 9 de noviembre de 2026.
 
 Total: **38 requisitos**, distribuidos en **30 funcionales** (27 principales y 3 de administración secundaria) y **8 no funcionales**. Las operaciones de consulta, edición y eliminación tienen criterios propios; no se agrega alcance de backend para alcanzar esta cantidad.
 
-Este documento reemplaza el alcance inmobiliario para el trabajo futuro. Define comportamiento objetivo, no funcionalidades ya integradas en Angular. Contrato base: backend [5f61e85](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2).
+Este documento reemplaza el alcance inmobiliario para el trabajo futuro. Define comportamiento objetivo, no funcionalidades ya integradas en Angular. El contrato base se inspeccionó en el backend [5f61e85](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2); la renovación por cookie HttpOnly es una actualización posterior del backend.
 
 ## 1. Alcance principal
 
 | ID | Requisito | Criterio de aceptación |
 | --- | --- | --- |
 | AUTH-01 | Registro de estudiante. | Enviar nombre, email y contraseña; manejar 201 con usuario y conflicto de email. El registro no inicia sesión automáticamente. |
-| AUTH-02 | Login. | Mantener el usuario recibido en memoria y accessToken en sessionStorage, con fallback en memoria si no está disponible. No solicitar ni almacenar refresh token. |
-| AUTH-03 | Restauración y expiración. | Consultar /auth/me al recuperar la sesión de una pestaña. Ante expiración o 401, cerrar sesión y llevar al login sin bucles; un fallo transitorio de red no elimina el token. No prometer persistencia tras cerrar la pestaña. |
-| AUTH-04 | Logout. | Descartar token y datos privados locales; no prometer revocación de JWT en servidor. |
+| AUTH-02 | Login. | Mantener el usuario recibido en memoria y accessToken en sessionStorage, con fallback en memoria si no está disponible. El refresh token se recibe solo en cookie HttpOnly; Angular no lo lee ni lo persiste. |
+| AUTH-03 | Restauración y expiración. | Validar con /auth/me cuando haya access token vigente; si falta o venció, renovar con la cookie HttpOnly y X-CSRF-Protection: 1. Ante un 401 de renovación, cerrar sesión y llevar al login sin bucles; un fallo transitorio no elimina un access token vigente. No prometer persistencia tras cerrar la pestaña. |
+| AUTH-04 | Logout. | Descartar token y datos privados locales, llamar /auth/logout con credenciales y X-CSRF-Protection: 1 para revocar la sesión y limpiar la cookie HttpOnly. |
 | AUTH-05 | Aislamiento de datos. | Mostrar recursos del usuario autenticado y manejar 404/403. El backend es la autoridad sobre propiedad y permisos. |
 | MAT-01 | Crear y editar materias. | Nombre obligatorio hasta 150 caracteres; descripción opcional hasta 2000. Al guardar, mostrar los datos confirmados por la API. |
 | MAT-02 | Borrado de materia. | Confirmar que se borran también apuntes, pendientes, evaluaciones y asistencias asociados. |

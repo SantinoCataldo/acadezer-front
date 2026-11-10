@@ -6,7 +6,7 @@ Versión 3.0 · 9 de noviembre de 2026. Reemplaza la especificación inmobiliari
 
 Frontend base: main, commit 942aa65 más cambios locales. La sesión, sus DTO, interceptores, guards y servicio administrativo se adaptaron localmente; los demás recursos y pantallas siguen pendientes. El router solo declara Home y comodín. Los cambios locales de diseño y layout se preservan separados.
 
-Backend de referencia: [Acadezer 5f61e8533471af1959efcffd4ccb806f61267df2](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2). Se leyeron controladores, DTO, servicios y seguridad. Pasaron 47 pruebas aisladas de ese backend y 55 del frontend. El contrato adicional de 429 fue comunicado por el equipo backend, aún sin publicar; no cambia los DTO exitosos. Las comprobaciones anónimas de Render pasaron; resta un recorrido autenticado. Ver [evidencia y hallazgos](./REVISION_SEGURIDAD.md) y [manejo de 429](./MANEJO_429.md).
+Backend de referencia: [Acadezer 5f61e8533471af1959efcffd4ccb806f61267df2](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2). Se leyeron controladores, DTO, servicios y seguridad. Pasaron 47 pruebas aisladas de ese backend y 55 del frontend. El contrato de refresh por cookie HttpOnly es una actualización posterior comunicada por el equipo backend y queda reflejada en la sección de autenticación. El contrato adicional de 429 fue comunicado por el equipo backend; no cambia los DTO exitosos. Las comprobaciones anónimas de Render pasaron; resta un recorrido autenticado. Ver [evidencia y hallazgos](./REVISION_SEGURIDAD.md) y [manejo de 429](./MANEJO_429.md).
 
 Los documentos diferencian siempre comportamiento previsto, código existente y validación ejecutada. El backend de referencia entrega el dominio académico; este repositorio conserva temporalmente nombres, endpoints y dependencias del dominio anterior.
 
@@ -79,17 +79,19 @@ Las validaciones de request se detallan en [requisitos](../requirements.md). Los
 | Método y ruta | Entrada y salida |
 | --- | --- |
 | POST /auth/register | nombre, email, password → 201 con UserResponse; no token |
-| POST /auth | email, password → 200 con AuthResponse |
+| POST /auth | email, password → 200 con AuthResponse y cookie HttpOnly de refresh |
+| POST /auth/refresh | Cookie HttpOnly y X-CSRF-Protection: 1 → 200 con AuthResponse renovada |
+| POST /auth/logout | Cookie HttpOnly y X-CSRF-Protection: 1 → 204; revoca la sesión y limpia la cookie |
 | GET /auth/me | Bearer obligatorio → UserResponse vigente |
 | GET /health | Público → estado del proceso; no comprueba IA ni base de datos continuamente |
 
-No existe /auth/refresh ni refreshToken en Acadezer. Eliminar el flujo heredado durante el commit de servicios/interceptores, sin trasladar su cola de renovación.
+El refresh token vive solo en una cookie HttpOnly y nunca forma parte de DTOs ni del almacenamiento Angular. El frontend envía cookies con `withCredentials`; las rutas de renovación y logout también requieren `X-CSRF-Protection: 1` y un origen permitido por CORS. La cookie se renueva junto con el access token según el contrato actual del backend.
 
-El login obtiene el perfil del campo usuario; no reconstruirlo a partir de claims supuestos. Al recuperar una sesión local, consultar /auth/me y distinguir comprobación pendiente, sesión válida y sesión ausente. Un error transitorio de red no es prueba de credenciales inválidas. Al vencer el token o recibir 401 de una ruta protegida, limpiar sesión y redirigir al login una sola vez. Un 401 de login muestra error de credenciales; un 403 no inicia renovación.
+El login obtiene el perfil del campo usuario; no reconstruirlo a partir de claims supuestos. Al recuperar una sesión con access token vigente, consultar /auth/me; si no hay token o venció, renovar mediante la cookie antes de continuar. Un error transitorio de red no es prueba de credenciales inválidas y no debe eliminar un token vigente. Un 401 de renovación termina la sesión; un 401 de login muestra error de credenciales; un 403 no inicia renovación.
 
-Logout es local. La API no revoca el JWT mediante un endpoint de logout. El token se mantiene en sessionStorage para recargas de la pestaña, con fallback en memoria si storage está bloqueado; el perfil solo permanece en memoria y se restaura desde /auth/me. Se eliminan selectivamente las tres claves de sesión inmobiliarias. SessionStorage también es accesible a JavaScript y no protege ante XSS.
+Logout descarta el estado local y llama a `/auth/logout` para invalidar la sesión asociada al refresh cookie. El access token se mantiene en sessionStorage para recargas de la pestaña, con fallback en memoria si storage está bloqueado; el perfil solo permanece en memoria. Se eliminan selectivamente las claves de sesión inmobiliarias sin tocar preferencias como el tema. SessionStorage también es accesible a JavaScript y no protege ante XSS.
 
-El interceptor debe adjuntar Bearer solo a rutas protegidas del origen configurado, incluido GET /auth/me. Excluir POST /auth, POST /auth/register y GET /health. No usar una regla que excluya indiscriminadamente todo /auth/**.
+El interceptor debe adjuntar Bearer solo a rutas protegidas del origen configurado, incluido GET /auth/me. Excluir POST /auth, POST /auth/register, POST /auth/refresh, POST /auth/logout y GET /health. Refresh y logout envían credenciales y la cabecera CSRF, sin adjuntar Bearer. No usar una regla que excluya indiscriminadamente todo /auth/**.
 
 ## 6. Endpoints académicos
 
@@ -154,6 +156,6 @@ Orden acordado: documentación → modelos → servicios/conexión → intercept
 
 Cada commit de código debe compilar. Los modelos académicos pueden añadirse primero sin retirar aún los tipos heredados que necesitan los servicios actuales. Registrar qué es transitorio y retirar lo heredado en un commit de limpieza cuando no tenga consumidores. No usar casts, mocks de producción o métodos vacíos para ocultar incompatibilidades.
 
-Verificaciones futuras: login/registro reales, /auth/me protegido, expiración sin refresh, Bearer ausente en terceros, aislamiento entre usuarios, nota 0 frente a null, fechas sin desfase, asistencia duplicada, borrado de materia, y errores de IA sin perder el apunte. Pruebas automatizadas con transporte/proveedor simulado, sin llamadas facturables.
+Verificaciones futuras: login/registro reales, restauración desde cookie HttpOnly, rotación y logout CSRF, /auth/me protegido, Bearer ausente en terceros, aislamiento entre usuarios, nota 0 frente a null, fechas sin desfase, asistencia duplicada, borrado de materia y errores de IA sin perder el apunte. Pruebas automatizadas con transporte/proveedor simulado, sin llamadas facturables.
 
 La URL de Acadezer y CORS de despliegue deben verificarse antes de integrar el frontend. Ambos environment ya apuntan a https://acadezer.onrender.com por un cambio local del usuario; su revisión e inclusión en commit quedan para servicios/conexión. Esta revisión solo modifica documentación.

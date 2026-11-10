@@ -47,11 +47,11 @@ Estos comandos no acreditan que todas las pantallas de Acadezer estén integrada
 ## Backend y contrato
 
 - [Repositorio Acadezer](https://github.com/SantinoCataldo/acadezer).
-- [Contrato inspeccionado: commit 5f61e8533471af1959efcffd4ccb806f61267df2](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2).
+- El contrato de refresh en cookie HttpOnly es una actualización posterior comunicada por el equipo backend; el commit inspeccionado como base no lo incluía.
 - Desarrollo previsto: `http://localhost:8080`; CORS del backend admite `http://localhost:4200` por defecto.
 - Render respondió a las comprobaciones de salud, rechazo de acceso anónimo y CORS; falta una consulta académica autenticada para completar la validación funcional. Consultar el README del backend para Java, base de datos y variables de entorno.
 
-El login devuelve `accessToken`, `tokenType`, `expiresIn` y `usuario`. **Acadezer no tiene refresh token.** El frontend mantiene el perfil en memoria y el token en sessionStorage (o memoria si storage no está disponible); una recarga valida al usuario con `/auth/me`. Al vencer el token se vuelve a iniciar sesión. Las claves de IA permanecen exclusivamente en el backend.
+El login devuelve `accessToken`, `tokenType`, `expiresIn` y `usuario`; además, el backend entrega el refresh token en una cookie `HttpOnly`, que Angular no puede leer ni guardar. El frontend mantiene el perfil en memoria y el access token en `sessionStorage` (o memoria si storage no está disponible). Si falta o vence el access token, solicita `/auth/refresh` con credenciales y `X-CSRF-Protection: 1`; el backend valida el origen y la cabecera CSRF. El logout envía `/auth/logout` con la misma protección para revocar la sesión y limpiar la cookie. CORS admite únicamente los orígenes configurados en `CORS_ORIGIN`. Las claves de IA permanecen exclusivamente en el backend.
 
 ## Documentación
 

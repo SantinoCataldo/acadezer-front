@@ -12,7 +12,7 @@ Los modelos y servicios inmobiliarios ya tienen commits en el historial. Estos n
 
 La [revisión de seguridad](./REVISION_SEGURIDAD.md) registra 47 pruebas del backend revisado y 55 del frontend aprobadas. S-01 a S-03 se corrigieron en sesión, DTO, interceptor y guards. Render respondió a salud, rechazo de acceso anónimo y CORS; falta el recorrido académico autenticado. La base sigue siendo Neon. El equipo backend comunicó S-04/S-05 implementados localmente, aún sin publicar. Angular ya tiene control de espera 429 y dobles envíos para login/registro, reutilizable en práctica; falta conectarlo a pantallas y verificar el contrato desplegado.
 
-Para publicar esta corrección, se agrupan modelos de sesión, servicios e interceptor: retirar refreshToken requiere cambios coordinados para mantener compilable cada commit. Guards y prueba de navegación van separados. Esto no marca como terminada la migración de modelos o servicios de materias y sus recursos, que sigue pendiente.
+Para publicar esta corrección, se agrupan modelos de sesión, servicios e interceptor: la renovación con cookie HttpOnly y CSRF requiere coordinación entre esas capas, sin exponer refreshToken en modelos Angular. Guards y prueba de navegación van separados. Esto no marca como terminada la migración de modelos o servicios de materias y sus recursos, que sigue pendiente.
 
 ## 2. Commit 1: documentación
 
@@ -20,7 +20,7 @@ Mensaje previsto: `docs: define Acadezer scope and frontend migration plan`.
 
 - [x] Reemplazar README inmobiliario por presentación y estado real de Acadezer.
 - [x] Crear requirements.md con alcance principal, administración secundaria y exclusiones.
-- [x] Actualizar arquitectura con contratos del backend 5f61e85.
+- [x] Actualizar arquitectura con los contratos del backend inspeccionado y su actualización posterior de refresh por cookie HttpOnly.
 - [x] Definir este orden de trabajo y dependencias entre commits.
 - [x] Verificar diff y enlaces locales; limitar este commit a documentación.
 
@@ -33,7 +33,7 @@ Mensaje sugerido: `feat(models): add Acadezer API contracts`.
 - [ ] Tipos académicos de usuario, autenticación, materia, apunte, pendiente, evaluación, asistencia, preguntas y errores.
 - [ ] Roles STUDENT/ADMIN, estados de asistencia y fechas YYYY-MM-DD.
 - [ ] Distinguir valores null y campos opcionales; calificación 0 válida.
-- [ ] No reutilizar contratos inmobiliarios ni introducir refreshToken en modelos académicos.
+- [ ] No reutilizar contratos inmobiliarios ni exponer el refresh token en DTOs o almacenamiento Angular; viaja solo en cookie HttpOnly.
 - [ ] Mantener temporalmente tipos heredados necesarios para consumidores actuales, sin colisiones de exports.
 - [ ] Compilar antes del commit; revisar que solo cambien modelos y exports correspondientes.
 
@@ -45,14 +45,14 @@ Mensaje sugerido: `feat(services): integrate Acadezer authentication and resourc
 
 - [ ] Confirmar URL local/desplegada de la API y CORS. Actualizar environments en este commit y mencionarlo en el mensaje/cuerpo.
 - [ ] Adaptar almacenamiento de sesión: accessToken y usuario; limpiar claves de sesión heredadas selectivamente.
-- [ ] Implementar login, registro, /auth/me y logout local, sin refresh.
+- [ ] Implementar login, registro, /auth/me, renovación por cookie HttpOnly y logout con protección CSRF.
 - [ ] Implementar servicios de materias y sus cuatro recursos hijos, completado y próximos pendientes.
 - [ ] Implementar generación de preguntas con apunte guardado y sin retry automático.
 - [ ] Tipar errores y respuestas vacías; no crear datos ficticios para reemplazar endpoints ausentes.
 - [ ] Adaptar consumidores mínimos de la sesión que sean necesarios para compilar, identificando el alcance en el commit.
 - [ ] Mantener las rutas de producto pendientes; verificar llamadas mediante pruebas HTTP relevantes y build.
 
-Dependencia: el interceptor legado consume refreshToken(), que deja de existir en el contrato académico. Para conservar commits compilables, se permite un ajuste mínimo de compatibilidad a ese consumidor dentro de esta entrega, documentado en el cuerpo del commit. No mantener un método refresh falso. La implementación completa y sus pruebas quedan en el commit de interceptores.
+Dependencia: el servicio coordina la cookie HttpOnly de refresh con el interceptor. Mantener el valor fuera de JavaScript, incluir `withCredentials` y `X-CSRF-Protection: 1` en refresh/logout y evitar reintentos automáticos o replay de escrituras no idempotentes. Las pruebas de transporte verifican cookie, CSRF y renovación concurrente.
 
 Si el alcance resulta demasiado grande, dividir sesión y recursos en commits consecutivos dentro de esta etapa, sin mezclar pantallas. La separación por responsabilidad importa más que un número fijo de commits.
 
@@ -62,8 +62,8 @@ Mensaje sugerido: `fix(http): align authorization and errors with Acadezer`.
 
 - [ ] Bearer solo al origen configurado y rutas protegidas, incluido GET /auth/me.
 - [ ] Excluir POST /auth, POST /auth/register y GET /health.
-- [ ] Retirar definitivamente cola, semáforos y reintentos de refresh heredados.
-- [ ] Manejar 401 y expiración sin bucles ni múltiples redirecciones; 403 no renueva sesión.
+- [ ] Mantener una única renovación concurrente por sesión; retirar cualquier almacenamiento o envío del refresh token desde Angular.
+- [ ] Manejar 401 y expiración sin bucles ni múltiples redirecciones; 403 no renueva sesión y los fallos transitorios conservan un access token vigente.
 - [ ] Distinguir demora de red y error de credenciales; no afirmar cold start solo por un temporizador.
 - [ ] Concurrencia del aviso de demora y limpieza de estado en finalización/cancelación.
 - [ ] Pruebas de alcance Bearer, /auth/me, 401 de login frente a ruta privada y ausencia de retries de IA; build.

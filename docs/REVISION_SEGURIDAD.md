@@ -73,9 +73,9 @@ El token se guarda en sessionStorage para sobrevivir recargas de la pestaña, co
 
 SessionStorage sigue siendo accesible a JavaScript: no es protección frente a XSS. Mantener escape de contenido y no renderizar apuntes mediante HTML sin sanitizar cuando se creen esas pantallas. El backend siempre decide los permisos; decodificar exp en Angular solo sirve para gestionar la expiración local.
 
-### S-03 · Renovación heredada retirada
+### S-03 · Renovación protegida por cookie HttpOnly
 
-No quedan llamadas a /auth/refresh ni una cola esperando un refreshToken inexistente. La sesión expira por tiempo o ante 401 y solo provoca una redirección para solicitudes concurrentes. Logout invalida respuestas pendientes para que no restauren la sesión después de salir.
+El refresh token no se expone a JavaScript ni se guarda en localStorage/sessionStorage: viaja en cookie HttpOnly. El frontend envía credenciales y `X-CSRF-Protection: 1` en `/auth/refresh` y `/auth/logout`; el backend verifica origen y CSRF. Una renovación compartida evita solicitudes duplicadas. Los errores 403 y transitorios no borran un access token vigente; un 401 de refresh termina la sesión. El logout invalida respuestas pendientes para que no restauren la sesión después de salir.
 
 Los DTO de sesión y roles ya usan STUDENT/ADMIN y enabled. Se adaptó el servicio administrativo a users, enabled y stats para no dejar endpoints inmobiliarios bajo los nuevos tipos. Los demás modelos/servicios de negocio y la interfaz se migrarán por separado.
 
@@ -103,6 +103,6 @@ Referencia: [OWASP API4, consumo de recursos](https://api-security.owasp.org/edi
 
 ## 5. Estado para continuar
 
-Los cambios corrigen la base de seguridad de la sesión antes de conectar pantallas. Los modelos de sesión, sus servicios y el interceptor se agrupan en un commit porque retirar refreshToken afecta a los tres; guards y prueba de navegación se separan. Consultar el historial para identificar las entregas. Los 38 requisitos siguen siendo 30 funcionales y 8 no funcionales. El manejo de 429 tiene nuevas modificaciones locales aún sin commit ni push.
+Los cambios corrigen la base de seguridad de la sesión antes de conectar pantallas. Los modelos de sesión, sus servicios y el interceptor se agrupan porque la renovación con cookie HttpOnly requiere coordinación entre esas capas; el refresh token no forma parte de los modelos Angular. Guards y prueba de navegación se separan. Consultar el historial para identificar las entregas. Los 38 requisitos siguen siendo 30 funcionales y 8 no funcionales. El manejo de 429 tiene nuevas modificaciones locales aún sin commit ni push.
 
 Pendientes: completar modelos/servicios académicos, conectar guards a rutas, implementar pantallas y verificar publicación de S-04/S-05 antes de uso público amplio. Su implementación local fue comunicada por el equipo backend; no se da por desplegada. La configuración de Neon permanece intacta.
