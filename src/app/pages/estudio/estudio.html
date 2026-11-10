@@ -1,0 +1,30 @@
+<main class="min-h-[calc(100dvh-6rem)] bg-[var(--theme-canvas)] px-5 py-8 text-[var(--theme-foreground)] sm:px-8 sm:py-12">
+  <section class="mx-auto w-full max-w-5xl">
+    <header class="flex flex-wrap items-center justify-between gap-5">
+      <div>
+        <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">Mi espacio</h1>
+        <p class="mt-2 text-sm text-[var(--theme-muted)]">Hola, {{ currentUser()?.nombre ?? 'estudiante' }}.</p>
+      </div>
+
+      <button
+        type="button"
+        (click)="logout()"
+        class="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-[var(--theme-foreground)] transition-[transform,background-color] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+      >
+        <span class="material-symbols-rounded text-lg" aria-hidden="true">logout</span>
+        Cerrar sesión
+      </button>
+    </header>
+
+    <section class="mt-12" aria-labelledby="subjects-heading">
+      <h2 id="subjects-heading" class="text-xl font-semibold tracking-tight">Materias</h2>
+      <div class="mt-4 rounded-[24px] bg-[var(--theme-surface)] px-5 py-10 text-center sm:px-8 sm:py-14">
+        <span class="material-symbols-rounded text-3xl text-[var(--theme-accent-content)]" aria-hidden="true">library_books</span>
+        <p class="mt-3 font-medium">Tu espacio para las materias</p>
+        <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--theme-muted)]">
+          Acá vas a poder reunir tus cursadas y encontrar juntos los apuntes y el progreso de cada una.
+        </p>
+      </div>
+    </section>
+  </section>
+</main>

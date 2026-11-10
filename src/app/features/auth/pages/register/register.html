@@ -1,0 +1,194 @@
+<section
+  data-auth-form
+  class="mx-auto w-full max-w-[420px]"
+  aria-label="Crear cuenta"
+  style="--text-field-label-background: var(--theme-canvas)"
+  appAuthFormReveal
+>
+
+    @if (registered()) {
+      <div role="status" class="auth-step-enter text-center">
+        <h1 data-reveal-item class="text-[28px] font-semibold leading-tight tracking-[-0.045em] text-[var(--theme-foreground)]">
+          @if (autoLoginFailed()) {
+            Cuenta creada
+          } @else {
+            ¡Bienvenido a Acadezer!
+          }
+        </h1>
+        <p data-reveal-item [class]="'mt-2 text-sm leading-relaxed ' + appearance.muted">
+          @if (autoLoginPending()) {
+            Estamos preparando tu espacio de estudio…
+          } @else if (autoLoginFailed()) {
+            La cuenta se creó, pero no pudimos iniciar sesión automáticamente. Probá ingresar con los mismos datos.
+          } @else {
+            Tu cuenta está lista. Ya iniciamos sesión.
+          }
+        </p>
+        @if (autoLoginFailed()) {
+          <a
+            data-reveal-item
+            href="/login"
+            (click)="navigateToLogin($event)"
+            [class]="
+              'button-feedback mt-7 flex min-h-12 w-full items-center justify-center px-4 py-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 ' +
+              appearance.button
+            "
+          >
+            Ir a iniciar sesión
+          </a>
+        }
+      </div>
+    } @else {
+      <h1 data-reveal-item class="text-[28px] font-semibold leading-tight tracking-[-0.045em] text-[var(--theme-foreground)]">
+        {{ step() === 1 ? 'Crear cuenta' : 'Elegí tu contraseña' }}
+      </h1>
+      <p data-reveal-item [class]="'mt-2 text-sm leading-relaxed ' + appearance.muted">
+        {{
+          step() === 1
+            ? 'Empecemos con tu nombre y correo.'
+            : 'Ya falta poco. Creá una contraseña para tu cuenta.'
+        }}
+      </p>
+
+      <div data-reveal-item class="mt-6" [attr.aria-label]="'Paso ' + step() + ' de 2'">
+        <div class="flex gap-2" aria-hidden="true">
+          <span
+            class="h-1 flex-1 rounded-full"
+            [style.background-color]="step() >= 1 ? 'var(--theme-accent)' : 'var(--theme-border)'"
+          ></span>
+          <span
+            class="h-1 flex-1 rounded-full"
+            [style.background-color]="step() >= 2 ? 'var(--theme-accent)' : 'var(--theme-border)'"
+          ></span>
+        </div>
+        <p [class]="'mt-2 text-xs ' + appearance.muted" aria-live="polite">
+          Paso {{ step() }} de 2 · {{ step() === 1 ? 'Tus datos' : 'Tu contraseña' }}
+        </p>
+      </div>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="handleSubmit()"
+        [attr.aria-busy]="action.pending()"
+        class="mt-6"
+      >
+        @if (step() === 1) {
+          <div class="auth-step-enter space-y-5">
+            <app-text-field
+              data-reveal-item
+              id="register-name"
+              label="Nombre"
+              autocomplete="name"
+              placeholder="Tu nombre"
+              [required]="true"
+              [errorText]="nameErrorMessage()"
+              formControlName="nombre"
+            />
+
+            <app-text-field
+              data-reveal-item
+              id="register-email"
+              label="Correo electrónico"
+              type="email"
+              autocomplete="email"
+              placeholder="tu@correo.com"
+              [required]="true"
+              [maxLength]="254"
+              [errorText]="emailErrorMessage()"
+              formControlName="email"
+            />
+
+            <button
+              data-reveal-item
+              type="submit"
+              [class]="'mt-1 flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-[background-color,transform] duration-150 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 motion-reduce:transition-none ' + appearance.button"
+            >
+              Continuar
+              <span class="material-symbols-rounded text-lg" aria-hidden="true">
+                arrow_forward
+              </span>
+            </button>
+          </div>
+        } @else {
+          <div class="auth-step-enter space-y-5">
+            <app-text-field
+              data-reveal-item
+              id="register-password"
+              label="Contraseña"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Elegí una contraseña"
+              [required]="true"
+              [maxLength]="72"
+              [revealable]="true"
+              [errorText]="passwordErrorMessage()"
+              formControlName="password"
+            />
+
+            <app-text-field
+              data-reveal-item
+              id="register-confirm-password"
+              label="Repetir contraseña"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Repetí tu contraseña"
+              [required]="true"
+              [maxLength]="72"
+              [revealable]="true"
+              [errorText]="confirmationErrorMessage()"
+              formControlName="confirmPassword"
+            />
+
+            @if (action.errorMessage()) {
+              <p role="alert" [class]="'rounded-lg p-3 text-sm ' + appearance.error">
+                {{ action.errorMessage() }}
+              </p>
+            }
+
+            <div class="flex gap-3 pt-1">
+              <button
+                data-reveal-item
+                type="button"
+                (click)="goToDetailsStep()"
+                [disabled]="action.pending()"
+                [class]="'group flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 border px-4 py-3 text-sm font-semibold transition-[transform,background-color,border-color] duration-200 ease-out hover:-translate-x-0.5 hover:border-[var(--theme-accent-content)] hover:bg-[var(--theme-surface)] active:-translate-x-1 focus-visible:outline-2 focus-visible:outline-offset-4 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none ' + appearance.field"
+              >
+                <span
+                  class="material-symbols-rounded text-lg transition-transform duration-200 ease-out group-hover:-translate-x-1 motion-reduce:transition-none"
+                  aria-hidden="true"
+                >
+                  arrow_back
+                </span>
+                <span>Atrás</span>
+              </button>
+              <button
+                data-reveal-item
+                type="submit"
+                [disabled]="action.disabled()"
+                [class]="'min-h-12 flex-[1.5] cursor-pointer px-4 py-3 text-sm font-semibold transition-[background-color,transform] duration-150 active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-4 disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none ' + appearance.button"
+              >
+                @if (action.pending()) {
+                  Creando cuenta…
+                } @else if (action.remainingSeconds() > 0) {
+                  Esperá {{ action.remainingSeconds() }} s
+                } @else {
+                  Crear cuenta
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </form>
+
+      <div data-reveal-item [class]="'mt-6 text-center text-[13px] leading-relaxed ' + appearance.muted">
+        ¿Ya tenés cuenta?
+        <a
+          href="/login"
+          (click)="navigateToLogin($event)"
+          [class]="'ml-1 font-semibold underline underline-offset-4 ' + appearance.link"
+        >
+          Iniciar sesión
+        </a>
+      </div>
+    }
+</section>

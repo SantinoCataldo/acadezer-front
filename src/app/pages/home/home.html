@@ -1,0 +1,24 @@
+<main class="grid min-h-dvh place-items-center bg-[var(--theme-canvas)] px-6 py-12 text-center text-[var(--theme-foreground)] sm:px-10">
+  <section class="mx-auto w-full max-w-5xl">
+    <h1 class="text-[clamp(2.75rem,8vw,5.5rem)] font-semibold leading-[1.02] tracking-[-0.055em]">
+      Todo lo que estudiás, en un solo lugar.
+    </h1>
+    <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-[var(--theme-muted)] sm:text-lg sm:leading-8">
+      Organizá tus materias, guardá tus apuntes y convertí lo que leés en preguntas para repasar.
+    </p>
+    <nav aria-label="Acceso" class="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
+      <a
+        routerLink="/register"
+        class="inline-flex min-h-12 items-center justify-center rounded-[15px] bg-[var(--theme-accent)] px-6 text-sm font-semibold text-[var(--theme-on-accent)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+      >
+        Crear cuenta
+      </a>
+      <a
+        routerLink="/login"
+        class="inline-flex min-h-12 items-center justify-center rounded-[15px] px-6 text-sm font-semibold text-[var(--theme-foreground)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+      >
+        Iniciar sesión
+      </a>
+    </nav>
+  </section>
+</main>
