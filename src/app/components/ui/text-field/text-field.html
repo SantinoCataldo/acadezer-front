@@ -1,0 +1,79 @@
+<div class="w-full">
+  <div class="relative">
+    @if (prefix()) {
+      <span
+        class="pointer-events-none absolute inset-y-0 left-3 z-10 flex items-center text-sm text-[var(--theme-muted)]"
+        aria-hidden="true"
+      >
+        {{ prefix() }}
+      </span>
+    }
+
+    <input
+      [id]="id()"
+      [type]="renderedType()"
+      [value]="value()"
+      [attr.autocomplete]="autocomplete()"
+      [attr.maxlength]="maxLength()"
+      [attr.aria-label]="label()"
+      [attr.aria-describedby]="describedBy()"
+      [attr.aria-invalid]="errorText() ? 'true' : null"
+      [attr.aria-required]="required() ? 'true' : null"
+      [disabled]="disabled()"
+      [required]="required()"
+      [placeholder]="placeholder()"
+      [style.padding-left]="prefix() ? '2.75rem' : '0.75rem'"
+      [style.padding-right]="revealable() || suffix() ? '3rem' : '0.75rem'"
+      (input)="handleInput($event)"
+      (focus)="focused.set(true)"
+      (blur)="handleBlur()"
+      class="h-14 w-full rounded-[14px] border bg-transparent text-base text-[var(--theme-foreground)] outline-none transition-[border-color,border-width] duration-150 placeholder:text-transparent focus:placeholder:text-[var(--theme-muted)] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
+      [style.border-color]="errorText() ? 'var(--theme-error)' : focused() ? 'var(--theme-accent)' : 'var(--theme-border)'"
+      [style.border-width.px]="focused() ? 2 : 1"
+    />
+
+    <label
+      [for]="id()"
+      [style.left]="prefix() ? '2.75rem' : '0.75rem'"
+      [style.top]="floatingLabel() ? '0' : '50%'"
+      [style.transform]="'translateY(-50%)'"
+      [style.color]="errorText() ? 'var(--theme-error)' : focused() ? 'var(--theme-accent)' : 'var(--theme-muted)'"
+      class="pointer-events-none absolute z-10 max-w-[calc(100%-1.5rem)] truncate px-1 text-base leading-none transition-[top,transform,font-size,color] duration-150 motion-reduce:transition-none"
+      [style.background-color]="'var(--text-field-label-background, var(--theme-surface))'"
+      [style.font-size]="floatingLabel() ? '0.75rem' : '1rem'"
+    >
+      {{ label() }}
+    </label>
+
+    @if (suffix()) {
+      <span
+        class="pointer-events-none absolute inset-y-0 right-3 z-10 flex items-center text-sm text-[var(--theme-muted)]"
+        aria-hidden="true"
+      >
+        {{ suffix() }}
+      </span>
+    } @else if (revealable()) {
+      <button
+        type="button"
+        (click)="togglePasswordVisibility()"
+        [attr.aria-label]="passwordVisible() ? 'Ocultar ' + label().toLowerCase() : 'Mostrar ' + label().toLowerCase()"
+        [attr.aria-pressed]="passwordVisible()"
+        class="absolute inset-y-0 right-1 flex min-w-11 cursor-pointer items-center justify-center rounded-md text-[var(--theme-muted)] outline-offset-[-3px] transition-colors hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-[var(--theme-accent)]"
+      >
+        <span class="material-symbols-outlined text-xl" aria-hidden="true">
+          {{ passwordVisible() ? 'visibility_off' : 'visibility' }}
+        </span>
+      </button>
+    }
+  </div>
+
+  @if (errorText()) {
+    <p [id]="id() + '-error'" class="mt-1.5 text-xs leading-relaxed text-[var(--theme-error)]" aria-live="polite">
+      {{ errorText() }}
+    </p>
+  } @else if (supportingText()) {
+    <p [id]="id() + '-supporting'" class="mt-1.5 px-3 text-xs leading-relaxed text-[var(--theme-muted)]">
+      {{ supportingText() }}
+    </p>
+  }
+</div>
