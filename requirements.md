@@ -10,7 +10,7 @@ Este documento reemplaza el alcance inmobiliario para el trabajo futuro. Define 
 
 | ID | Requisito | Criterio de aceptación |
 | --- | --- | --- |
-| AUTH-01 | Registro de estudiante. | Enviar nombre, email y contraseña; manejar 201 con usuario y conflicto de email. El registro no inicia sesión automáticamente. |
+| AUTH-01 | Registro de estudiante. | Enviar nombre, email y contraseña; manejar 201 y conflicto de email. Si el registro se confirma, intentar iniciar sesión con esas credenciales y continuar al onboarding; si el login falla, informar que la cuenta ya existe y ofrecer el acceso manual. |
 | AUTH-02 | Login. | Mantener el usuario recibido en memoria y accessToken en sessionStorage, con fallback en memoria si no está disponible. El refresh token se recibe solo en cookie HttpOnly; Angular no lo lee ni lo persiste. |
 | AUTH-03 | Restauración y expiración. | Validar con /auth/me cuando haya access token vigente; si falta o venció, renovar con la cookie HttpOnly y X-CSRF-Protection: 1. Ante un 401 de renovación, cerrar sesión y llevar al login sin bucles; un fallo transitorio no elimina un access token vigente. No prometer persistencia tras cerrar la pestaña. |
 | AUTH-04 | Logout. | Descartar token y datos privados locales, llamar /auth/logout con credenciales y X-CSRF-Protection: 1 para revocar la sesión y limpiar la cookie HttpOnly. |
@@ -67,7 +67,7 @@ Un promedio simple puede incorporarse después, ignorando calificaciones null y 
 
 Pendientes antes de las etapas correspondientes:
 
-1. Identidad visual de Acadezer. El DESIGN.md existente pertenece al proyecto anterior y no se adopta automáticamente.
+1. Identidad visual de Acadezer: documentada en DESIGN.md; seguir puliendo durante la implementación sin reemplazar los tokens globales por colores locales.
 2. URL real del backend desplegado y CORS de producción.
 3. Completar validación funcional autenticada contra el despliegue y corregir los límites de login/IA pendientes en backend, según el informe de seguridad. La política local de sesión ya usa sessionStorage sin persistir el perfil y elimina selectivamente las claves heredadas.
 

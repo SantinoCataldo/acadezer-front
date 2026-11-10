@@ -15,6 +15,7 @@ La interfaz consume tokens semánticos (`--theme-canvas`, `--theme-surface`, `--
 - En monocromo claro: fondo `#FBF9FC`, superficie principal `#F5F3F6`.
 - En monocromo oscuro: fondo `#000000`, superficie principal `#101012`.
 - El texto mantiene contraste legible en los dos modos. El acento identifica el foco, la selección y la acción principal.
+- Los botones principales, controles activos y marcadores usan el primario tonal generado por Material 3. El texto sobre esos acentos elige blanco o casi negro por contraste; superficies y estados secundarios conservan los tonos coordinados de la paleta. El rojo activo es `#DB3443` para permitir texto blanco con buen contraste.
 - Los swatches empiezan circulares; el seleccionado se transforma en un cuadrado redondeado con una marca de selección. Esta forma acompaña el estado hasta que se elige otro color.
 - El texto seleccionado usa el acento activo como fondo y `--theme-on-accent` como texto, para conservar contraste al cambiar paleta o modo.
 
@@ -30,15 +31,24 @@ Usar Inter para toda la interfaz y Material Symbols Rounded / Outlined para icon
 - Evitar bordes y sombras decorativos alrededor del panel completo de autenticación. Usar separación, superficie y radio para construir jerarquía.
 - El selector de tema permanece compacto al cerrarse y abre su panel anclado al botón. Tiene entrada y salida coherentes.
 - Formularios conservan los valores cuando hay errores y presentan el estado de carga en la acción que los envía.
-- Tras crear una cuenta, el frontend intenta iniciar sesión con las credenciales recién enviadas y abre el inicio; si falla ese paso, confirma que la cuenta ya existe y ofrece ir al login.
+- Tras crear una cuenta, el frontend intenta iniciar sesión con las credenciales recién enviadas y abre el onboarding; al terminar, la persona llega a “Mi espacio”. Si falla el inicio automático, confirma que la cuenta ya existe y ofrece ir al login.
+- La ruta raíz `/` es la landing pública. El espacio privado se presenta como “Mi espacio” y usa `/estudio`; requiere sesión. El acceso y el registro redirigen allí cuando ya hay una sesión activa.
 
 ## Composición de acceso y registro
 
-- En ventanas amplias, el panel de presentación queda a la izquierda y el formulario a la derecha. El formulario se mantiene legible en el centro de su columna.
+- En ventanas amplias, el panel de presentación queda a la izquierda y el formulario a la derecha. El formulario se mantiene legible en el centro de su columna. Se omiten las etiquetas pequeñas decorativas sobre los títulos.
 - Por debajo de 768 px, el contenido se apila y reduce el peso del panel visual para priorizar el formulario.
 - El panel de presentación explica el flujo con tres etapas: Materias, Apuntes y Preguntas. La etapa activa avanza en un loop breve con una descripción; no agrega flechas que aparenten navegación.
 - “Volver al inicio” va en la esquina superior izquierda del área del formulario, con una flecha hacia la izquierda.
 - Al pasar de login a registro, las rutas cambian sin una transición que cubra toda la página. Cada vista puede animar su panel de entrada.
+
+## Onboarding
+
+- El recorrido de primera entrada tiene cinco pasos breves: bienvenida, materias, apuntes, preguntas y elección de tema.
+- Cada paso explica una parte real del flujo de Acadezer con una vista previa propia; no usar bloques genéricos repetidos.
+- Fondo, superficies, texto, progreso y acciones consumen los tokens del tema elegido. La paleta ofrece los mismos siete acentos y la opción monocroma que el selector global.
+- El avance y el cierre animan solo el contenido central, elemento por elemento de arriba hacia abajo con desplazamiento y blur sutiles. Marca, contador y controles inferiores permanecen quietos; las barras superiores llenan o descargan su progreso. La vista previa del flujo puede animarse en loop; `prefers-reduced-motion` la deja estática.
+- En móvil el contenido se apila, la paleta queda en dos filas de cuatro y las acciones mantienen un área táctil cómoda.
 
 ## Movimiento e interacción
 

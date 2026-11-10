@@ -6,13 +6,13 @@ Proyecto de facultad para dos integrantes. El alcance se concentra en un recorri
 
 ## Estado del repositorio
 
-El nombre visible y técnico del proyecto es Acadezer. Login, registro en dos pasos, restauración de sesión, preferencias de tema y cierre de sesión están conectados al backend. El inicio muestra la sesión activa; las pantallas de materias, apuntes, asistencia y evaluaciones siguen pendientes.
+El nombre visible y técnico del proyecto es Acadezer. Login, registro en dos pasos, restauración de sesión, preferencias de tema y cierre de sesión están conectados al backend. Después del registro exitoso se inicia sesión y se muestra el onboarding. La ruta pública `/` contiene una landing breve; las sesiones activas van a `/estudio` (“Mi espacio”), que está protegido y ofrece cierre de sesión. Las pantallas para gestionar materias, apuntes, asistencia y evaluaciones siguen pendientes.
 
 ## Producto previsto
 
 - Registro, login, restauración y cierre de sesión con el usuario real de la API.
 - Materias con apuntes, pendientes, evaluaciones y asistencias.
-- Inicio con próximos pendientes y accesos a materias.
+- Inicio autenticado con próximos pendientes y accesos a materias.
 - Calificaciones de 0 a 10, opcionales y con hasta dos decimales.
 - Asistencia por fecha: presente, ausente o justificada.
 - Cinco preguntas desde el contenido guardado de un apunte; las preguntas no se persisten.
@@ -56,7 +56,8 @@ El login devuelve `accessToken`, `tokenType`, `expiresIn` y `usuario`; además, 
 - [Requisitos del producto](./requirements.md).
 - [Arquitectura, contratos y validaciones](./docs/ESPECIFICACION_Y_ARQUITECTURA.md).
 - [Orden de commits y criterios de salida](./docs/ROADMAP_Y_DIVISION_TAREAS.md).
+- [Estado actual y acuerdos con Seba](./docs/ESTADO_Y_ACUERDOS.md).
 - [Revisión de seguridad y evidencia de pruebas](./docs/REVISION_SEGURIDAD.md).
 - [Manejo de HTTP 429 y contrato de límites](./docs/MANEJO_429.md).
 
-Actualización: 9 de noviembre de 2026. Pasaron 47 pruebas aisladas del backend revisado y 55 del frontend. Las comprobaciones anónimas de Render pasaron. El nuevo contrato de límites fue comunicado por backend, pero su implementación y despliegue aún no se verificaron; ver el documento de HTTP 429.
+Actualización: 10 de noviembre de 2026. El estado de pantallas implementadas y pendientes se lleva en [estado y acuerdos](./docs/ESTADO_Y_ACUERDOS.md). La evidencia histórica de las pruebas de backend/frontend y las comprobaciones de despliegue está detallada en los documentos de arquitectura y seguridad; las pruebas manuales del flujo actual de registro/login quedan pendientes de verificación del equipo.

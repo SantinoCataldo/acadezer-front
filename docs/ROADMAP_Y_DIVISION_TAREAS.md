@@ -1,10 +1,10 @@
 # Acadezer · Roadmap y orden de commits
 
-9 de noviembre de 2026. Referencias: [requisitos](../requirements.md), [arquitectura y contrato](./ESPECIFICACION_Y_ARQUITECTURA.md), [README](../README.md).
+10 de noviembre de 2026. Referencias: [requisitos](../requirements.md), [arquitectura y contrato](./ESPECIFICACION_Y_ARQUITECTURA.md), [README](../README.md), [estado y acuerdos](./ESTADO_Y_ACUERDOS.md).
 
 ## 1. Regla de trabajo
 
-Avanzar por partes con commits de responsabilidad clara. La secuencia acordada es documentación, modelos, servicios, interceptores y guards. Después se adaptan identidad, rutas y pantallas. No mezclar cambios locales de diseño, skills o assets con integración de API.
+Avanzar por partes con commits de responsabilidad clara. La secuencia inicial de documentación, modelos, servicios, interceptores y guards ya está en el historial. El pulido visual, el onboarding y el nuevo espacio privado se registran como entregas posteriores en [estado y acuerdos](./ESTADO_Y_ACUERDOS.md). No mezclar cambios de navegación con autenticación o preferencias de tema sin coordinación.
 
 Antes de cada push, presentar al usuario los commits y el destino y pedir su aprobación explícita. Esperar la respuesta antes de publicar. Una autorización anterior no habilita pushes futuros.
 
@@ -94,9 +94,7 @@ Salida: guards disponibles para las rutas académicas futuras; el backend mantie
 
 ## 8. Coordinación entre dos integrantes
 
-Propuesta, sin asignación de nombres: una persona puede concentrarse en integración y sesión; la otra, en pantallas de materias y contenido una vez fijados los DTO. Ambos revisan contratos, integran y preparan la defensa. También pueden dividir por funcionalidades según la consigna de la materia.
-
-No agregar como requisito del frontend trabajo extra de backend que no necesite el recorrido principal. No fijar plazos sin estimación del equipo. No ejecutar en paralelo cambios incompatibles sobre router, sesión o exports compartidos.
+La división acordada para el próximo tramo está en [estado y acuerdos](./ESTADO_Y_ACUERDOS.md). Seba toma navegación general y shell compartido; la otra persona mantiene autenticación, tema, onboarding e integración de sesión. Las tareas que toquen rutas, guards, estilos globales o componentes compartidos se coordinan antes de editar para evitar conflictos.
 
 ## 9. Cierre de cada commit
 
@@ -106,4 +104,4 @@ No agregar como requisito del frontend trabajo extra de backend que no necesite 
 - Mantener el commit compilable; si una dependencia exige un ajuste en otra capa, explicarlo o dividir mejor el cambio.
 - No publicar, desplegar ni reescribir historial como parte de un commit local.
 
-Estado al preparar el primer commit: solo cambia documentación. Las siguientes etapas permanecen pendientes.
+Las etapas iniciales de documentación, modelos, servicios, interceptor y guards ya tienen commits en `main`. El estado de interfaz, los pendientes académicos y la división actual de tareas se mantienen en [estado y acuerdos](./ESTADO_Y_ACUERDOS.md).

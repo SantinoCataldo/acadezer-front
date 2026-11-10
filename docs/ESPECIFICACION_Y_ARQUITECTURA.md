@@ -1,10 +1,10 @@
 # Acadezer · Arquitectura y contrato frontend
 
-Versión 3.0 · 9 de noviembre de 2026. Reemplaza la especificación inmobiliaria. Alcance funcional: [requirements.md](../requirements.md). Implementación por etapas: [roadmap](./ROADMAP_Y_DIVISION_TAREAS.md).
+Versión 3.1 · 10 de noviembre de 2026. Reemplaza la especificación inmobiliaria. Alcance funcional: [requirements.md](../requirements.md). Implementación por etapas: [roadmap](./ROADMAP_Y_DIVISION_TAREAS.md). Estado actual: [estado y acuerdos](./ESTADO_Y_ACUERDOS.md).
 
 ## 1. Estado y fuentes
 
-Frontend base: main, commit 942aa65 más cambios locales. La sesión, sus DTO, interceptores, guards y servicio administrativo se adaptaron localmente; los demás recursos y pantallas siguen pendientes. El router solo declara Home y comodín. Los cambios locales de diseño y layout se preservan separados.
+Frontend: los contratos de autenticación, servicio, interceptor y guards constan en el historial de `main`. El estado de login/registro, tema, onboarding, landing pública y espacio privado se mantiene en [estado y acuerdos](./ESTADO_Y_ACUERDOS.md). Las pantallas y servicios académicos de materias y recursos todavía siguen pendientes.
 
 Backend de referencia: [Acadezer 5f61e8533471af1959efcffd4ccb806f61267df2](https://github.com/SantinoCataldo/acadezer/tree/5f61e8533471af1959efcffd4ccb806f61267df2). Se leyeron controladores, DTO, servicios y seguridad. Pasaron 47 pruebas aisladas de ese backend y 55 del frontend. El contrato de refresh por cookie HttpOnly es una actualización posterior comunicada por el equipo backend y queda reflejada en la sección de autenticación. El contrato adicional de 429 fue comunicado por el equipo backend; no cambia los DTO exitosos. Las comprobaciones anónimas de Render pasaron; resta un recorrido autenticado. Ver [evidencia y hallazgos](./REVISION_SEGURIDAD.md) y [manejo de 429](./MANEJO_429.md).
 
