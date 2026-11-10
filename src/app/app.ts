@@ -18,13 +18,28 @@ export class App {
   readonly showLayout = toSignal(
     this.router.events.pipe(
       filter((event) => event instanceof NavigationEnd),
-      map(() => this.router.routerState.snapshot.root.firstChild?.data['layout'] !== 'auth'),
+      map(() => {
+        const layout = this.router.routerState.snapshot.root.firstChild?.data['layout'];
+        return layout !== 'auth' && layout !== 'bare';
+      }),
     ),
     { initialValue: this.shouldShowLayout(this.location.path()) },
+  );
+  readonly showThemeSwitcher = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map((event) => this.shouldShowThemeSwitcher(event.urlAfterRedirects)),
+    ),
+    { initialValue: this.shouldShowThemeSwitcher(this.location.path()) },
   );
 
   private shouldShowLayout(url: string): boolean {
     const path = url.split(/[?#]/, 1)[0]?.replace(/\/+$/, '') || '/';
-    return path !== '/login' && path !== '/register';
+    return path !== '/' && path !== '/home' && path !== '/login' && path !== '/register' && path !== '/onboarding';
+  }
+
+  private shouldShowThemeSwitcher(url: string): boolean {
+    const path = url.split(/[?#]/, 1)[0]?.replace(/\/+$/, '') || '/';
+    return path !== '/onboarding';
   }
 }

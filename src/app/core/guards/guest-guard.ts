@@ -8,5 +8,5 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
   return auth
     .restoreSession()
-    .pipe(map((authenticated) => (authenticated ? router.createUrlTree(['/']) : true)));
+    .pipe(map((authenticated) => (authenticated ? router.createUrlTree(['/estudio']) : true)));
 };
