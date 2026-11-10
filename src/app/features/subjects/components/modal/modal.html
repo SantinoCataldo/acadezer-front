@@ -1,0 +1,45 @@
+<div class="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-6">
+  <div
+    class="absolute inset-0 bg-black/40"
+    aria-hidden="true"
+    (click)="requestClose()"
+  ></div>
+
+  <section
+    #panel
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="titleId"
+    [attr.aria-describedby]="description() ? descriptionId : null"
+    tabindex="-1"
+    (keydown)="handleKeydown($event)"
+    class="modal-panel relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-y-auto rounded-t-[24px] border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-foreground)] shadow-[0_24px_60px_-24px_rgba(0,0,0,0.35)] sm:rounded-[24px]"
+  >
+    <header class="flex items-start gap-3 px-5 pt-5 sm:px-6 sm:pt-6">
+      <div class="min-w-0">
+        <h2 [id]="titleId" class="text-lg font-semibold tracking-tight sm:text-xl">
+          {{ title() }}
+        </h2>
+        @if (description(); as text) {
+          <p [id]="descriptionId" class="mt-1.5 text-sm leading-relaxed text-[var(--theme-muted)]">
+            {{ text }}
+          </p>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="-mr-2 -mt-2 ml-auto flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-surface-high)] hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"
+        [disabled]="pending()"
+        (click)="requestClose()"
+        [attr.aria-label]="'Cerrar ' + title()"
+      >
+        <span class="material-symbols-rounded text-xl" aria-hidden="true">close</span>
+      </button>
+    </header>
+
+    <div class="px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
+      <ng-content />
+    </div>
+  </section>
+</div>
