@@ -1,0 +1,51 @@
+/* APU-01: dos paneles (lista + editor) en pantallas anchas y uno por vez en
+   celular. El cambio se hace acá y no con clases de Tailwind para no pelearse
+   con el estado `view` que maneja el componente. */
+
+.notes-panes {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.notes-pane-list {
+  min-width: 0;
+}
+
+.notes-pane-editor {
+  min-width: 0;
+}
+
+/* Celular: se muestra un solo panel según `data-view`. */
+[data-view='list'] .notes-pane-editor {
+  display: none;
+}
+
+[data-view='editor'] .notes-pane-list {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .notes-panes {
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  /* En escritorio la lista sigue visible al editar. */
+  [data-view='list'] .notes-pane-editor,
+  [data-view='editor'] .notes-pane-list {
+    display: block;
+  }
+
+  .notes-pane-list {
+    max-height: min(70vh, 40rem);
+    overflow-y: auto;
+    padding-right: 0.25rem;
+  }
+}
+
+/* El editor ocupa el alto disponible del panel para que la barra de
+   herramientas y las acciones queden fijas mientras se escribe. */
+.notes-pane-editor > app-note-editor {
+  display: block;
+  height: 100%;
+}
