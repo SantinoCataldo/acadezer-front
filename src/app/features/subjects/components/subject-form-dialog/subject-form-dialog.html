@@ -1,6 +1,6 @@
 <app-modal
   [title]="editing() ? 'Editar materia' : 'Crear materia'"
-  [description]="editing() ? 'Editá el nombre y la descripción de la materia.' : 'Los datos se guardan en tu cuenta.'"
+  [description]="editing() ? 'Modificá el nombre y los horarios.' : 'Organizá los días y horarios.'"
   [pending]="action.pending()"
   (closed)="cancelled.emit()"
 >
@@ -9,58 +9,129 @@
     (ngSubmit)="submit()"
     [attr.aria-busy]="action.pending()"
     novalidate
-    class="space-y-5"
-    style="--text-field-label-background: var(--theme-surface)"
+    class="space-y-4"
+    style="--text-field-label-background: var(--theme-modal-surface)"
   >
     <app-text-field
       id="subject-nombre"
-      label="Nombre"
+      label="Nombre de la materia"
       [required]="true"
       [maxLength]="nombreMax"
       [errorText]="nombreError()"
-      [supportingText]="'Máximo ' + nombreMax + ' caracteres'"
       formControlName="nombre"
     />
 
-    <div>
-      <label for="subject-descripcion" class="block text-sm font-medium text-[var(--theme-foreground)]">
-        Descripción (opcional)
-      </label>
-      <textarea
-        id="subject-descripcion"
-        formControlName="descripcion"
-        rows="4"
-        class="mt-2 w-full resize-y rounded-[14px] border bg-transparent p-3 text-base leading-relaxed text-[var(--theme-foreground)] outline-none transition-[border-color,border-width] duration-150 placeholder:text-[var(--theme-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
-        [style.border-color]="descripcionInvalid() ? 'var(--theme-error)' : 'var(--theme-border)'"
-        [style.border-width.px]="descripcionInvalid() ? 2 : 1"
-        [attr.aria-invalid]="descripcionInvalid() ? 'true' : null"
-        [attr.aria-describedby]="'subject-descripcion-help'"
-        placeholder="De qué se trata la materia"
-      ></textarea>
-      <div id="subject-descripcion-help" class="mt-1.5 flex items-start justify-between gap-3 text-xs leading-relaxed">
-        @if (descripcionError(); as error) {
-          <span class="text-[var(--theme-error)]" aria-live="polite">{{ error }}</span>
-        } @else {
-          <span class="text-[var(--theme-muted)]">Opcional. Se muestra en el listado de materias.</span>
-        }
-        <span class="shrink-0 tabular-nums text-[var(--theme-muted)]">{{ descripcionLength() }}/{{ descripcionMax }}</span>
+    <section class="space-y-3" aria-labelledby="schedule-heading">
+      <div>
+        <h3 id="schedule-heading" class="text-sm font-semibold">Días de cursada</h3>
+        <div class="mt-2 flex flex-wrap gap-2" role="group" aria-label="Elegí los días de cursada">
+          @for (day of weekdays; track day.value) {
+            <button
+              type="button"
+              [class]="scheduleDayClass(day.value)"
+              [disabled]="isDayAnimating(day.value)"
+              [attr.aria-pressed]="isDaySelected(day.value)"
+              (click)="toggleScheduleDay(day.value)"
+            >
+              {{ day.label.slice(0, 3) }}
+            </button>
+          }
+        </div>
       </div>
-    </div>
+
+      <div #scheduleList formArrayName="horarios" class="space-y-3">
+        @for (schedule of schedules.controls; track schedule.controls.diaSemana.value; let index = $index) {
+          <div [formGroupName]="index" [attr.data-schedule-day]="schedule.controls.diaSemana.value" class="overflow-hidden rounded-[14px] bg-[var(--theme-surface-raised)] p-2.5 sm:p-3">
+            <div class="flex items-center gap-2">
+              <h4 class="min-w-0 flex-1 text-sm font-semibold">{{ dayLabel(schedule.controls.diaSemana.value) }}</h4>
+              <button
+                type="button"
+                (click)="removeSchedule(index)"
+                [attr.aria-label]="'Quitar horario ' + schedule.controls.diaSemana.value.toLowerCase()"
+                class="flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-error)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+              >
+                <span class="material-symbols-rounded text-lg" aria-hidden="true">close</span>
+              </button>
+            </div>
+
+            <div class="mt-2 grid grid-cols-2 gap-2">
+              <div>
+                <label [for]="'schedule-start-' + index" class="mb-1 block text-[11px] text-[var(--theme-muted)]">Desde</label>
+                <input
+                  [id]="'schedule-start-' + index"
+                  type="time"
+                  formControlName="horaInicio"
+                  class="min-h-10 w-full rounded-[11px] bg-[var(--theme-surface)] px-3 text-sm text-[var(--theme-foreground)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                />
+              </div>
+              <div>
+                <label [for]="'schedule-end-' + index" class="mb-1 block text-[11px] text-[var(--theme-muted)]">Hasta</label>
+                <input
+                  [id]="'schedule-end-' + index"
+                  type="time"
+                  formControlName="horaFin"
+                  class="min-h-10 w-full rounded-[11px] bg-[var(--theme-surface)] px-3 text-sm text-[var(--theme-foreground)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                />
+              </div>
+            </div>
+
+            <fieldset class="mt-2">
+              <legend class="mb-1 text-[11px] text-[var(--theme-muted)]">Controles por clase</legend>
+              <div class="grid grid-cols-2 gap-1.5 rounded-[12px] bg-[var(--theme-surface)] p-1">
+                <button
+                  type="button"
+                  (click)="setAttendanceChecks(schedule, 1)"
+                  [attr.aria-pressed]="schedule.controls.controlesAsistencia.value === 1"
+                  class="min-h-9 cursor-pointer rounded-[9px] px-2 text-[11px] font-medium text-[var(--theme-foreground)] transition-[background-color,transform] duration-150 hover:scale-[0.99] active:scale-[1.01] aria-pressed:bg-[var(--theme-accent)] aria-pressed:text-[var(--theme-on-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+                >
+                  Una vez
+                </button>
+                <button
+                  type="button"
+                  (click)="setAttendanceChecks(schedule, 2)"
+                  [attr.aria-pressed]="schedule.controls.controlesAsistencia.value === 2"
+                  class="min-h-9 cursor-pointer rounded-[9px] px-2 text-[11px] font-medium text-[var(--theme-foreground)] transition-[background-color,transform] duration-150 hover:scale-[0.99] active:scale-[1.01] aria-pressed:bg-[var(--theme-accent)] aria-pressed:text-[var(--theme-on-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+                >
+                  Dos bloques
+                </button>
+              </div>
+            </fieldset>
+
+            @if (scheduleError(index); as message) {
+              <p class="mt-2 text-xs text-[var(--theme-error)]" role="alert">{{ message }}</p>
+            }
+          </div>
+        } @empty {
+          <p class="rounded-[16px] bg-[var(--theme-surface-high)] px-4 py-5 text-sm text-[var(--theme-muted)]">
+            Elegí arriba los días en los que cursás.
+          </p>
+        }
+      </div>
+
+      @if (schedules.touched && schedules.hasError('duplicateWeekday')) {
+        <p class="text-xs text-[var(--theme-error)]" role="alert">Elegí un día distinto para cada horario.</p>
+      }
+      @if (schedules.touched && schedules.length === 0) {
+        <p class="text-xs text-[var(--theme-error)]" role="alert">Agregá al menos un horario de cursada.</p>
+      }
+    </section>
 
     @if (action.errorMessage()) {
       <p role="alert" [class]="errorSurfaceClass">{{ action.errorMessage() }}</p>
     }
 
-    <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
-      <button type="button" [class]="secondaryButtonClass" [disabled]="action.pending()" (click)="cancelled.emit()">
+    <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
+      <button type="button" [class]="secondaryButtonClass" [disabled]="action.pending()" (click)="close()">
         Cancelar
       </button>
       <button type="submit" [class]="primaryButtonClass" [disabled]="action.disabled()">
         @if (action.pending()) {
+          <span class="material-symbols-rounded animate-spin text-lg motion-reduce:animate-none" aria-hidden="true">progress_activity</span>
           Guardando…
         } @else if (action.remainingSeconds() > 0) {
           Esperá {{ action.remainingSeconds() }} segundos
         } @else {
+          <span class="material-symbols-rounded text-lg" aria-hidden="true">{{ editing() ? 'save' : 'add' }}</span>
           {{ editing() ? 'Guardar cambios' : 'Crear materia' }}
         }
       </button>

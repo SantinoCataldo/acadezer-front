@@ -24,8 +24,8 @@ describe('SubjectDetail', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([
-          { path: 'materias', component: RouteStub },
-          { path: 'materias/:id', component: RouteStub },
+          { path: 'estudio', component: RouteStub },
+          { path: 'estudio/materias/:id', component: RouteStub },
         ]),
         {
           provide: ActivatedRoute,
@@ -127,7 +127,7 @@ describe('SubjectDetail', () => {
 
     requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush(null, { status: 204, statusText: 'No Content' });
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/materias');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/estudio');
     requests.verify();
   });
 });

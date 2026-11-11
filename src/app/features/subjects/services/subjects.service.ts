@@ -1,27 +1,24 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import type { SubjectRequest, SubjectResponse } from '../models';
+import type {
+  AttendanceControlRequest,
+  AttendanceControlResponse,
+  NumeroControlAsistencia,
+  SubjectRequest,
+  SubjectResponse,
+} from '../models';
 
-/**
- * Acceso HTTP a /api/materias.
- *
- * El interceptor de autorización existente adjunta el Bearer y refresa la
- * sesión: este servicio no conoce tokens ni cabeceras. El borrado devuelve
- * 204 sin cuerpo, por eso se tipa como Observable<void>.
- */
 @Injectable({ providedIn: 'root' })
 export class SubjectsService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/api/materias`;
 
-  /** Materias del usuario autenticado; sin paginación en el contrato actual. */
   list(): Observable<SubjectResponse[]> {
     return this.http.get<SubjectResponse[]>(this.baseUrl);
   }
 
-  /** Una materia propia. Un recurso ajeno responde 404. */
   getById(id: number): Observable<SubjectResponse> {
     return this.http.get<SubjectResponse>(`${this.baseUrl}/${id}`);
   }
@@ -34,8 +31,48 @@ export class SubjectsService {
     return this.http.put<SubjectResponse>(`${this.baseUrl}/${id}`, request);
   }
 
-  /** 204 sin cuerpo. El backend borra en cascada apuntes, pendientes, evaluaciones y asistencias. */
+  finish(id: number): Observable<SubjectResponse> {
+    return this.http.patch<SubjectResponse>(`${this.baseUrl}/${id}/finalizar`, null);
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  }
+
+  attendanceControls(materiaId: number, desde: string, hasta: string): Observable<AttendanceControlResponse[]> {
+    const params = new HttpParams().set('desde', desde).set('hasta', hasta);
+    return this.http.get<AttendanceControlResponse[]>(`${this.baseUrl}/${materiaId}/controles-asistencia`, { params });
+  }
+
+  setAttendanceControl(
+    materiaId: number,
+    horarioId: number,
+    fecha: string,
+    numero: NumeroControlAsistencia,
+    request: AttendanceControlRequest,
+  ): Observable<void> {
+    return this.http.put<void>(
+      `${this.baseUrl}/${materiaId}/horarios/${horarioId}/controles/${fecha}/${numero}`,
+      request,
+    );
+  }
+
+  resetAttendanceControl(materiaId: number, horarioId: number, fecha: string, numero: 1 | 2): Observable<void> {
+    return this.http.delete<void>(
+      `${this.baseUrl}/${materiaId}/horarios/${horarioId}/controles/${fecha}/${numero}`,
+    );
+  }
+
+  noClassDates(materiaId: number, desde: string, hasta: string): Observable<string[]> {
+    const params = new HttpParams().set('desde', desde).set('hasta', hasta);
+    return this.http.get<string[]>(`${this.baseUrl}/${materiaId}/fechas-sin-cursada`, { params });
+  }
+
+  excludeClassDate(materiaId: number, fecha: string): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/${materiaId}/fechas-sin-cursada/${fecha}`, null);
+  }
+
+  includeClassDate(materiaId: number, fecha: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${materiaId}/fechas-sin-cursada/${fecha}`);
   }
 }

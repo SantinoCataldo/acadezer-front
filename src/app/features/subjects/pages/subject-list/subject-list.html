@@ -59,13 +59,10 @@
             <ul class="space-y-3">
               @for (subject of subjects(); track subject.id) {
                 <li
-                  class="flex items-center gap-3 rounded-[20px] bg-[var(--theme-surface)] p-3.5 transition-colors duration-150 hover:bg-[var(--theme-surface-high)] sm:gap-4 sm:p-4"
+                  class="flex items-center gap-3 rounded-[20px] bg-[var(--theme-surface)] px-3 py-2.5 transition-colors duration-150 hover:bg-[var(--theme-surface-high)] sm:gap-4 sm:px-4 sm:py-3"
                 >
-                  <span
-                    class="material-symbols-rounded hidden size-11 shrink-0 items-center justify-center rounded-[15px] bg-[var(--theme-accent-soft)] text-center leading-none text-[var(--theme-accent-content)] sm:flex"
-                    aria-hidden="true"
-                  >
-                    menu_book
+                  <span class="hidden size-10 shrink-0 place-items-center rounded-[14px] bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)] sm:grid" aria-hidden="true">
+                    <span class="material-symbols-rounded block text-[22px] leading-none">menu_book</span>
                   </span>
 
                   <div class="min-w-0 flex-1">
@@ -81,19 +78,27 @@
                       </h2>
                     </div>
 
-                    <p class="mt-1 flex min-w-0 items-center gap-1.5 text-sm text-[var(--theme-muted)]">
-                      <span class="material-symbols-rounded text-base" aria-hidden="true">calendar_month</span>
-                      <span class="truncate">{{ dateRange(subject) }}</span>
-                    </p>
-
-                    <p
-                      class="mt-2 inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-lg bg-[var(--theme-surface-high)] px-2 py-1 text-xs font-medium text-[var(--theme-foreground)]"
-                    >
-                      <span class="material-symbols-rounded shrink-0 text-base text-[var(--theme-accent-content)]" aria-hidden="true">
-                        schedule
+                    <div role="group" aria-label="Fechas y horarios de cursada" class="mt-1 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[var(--theme-muted)]">
+                      <span class="inline-flex shrink-0 items-center gap-1">
+                        <span class="material-symbols-rounded text-[15px] leading-none" aria-hidden="true">calendar_month</span>
+                        {{ dateRange(subject) }}
                       </span>
-                      <span class="truncate">{{ scheduleSummary(subject) }}</span>
-                    </p>
+                      @if (subject.horarios.length === 0) {
+                        <span>Sin horario cargado</span>
+                      } @else {
+                        @for (schedule of subject.horarios.slice(0, 2); track schedule.id) {
+                          <span class="inline-flex items-center gap-1 whitespace-nowrap">
+                            <span>{{ dayLabel(schedule.diaSemana) }}</span>
+                            <span class="font-medium tabular-nums text-[var(--theme-foreground)]">
+                              {{ schedule.horaInicio.slice(0, 5) }}–{{ schedule.horaFin.slice(0, 5) }}
+                            </span>
+                          </span>
+                        }
+                        @if (subject.horarios.length > 2) {
+                          <span>+{{ subject.horarios.length - 2 }} días</span>
+                        }
+                      }
+                    </div>
                   </div>
 
                   <div class="flex shrink-0 items-center gap-1">

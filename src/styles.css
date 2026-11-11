@@ -55,6 +55,8 @@
     --theme-error: var(--md-sys-color-error, #ba1a1a);
     --theme-surface-low: var(--md-sys-color-surface-container-low, #f0f5ee);
     --theme-surface-high: var(--md-sys-color-surface-container-high, #e5eae2);
+    --theme-surface-raised: var(--md-sys-color-surface-container-lowest, #ffffff);
+    --theme-modal-surface: var(--md-sys-color-surface-container-high, #e5eae2);
   }
 
   :root.dark {
@@ -73,12 +75,16 @@
     --theme-error: var(--md-sys-color-error, #ffb4ab);
     --theme-surface-low: var(--md-sys-color-surface-container-low, #181d19);
     --theme-surface-high: var(--md-sys-color-surface-container-high, #262b27);
+    --theme-surface-raised: var(--md-sys-color-surface-bright, #353b36);
+    --theme-modal-surface: var(--md-sys-color-surface-container-highest, #313631);
   }
 
   :root:not(.dark)[data-theme-variant='monochrome'] {
     --theme-canvas: #FBF9FC;
     --theme-surface: #F5F3F6;
     --theme-surface-high: #F5F3F6;
+    --theme-surface-raised: #ECE9EF;
+    --theme-modal-surface: #F5F3F6;
     --theme-foreground: #19171B;
     --theme-muted: #625F66;
     --theme-border: #77727B;
@@ -92,6 +98,8 @@
     --theme-canvas: #000000;
     --theme-surface: #101012;
     --theme-surface-high: #101012;
+    --theme-surface-raised: #26252A;
+    --theme-modal-surface: #1C1B1F;
     --theme-foreground: #F5F3F6;
     --theme-muted: #C6C2C9;
     --theme-border: #625F66;

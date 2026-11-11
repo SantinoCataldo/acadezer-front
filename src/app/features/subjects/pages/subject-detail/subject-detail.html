@@ -1,7 +1,7 @@
-<main class="min-h-[calc(100dvh-6rem)] bg-[var(--theme-canvas)] px-5 py-8 text-[var(--theme-foreground)] sm:px-8 sm:py-12">
+<main class="min-h-dvh bg-[var(--theme-canvas)] px-5 py-8 text-[var(--theme-foreground)] sm:px-8 sm:py-12">
   <section class="mx-auto w-full max-w-5xl">
     <a
-      [routerLink]="['/materias']"
+      [routerLink]="['/estudio']"
       class="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-[var(--theme-muted)] hover:text-[var(--theme-foreground)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
     >
       <span class="material-symbols-rounded text-lg" aria-hidden="true">arrow_back</span>
@@ -32,7 +32,7 @@
           <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
             <button type="button" [class]="secondaryButtonClass" (click)="retry()">Reintentar</button>
             <a
-              [routerLink]="['/materias']"
+              [routerLink]="['/estudio']"
               class="flex min-h-12 cursor-pointer items-center justify-center rounded-[14px] border border-[var(--theme-border)] px-4 py-3 text-sm font-semibold text-[var(--theme-foreground)] transition-[transform,background-color] duration-150 hover:bg-[var(--theme-surface-high)] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
             >
               Volver a materias
@@ -46,14 +46,28 @@
           <header class="mt-6 flex flex-wrap items-start justify-between gap-4">
             <div class="min-w-0">
               <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">{{ current.nombre }}</h1>
-              @if (current.descripcion; as descripcion) {
-                <p class="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--theme-muted)]">{{ descripcion }}</p>
-              } @else {
-                <p class="mt-2 text-sm text-[var(--theme-muted)]">Sin descripción.</p>
-              }
+              <p class="mt-2 text-sm text-[var(--theme-muted)]">
+                {{ formatDateRange(current.fechaInicio, current.fechaFin, firstPresentDate()) }}
+              </p>
+              <div class="mt-3 flex flex-wrap gap-2">
+                @for (schedule of current.horarios ?? []; track schedule.id) {
+                  <span class="rounded-[12px] bg-[var(--theme-surface)] px-3 py-2 text-xs font-medium text-[var(--theme-muted)]">
+                    {{ shortWeekday(schedule.diaSemana) }} · {{ schedule.horaInicio.slice(0, 5) }}–{{ schedule.horaFin.slice(0, 5) }}
+                    @if (schedule.controlesAsistencia === 2) {
+                      · dos controles
+                    }
+                  </span>
+                }
+              </div>
             </div>
 
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
+              @if (!current.fechaFin && firstPresentDate()) {
+                <button type="button" [class]="secondaryButtonClass" (click)="requestFinish()">
+                  <span class="material-symbols-rounded text-lg" aria-hidden="true">event_available</span>
+                  Finalizar cursada
+                </button>
+              }
               <button type="button" [class]="secondaryButtonClass" (click)="openEditDialog()">
                 <span class="material-symbols-rounded text-lg" aria-hidden="true">edit</span>
                 Editar
@@ -65,11 +79,38 @@
             </div>
           </header>
 
-          <!--
-            Punto de integración de apuntes: cuando el equipo de apuntes entregue
-            su componente, se monta acá con la materia actual, por ejemplo
-            <app-notes-section [materiaId]="current.id" />.
-          -->
+          @if (finishConfirmation()) {
+            <section class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[16px] bg-[var(--theme-surface)] p-4" aria-labelledby="finish-course-heading">
+              <div class="min-w-0">
+                <h2 id="finish-course-heading" class="text-sm font-semibold">¿Finalizar la cursada hoy?</h2>
+                <p class="mt-1 text-sm text-[var(--theme-muted)]">Se guardará hoy como fecha de fin.</p>
+                @if (finishError(); as message) {
+                  <p role="alert" class="mt-2 text-sm text-[var(--theme-error)]">{{ message }}</p>
+                }
+              </div>
+              <div class="flex shrink-0 gap-2">
+                <button type="button" [class]="secondaryButtonClass" [disabled]="finishing()" (click)="cancelFinish()">
+                  Cancelar
+                </button>
+                <button type="button" [class]="primaryButtonClass" [disabled]="finishing()" (click)="finishCourse()">
+                  @if (finishing()) {
+                    Finalizando…
+                  } @else {
+                    Confirmar
+                  }
+                </button>
+              </div>
+            </section>
+          } @else if (finishError(); as message) {
+            <p role="alert" class="mt-4 text-sm text-[var(--theme-error)]">{{ message }}</p>
+          }
+
+          <app-attendance-board
+            class="mt-8"
+            [subject]="current"
+            (firstPresentDateChange)="firstPresentDate.set($event)"
+          />
+
           <section class="mt-10" aria-labelledby="sections-heading">
             <h2 id="sections-heading" class="text-xl font-semibold tracking-tight">Secciones de la materia</h2>
             <div class="mt-4 grid gap-4 sm:grid-cols-2">

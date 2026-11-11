@@ -53,19 +53,12 @@ export class SubjectList {
   dateRange(subject: SubjectResponse): string {
     if (!subject.fechaInicio) return 'Fecha de inicio pendiente';
     const start = this.formatDate(subject.fechaInicio);
-    if (!subject.fechaFin) return `Inicio previsto · ${start}`;
-    return `Período previsto · ${start} – ${this.formatDate(subject.fechaFin)}`;
+    if (!subject.fechaFin) return `Previsto · ${start}`;
+    return `Previsto · ${start} – ${this.formatDate(subject.fechaFin)}`;
   }
 
-  scheduleSummary(subject: SubjectResponse): string {
-    const schedules = subject.horarios ?? [];
-    if (schedules.length === 0) return 'Sin horario cargado';
-    const shown = schedules.slice(0, 2).map((schedule) => {
-      const day = shortDayLabels[schedule.diaSemana];
-      return `${day} ${schedule.horaInicio.slice(0, 5)}–${schedule.horaFin.slice(0, 5)}`;
-    });
-    const extra = schedules.length - shown.length;
-    return extra > 0 ? `${shown.join(' · ')} · +${extra}` : shown.join(' · ');
+  dayLabel(day: DiaSemana): string {
+    return shortDayLabels[day];
   }
 
   private formatDate(value: string): string {

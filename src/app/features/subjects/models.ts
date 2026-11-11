@@ -1,21 +1,46 @@
-/**
- * Contratos de transporte de materias.
- * Referencia: docs/ESPECIFICACION_Y_ARQUITECTURA.md, sección 4.
- *
- * `descripcion` llega null cuando el backend no guardó texto. No se reemplaza
- * por cadena vacía: null y ausencia de valor tienen significado distinto.
- * Las materias no manejan fechas, por lo que no aplica formato YYYY-MM-DD acá.
- */
+export type DiaSemana = 'LUNES' | 'MARTES' | 'MIERCOLES' | 'JUEVES' | 'VIERNES' | 'SABADO' | 'DOMINGO';
 
-/** Materia tal como la devuelve la API. */
+export type EstadoControlAsistencia = 'PRESENTE' | 'AUSENTE' | 'JUSTIFICADA' | 'PENDIENTE';
+
+export type NumeroControlAsistencia = 1 | 2;
+
+export interface HorarioRequest {
+  id?: number;
+  diaSemana: DiaSemana;
+  horaInicio: string;
+  horaFin: string;
+  controlesAsistencia: NumeroControlAsistencia;
+}
+
+export interface HorarioResponse extends HorarioRequest {
+  id: number;
+}
+
 export interface SubjectResponse {
   id: number;
   nombre: string;
-  descripcion: string | null;
+  fechaInicio: string | null;
+  fechaFin: string | null;
+  horarios: HorarioResponse[];
 }
 
-/** Cuerpo de creación y edición (POST /api/materias y PUT /api/materias/{id}). */
 export interface SubjectRequest {
   nombre: string;
-  descripcion: string | null;
+  fechaInicio: string;
+  fechaFin: string | null;
+  horarios: HorarioRequest[];
+}
+
+export interface AttendanceControlResponse {
+  id: number | null;
+  horarioId: number;
+  fecha: string;
+  numero: NumeroControlAsistencia;
+  horaInicio: string;
+  horaFin: string;
+  estado: EstadoControlAsistencia;
+}
+
+export interface AttendanceControlRequest {
+  estado: Exclude<EstadoControlAsistencia, 'PENDIENTE'>;
 }

@@ -1,14 +1,13 @@
 <app-modal
   [title]="'¿Eliminar ' + subject().nombre + '?'"
-  [description]="cascadeWarning"
   [pending]="action.pending()"
   (closed)="cancelled.emit()"
 >
   <div class="space-y-4">
-    <div class="flex items-start gap-3 rounded-[14px] border border-[var(--theme-error)] p-3">
-      <span class="material-symbols-rounded shrink-0 text-[var(--theme-error)]" aria-hidden="true">delete_forever</span>
-      <p class="text-sm leading-relaxed text-[var(--theme-muted)]">
-        Se borra todo el contenido vinculado a esta materia. Si querés conservar el material, cancelá y revisá la materia antes de eliminarla.
+    <div class="flex items-start gap-3 rounded-[16px] bg-[var(--theme-surface-high)] p-4">
+      <span class="material-symbols-rounded shrink-0 text-xl text-[var(--theme-error)]" aria-hidden="true">delete_forever</span>
+      <p class="text-sm leading-relaxed text-[var(--theme-foreground)]">
+        Se eliminarán también sus apuntes, pendientes, evaluaciones y asistencias. No vas a poder recuperar este contenido.
       </p>
     </div>
 
@@ -17,7 +16,7 @@
     }
 
     <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
-      <button type="button" [class]="secondaryButtonClass" [disabled]="action.pending()" (click)="cancelled.emit()">
+      <button type="button" [class]="secondaryButtonClass" [disabled]="action.pending()" (click)="close()">
         Cancelar
       </button>
       <button type="button" [class]="dangerButtonClass" [disabled]="action.disabled()" (click)="confirm()">

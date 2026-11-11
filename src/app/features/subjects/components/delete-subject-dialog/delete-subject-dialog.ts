@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, output, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { createRequestAction } from '../../../../core/services/request-action';
 import type { SubjectResponse } from '../../models';
@@ -26,15 +26,18 @@ export class DeleteSubjectDialog {
 
   private readonly subjects = inject(SubjectsService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly modal = viewChild.required(Modal);
 
   readonly action = createRequestAction();
-  readonly cascadeWarning =
-    'Al eliminar esta materia también se borran sus apuntes, pendientes, evaluaciones y asistencias asociados. Esta acción no se puede deshacer.';
 
   // Referencias para la plantilla.
   readonly dangerButtonClass = dangerButton;
   readonly secondaryButtonClass = secondaryButton;
   readonly errorSurfaceClass = errorSurface;
+
+  close(): void {
+    this.modal().requestClose();
+  }
 
   confirm(): void {
     if (this.action.disabled()) return;
