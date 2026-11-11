@@ -111,11 +111,7 @@
           />
 
           <!-- APU-01: sección Apuntes de esta materia (lista + editor). -->
-          <app-notes-section
-            class="mt-8"
-            [materiaId]="current.id"
-            (notesChanged)="notesRevision.update((value) => value + 1)"
-          />
+          <app-notes-section class="mt-8" [materiaId]="current.id" />
 
           <section class="mt-10" aria-labelledby="sections-heading">
             <h2 id="sections-heading" class="text-xl font-semibold tracking-tight">Secciones de la materia</h2>

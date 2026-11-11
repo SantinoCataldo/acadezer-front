@@ -6,7 +6,6 @@ import {
   effect,
   inject,
   input,
-  output,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -63,7 +62,6 @@ function byLastModified(a: NoteResponse, b: NoteResponse): number {
 })
 export class NotesSection {
   readonly materiaId = input.required<number>();
-  readonly notesChanged = output<void>();
 
   private readonly notesApi = inject(NotesService);
   private readonly destroyRef = inject(DestroyRef);
@@ -143,14 +141,12 @@ export class NotesSection {
     );
     this.editing.set(null);
     this.view.set('list');
-    this.notesChanged.emit();
   }
 
   onDeleted(): void {
     this.editing.set(null);
     this.view.set('list');
     this.load();
-    this.notesChanged.emit();
   }
 
   excerpt(note: NoteResponse): string {

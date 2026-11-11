@@ -45,9 +45,6 @@ export class SubjectDetail {
   readonly finishing = signal(false);
   readonly finishError = signal<string | null>(null);
 
-  /** Cambia cada vez que los apuntes se modifican, para forzar su recarga. */
-  readonly notesRevision = signal(0);
-
   readonly sections: readonly DetailSection[] = [
     {
       id: 'pendientes',
