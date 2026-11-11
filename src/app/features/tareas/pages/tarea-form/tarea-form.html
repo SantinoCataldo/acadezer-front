@@ -1,5 +1,5 @@
 <section class="max-w-lg text-[var(--theme-foreground)]">
-  <h2 class="text-xl font-semibold sm:text-2xl">Nueva tarea</h2>
+  <h2 class="text-xl font-semibold sm:text-2xl">{{ id ? 'Editar tarea' : 'Nueva tarea' }}</h2>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-5">
     <div>

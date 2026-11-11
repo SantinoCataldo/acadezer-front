@@ -35,6 +35,11 @@ export const subjectRoutes: Routes = [
         loadComponent: () => import('../tareas/pages/tarea-form/tarea-form').then((m) => m.TareaForm),
         title: 'Acadezer - Nueva tarea',
       },
+      {
+        path: 'tareas/editar/:id',
+        loadComponent: () => import('../tareas/pages/tarea-form/tarea-form').then((m) => m.TareaForm),
+        title: 'Acadezer - Editar tarea',
+      },
     ],
   },
 ];
