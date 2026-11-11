@@ -67,4 +67,19 @@ export class TareasList implements OnInit {
       }
     })
   }
+
+  eliminar(t: Tarea) {
+    if (!confirm('¿Seguro que querés eliminar la tarea "' + t.titulo + '"?')) {
+      return;
+    }
+
+    this.tareaService.eliminarTarea(t.id).subscribe({
+      next: () => {
+        this.traerTareas(t.materiaId);
+      },
+      error: (e) => {
+        alert('Error al eliminar la tarea');
+      }
+    })
+  }
 }

@@ -40,10 +40,16 @@
               Entrega: {{ t.fechaLimite ? t.fechaLimite : 'sin fecha' }}
               · {{ t.completado ? 'Completada' : 'Pendiente' }}
             </p>
-            <a [routerLink]="['/estudio/tareas/editar', t.id]"
-              class="mt-3 inline-block text-sm font-semibold text-[var(--theme-accent-content)] hover:underline">
-              Editar
-            </a>
+            <div class="mt-3 flex gap-4">
+              <a [routerLink]="['/estudio/tareas/editar', t.id]"
+                class="text-sm font-semibold text-[var(--theme-accent-content)] hover:underline">
+                Editar
+              </a>
+              <button type="button" (click)="eliminar(t)"
+                class="cursor-pointer text-sm font-semibold text-[var(--theme-error)] hover:underline">
+                Eliminar
+              </button>
+            </div>
           </li>
         } @empty {
           <p class="text-sm text-[var(--theme-muted)]">No hay tareas en esta materia.</p>
