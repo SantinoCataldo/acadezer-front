@@ -9,33 +9,55 @@
       </span>
     }
 
-    <input
-      [id]="id()"
-      [type]="renderedType()"
-      [value]="value()"
-      [attr.autocomplete]="autocomplete()"
-      [attr.maxlength]="maxLength()"
-      [attr.aria-label]="label()"
-      [attr.aria-describedby]="describedBy()"
-      [attr.aria-invalid]="errorText() ? 'true' : null"
-      [attr.aria-required]="required() ? 'true' : null"
-      [disabled]="disabled()"
-      [required]="required()"
-      [placeholder]="placeholder()"
-      [style.padding-left]="prefix() ? '2.75rem' : '0.75rem'"
-      [style.padding-right]="revealable() || suffix() ? '3rem' : '0.75rem'"
-      (input)="handleInput($event)"
-      (focus)="focused.set(true)"
-      (blur)="handleBlur()"
-      class="h-14 w-full rounded-[14px] border bg-transparent text-base text-[var(--theme-foreground)] outline-none transition-[border-color,border-width] duration-150 placeholder:text-transparent focus:placeholder:text-[var(--theme-muted)] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
-      [style.border-color]="errorText() ? 'var(--theme-error)' : focused() ? 'var(--theme-accent-content)' : 'var(--theme-border)'"
-      [style.border-width.px]="focused() ? 2 : 1"
-    />
+    @if (multiline()) {
+      <textarea
+        [id]="id()"
+        [value]="value()"
+        [attr.rows]="rows()"
+        [attr.maxlength]="maxLength()"
+        [attr.aria-label]="label()"
+        [attr.aria-describedby]="describedBy()"
+        [attr.aria-invalid]="errorText() ? 'true' : null"
+        [attr.aria-required]="required() ? 'true' : null"
+        [disabled]="disabled()"
+        [required]="required()"
+        [placeholder]="placeholder()"
+        (input)="handleInput($event)"
+        (focus)="focused.set(true)"
+        (blur)="handleBlur()"
+        class="min-h-32 w-full resize-y rounded-[14px] border bg-transparent px-3 pb-3 pt-5 text-base leading-relaxed text-[var(--theme-foreground)] outline-none transition-[border-color,border-width] duration-150 placeholder:text-transparent focus:placeholder:text-[var(--theme-muted)] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
+        [style.border-color]="errorText() ? 'var(--theme-error)' : focused() ? 'var(--theme-accent-content)' : 'var(--theme-border)'"
+        [style.border-width.px]="focused() ? 2 : 1"
+      ></textarea>
+    } @else {
+      <input
+        [id]="id()"
+        [type]="renderedType()"
+        [value]="value()"
+        [attr.autocomplete]="autocomplete()"
+        [attr.maxlength]="maxLength()"
+        [attr.aria-label]="label()"
+        [attr.aria-describedby]="describedBy()"
+        [attr.aria-invalid]="errorText() ? 'true' : null"
+        [attr.aria-required]="required() ? 'true' : null"
+        [disabled]="disabled()"
+        [required]="required()"
+        [placeholder]="placeholder()"
+        [style.padding-left]="prefix() ? '2.75rem' : '0.75rem'"
+        [style.padding-right]="revealable() || suffix() ? '3rem' : '0.75rem'"
+        (input)="handleInput($event)"
+        (focus)="focused.set(true)"
+        (blur)="handleBlur()"
+        class="h-14 w-full rounded-[14px] border bg-transparent text-base text-[var(--theme-foreground)] outline-none transition-[border-color,border-width] duration-150 placeholder:text-transparent focus:placeholder:text-[var(--theme-muted)] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
+        [style.border-color]="errorText() ? 'var(--theme-error)' : focused() ? 'var(--theme-accent-content)' : 'var(--theme-border)'"
+        [style.border-width.px]="focused() ? 2 : 1"
+      />
+    }
 
     <label
       [for]="id()"
       [style.left]="prefix() ? '2.75rem' : '0.75rem'"
-      [style.top]="floatingLabel() ? '0' : '50%'"
+      [style.top]="floatingLabel() ? '0' : multiline() ? '1.5rem' : '50%'"
       [style.transform]="'translateY(-50%)'"
       [style.color]="errorText() ? 'var(--theme-error)' : focused() ? 'var(--theme-accent-content)' : 'var(--theme-muted)'"
       class="pointer-events-none absolute z-10 max-w-[calc(100%-1.5rem)] truncate px-1 text-base leading-none transition-[top,transform,font-size,color] duration-150 motion-reduce:transition-none"
@@ -44,6 +66,15 @@
     >
       {{ label() }}
     </label>
+
+    @if (counterText()) {
+      <span
+        [id]="id() + '-counter'"
+        class="pointer-events-none absolute right-3 top-0 z-10 -translate-y-1/2 bg-[var(--text-field-label-background,var(--theme-surface))] px-1 text-xs tabular-nums text-[var(--theme-muted)]"
+      >
+        {{ counterText() }}
+      </span>
+    }
 
     @if (suffix()) {
       <span
