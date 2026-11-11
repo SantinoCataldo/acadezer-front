@@ -1,0 +1,69 @@
+<app-modal
+  [title]="editing() ? 'Editar materia' : 'Crear materia'"
+  [description]="editing() ? 'Editá el nombre y la descripción de la materia.' : 'Los datos se guardan en tu cuenta.'"
+  [pending]="action.pending()"
+  (closed)="cancelled.emit()"
+>
+  <form
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    [attr.aria-busy]="action.pending()"
+    novalidate
+    class="space-y-5"
+    style="--text-field-label-background: var(--theme-surface)"
+  >
+    <app-text-field
+      id="subject-nombre"
+      label="Nombre"
+      [required]="true"
+      [maxLength]="nombreMax"
+      [errorText]="nombreError()"
+      [supportingText]="'Máximo ' + nombreMax + ' caracteres'"
+      formControlName="nombre"
+    />
+
+    <div>
+      <label for="subject-descripcion" class="block text-sm font-medium text-[var(--theme-foreground)]">
+        Descripción (opcional)
+      </label>
+      <textarea
+        id="subject-descripcion"
+        formControlName="descripcion"
+        rows="4"
+        class="mt-2 w-full resize-y rounded-[14px] border bg-transparent p-3 text-base leading-relaxed text-[var(--theme-foreground)] outline-none transition-[border-color,border-width] duration-150 placeholder:text-[var(--theme-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none"
+        [style.border-color]="descripcionInvalid() ? 'var(--theme-error)' : 'var(--theme-border)'"
+        [style.border-width.px]="descripcionInvalid() ? 2 : 1"
+        [attr.aria-invalid]="descripcionInvalid() ? 'true' : null"
+        [attr.aria-describedby]="'subject-descripcion-help'"
+        placeholder="De qué se trata la materia"
+      ></textarea>
+      <div id="subject-descripcion-help" class="mt-1.5 flex items-start justify-between gap-3 text-xs leading-relaxed">
+        @if (descripcionError(); as error) {
+          <span class="text-[var(--theme-error)]" aria-live="polite">{{ error }}</span>
+        } @else {
+          <span class="text-[var(--theme-muted)]">Opcional. Se muestra en el listado de materias.</span>
+        }
+        <span class="shrink-0 tabular-nums text-[var(--theme-muted)]">{{ descripcionLength() }}/{{ descripcionMax }}</span>
+      </div>
+    </div>
+
+    @if (action.errorMessage()) {
+      <p role="alert" [class]="errorSurfaceClass">{{ action.errorMessage() }}</p>
+    }
+
+    <div class="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+      <button type="button" [class]="secondaryButtonClass" [disabled]="action.pending()" (click)="cancelled.emit()">
+        Cancelar
+      </button>
+      <button type="submit" [class]="primaryButtonClass" [disabled]="action.disabled()">
+        @if (action.pending()) {
+          Guardando…
+        } @else if (action.remainingSeconds() > 0) {
+          Esperá {{ action.remainingSeconds() }} segundos
+        } @else {
+          {{ editing() ? 'Guardar cambios' : 'Crear materia' }}
+        }
+      </button>
+    </div>
+  </form>
+</app-modal>

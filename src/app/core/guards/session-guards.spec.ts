@@ -111,6 +111,6 @@ describe('session guards', () => {
     sessionStorage.setItem('acadezer_access_token', testToken());
     const decision = evaluate(guestGuard);
     requests.expectOne(`${environment.apiUrl}/auth/me`).flush(student);
-    expect(destination(await decision)).toBe('/');
+    expect(destination(await decision)).toBe('/estudio');
   });
 });
