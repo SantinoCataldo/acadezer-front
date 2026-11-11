@@ -1,8 +1,7 @@
-<main class="min-h-[calc(100dvh-6rem)] bg-[var(--theme-canvas)] px-5 py-8 text-[var(--theme-foreground)] sm:px-8 sm:py-12">
-  <section class="mx-auto w-full max-w-5xl">
+<section aria-labelledby="subjects-heading" class="text-[var(--theme-foreground)]">
     <header class="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">Materias</h1>
+        <h2 id="subjects-heading" class="text-xl font-semibold tracking-tight sm:text-2xl">Materias</h2>
         <p class="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">
           Tus cursadas con sus apuntes, pendientes, evaluaciones y asistencias.
         </p>
@@ -60,28 +59,40 @@
             <ul class="space-y-3">
               @for (subject of subjects(); track subject.id) {
                 <li
-                  class="flex items-center gap-4 rounded-[20px] border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 transition-[background-color] duration-150 hover:bg-[var(--theme-surface-high)] sm:p-5"
+                  class="flex items-center gap-3 rounded-[20px] bg-[var(--theme-surface)] p-3.5 transition-colors duration-150 hover:bg-[var(--theme-surface-high)] sm:gap-4 sm:p-4"
                 >
-                  <span class="material-symbols-rounded hidden text-2xl text-[var(--theme-accent-content)] sm:block" aria-hidden="true">
+                  <span
+                    class="material-symbols-rounded hidden size-11 shrink-0 items-center justify-center rounded-[15px] bg-[var(--theme-accent-soft)] text-center leading-none text-[var(--theme-accent-content)] sm:flex"
+                    aria-hidden="true"
+                  >
                     menu_book
                   </span>
 
                   <div class="min-w-0 flex-1">
-                    <h2 class="truncate text-base font-semibold">
-                      <a
-                        [routerLink]="['/materias', subject.id]"
-                        class="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
-                      >
-                        {{ subject.nombre }}
-                        <span class="sr-only"> — ver detalle</span>
-                      </a>
-                    </h2>
-                    <p class="mt-0.5 truncate text-sm text-[var(--theme-muted)]">
-                      @if (subject.descripcion; as descripcion) {
-                        {{ descripcion }}
-                      } @else {
-                        Sin descripción
-                      }
+                    <div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                      <h2 class="min-w-0 truncate text-base font-semibold">
+                        <a
+                          [routerLink]="['/estudio/materias', subject.id]"
+                          class="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
+                        >
+                          {{ subject.nombre }}
+                          <span class="sr-only"> — ver detalle</span>
+                        </a>
+                      </h2>
+                    </div>
+
+                    <p class="mt-1 flex min-w-0 items-center gap-1.5 text-sm text-[var(--theme-muted)]">
+                      <span class="material-symbols-rounded text-base" aria-hidden="true">calendar_month</span>
+                      <span class="truncate">{{ dateRange(subject) }}</span>
+                    </p>
+
+                    <p
+                      class="mt-2 inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-lg bg-[var(--theme-surface-high)] px-2 py-1 text-xs font-medium text-[var(--theme-foreground)]"
+                    >
+                      <span class="material-symbols-rounded shrink-0 text-base text-[var(--theme-accent-content)]" aria-hidden="true">
+                        schedule
+                      </span>
+                      <span class="truncate">{{ scheduleSummary(subject) }}</span>
                     </p>
                   </div>
 
@@ -110,8 +121,7 @@
         }
       }
     </div>
-  </section>
-</main>
+</section>
 
 @if (formTarget(); as target) {
   <app-subject-form-dialog

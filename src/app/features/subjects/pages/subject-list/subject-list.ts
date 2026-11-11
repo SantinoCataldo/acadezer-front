@@ -1,13 +1,23 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import type { SubjectResponse } from '../../models';
+import type { DiaSemana, SubjectResponse } from '../../models';
 import { SubjectsService } from '../../services/subjects.service';
 import { DeleteSubjectDialog } from '../../components/delete-subject-dialog/delete-subject-dialog';
 import { SubjectFormDialog } from '../../components/subject-form-dialog/subject-form-dialog';
 import { iconButton, primaryButton } from '../../dialog-styles';
 
 type ListState = 'loading' | 'error' | 'ready';
+
+const shortDayLabels: Record<DiaSemana, string> = {
+  LUNES: 'lun',
+  MARTES: 'mar',
+  MIERCOLES: 'mié',
+  JUEVES: 'jue',
+  VIERNES: 'vie',
+  SABADO: 'sáb',
+  DOMINGO: 'dom',
+};
 
 /**
  * Listado de materias del usuario autenticado.
@@ -19,6 +29,7 @@ type ListState = 'loading' | 'error' | 'ready';
 @Component({
   selector: 'app-subject-list',
   imports: [RouterLink, SubjectFormDialog, DeleteSubjectDialog],
+  host: { class: 'block' },
   templateUrl: './subject-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -38,6 +49,29 @@ export class SubjectList {
   // Referencias para la plantilla.
   readonly primaryButtonClass = primaryButton;
   readonly iconButtonClass = iconButton;
+
+  dateRange(subject: SubjectResponse): string {
+    if (!subject.fechaInicio) return 'Fecha de inicio pendiente';
+    const start = this.formatDate(subject.fechaInicio);
+    if (!subject.fechaFin) return `Inicio previsto · ${start}`;
+    return `Período previsto · ${start} – ${this.formatDate(subject.fechaFin)}`;
+  }
+
+  scheduleSummary(subject: SubjectResponse): string {
+    const schedules = subject.horarios ?? [];
+    if (schedules.length === 0) return 'Sin horario cargado';
+    const shown = schedules.slice(0, 2).map((schedule) => {
+      const day = shortDayLabels[schedule.diaSemana];
+      return `${day} ${schedule.horaInicio.slice(0, 5)}–${schedule.horaFin.slice(0, 5)}`;
+    });
+    const extra = schedules.length - shown.length;
+    return extra > 0 ? `${shown.join(' · ')} · +${extra}` : shown.join(' · ');
+  }
+
+  private formatDate(value: string): string {
+    const date = new Date(`${value}T00:00:00Z`);
+    return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(date);
+  }
 
   constructor() {
     this.load();

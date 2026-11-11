@@ -27,8 +27,8 @@ describe('SubjectList', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([
-          { path: 'materias', component: RouteStub },
-          { path: 'materias/:id', component: RouteStub },
+          { path: 'estudio', component: RouteStub },
+          { path: 'estudio/materias/:id', component: RouteStub },
         ]),
       ],
     });
