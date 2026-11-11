@@ -25,6 +25,11 @@ export const subjectRoutes: Routes = [
         loadComponent: () => import('../almanac/pages/almanac/almanac').then((m) => m.Almanac),
         title: 'Acadezer - Horario',
       },
+      {
+        path: 'tareas',
+        loadComponent: () => import('../tareas/pages/tareas-list/tareas-list').then((m) => m.TareasList),
+        title: 'Acadezer - Tareas',
+      },
     ],
   },
 ];

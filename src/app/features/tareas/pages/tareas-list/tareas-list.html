@@ -1,0 +1,45 @@
+<section class="text-[var(--theme-foreground)]">
+  <h2 class="text-xl font-semibold sm:text-2xl">Tareas</h2>
+  <p class="mt-2 text-sm text-[var(--theme-muted)]">Las tareas de cada materia.</p>
+
+  @if (materias().length > 0) {
+    <label for="materia" class="mt-6 block text-sm font-medium">Materia</label>
+    <select
+      id="materia"
+      #select
+      class="mt-2 w-full max-w-xs rounded-xl bg-[var(--theme-surface)] px-3 py-2"
+      (change)="cambiarMateria(select.value)"
+    >
+      @for (m of materias(); track m.id) {
+        <option [value]="m.id" [selected]="m.id === materiaId()">{{ m.nombre }}</option>
+      }
+    </select>
+  }
+
+  <div class="mt-6">
+    @if (cargando()) {
+      <p class="text-sm text-[var(--theme-muted)]">Cargando...</p>
+    } @else if (error()) {
+      <p class="text-sm text-[var(--theme-error)]">{{ error() }}</p>
+    } @else if (materias().length === 0) {
+      <p class="text-sm text-[var(--theme-muted)]">Primero tenés que crear una materia.</p>
+    } @else {
+      <ul class="space-y-3">
+        @for (t of tareas(); track t.id) {
+          <li class="rounded-[20px] bg-[var(--theme-surface)] px-4 py-3">
+            <h3 class="font-semibold">{{ t.titulo }}</h3>
+            @if (t.descripcion) {
+              <p class="mt-1 text-sm text-[var(--theme-muted)]">{{ t.descripcion }}</p>
+            }
+            <p class="mt-2 text-xs text-[var(--theme-muted)]">
+              Entrega: {{ t.fechaLimite ? t.fechaLimite : 'sin fecha' }}
+              · {{ t.completado ? 'Completada' : 'Pendiente' }}
+            </p>
+          </li>
+        } @empty {
+          <p class="text-sm text-[var(--theme-muted)]">No hay tareas en esta materia.</p>
+        }
+      </ul>
+    }
+  </div>
+</section>
