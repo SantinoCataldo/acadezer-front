@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SubjectsService } from '../../../subjects/services/subjects.service';
 import { SubjectResponse } from '../../../subjects/models';
 import { TareaService } from '../../tarea-service';
@@ -6,12 +7,13 @@ import { Tarea } from '../../tarea';
 
 @Component({
   selector: 'app-tareas-list',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './tareas-list.html',
 })
 export class TareasList implements OnInit {
   private materiaService = inject(SubjectsService);
   private tareaService = inject(TareaService);
+  private route = inject(ActivatedRoute);
 
   materias = signal<SubjectResponse[]>([]);
   tareas = signal<Tarea[]>([]);
@@ -28,7 +30,10 @@ export class TareasList implements OnInit {
       next: (data) => {
         this.materias.set(data);
         this.cargando.set(false);
-        if (data.length > 0) {
+        const materiaDeLaUrl = this.route.snapshot.queryParamMap.get('materia');
+        if (materiaDeLaUrl) {
+          this.elegirMateria(Number(materiaDeLaUrl));
+        } else if (data.length > 0) {
           this.elegirMateria(data[0].id);
         }
       },

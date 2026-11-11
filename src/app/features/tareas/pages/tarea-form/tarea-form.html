@@ -1,0 +1,43 @@
+<section class="max-w-lg text-[var(--theme-foreground)]">
+  <h2 class="text-xl font-semibold sm:text-2xl">Nueva tarea</h2>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="mt-6 space-y-5">
+    <div>
+      <label for="titulo" class="block text-sm font-medium">Título</label>
+      <input id="titulo" type="text" formControlName="titulo"
+        class="mt-2 w-full rounded-xl border border-[var(--theme-border)] bg-transparent px-3 py-2">
+      @if (form.get('titulo')?.touched && form.get('titulo')?.hasError('required')) {
+        <p class="mt-1 text-sm text-[var(--theme-error)]">El título es obligatorio</p>
+      }
+      @if (form.get('titulo')?.touched && form.get('titulo')?.hasError('maxlength')) {
+        <p class="mt-1 text-sm text-[var(--theme-error)]">El título puede tener hasta 200 caracteres</p>
+      }
+    </div>
+
+    <div>
+      <label for="descripcion" class="block text-sm font-medium">Descripción (opcional)</label>
+      <textarea id="descripcion" formControlName="descripcion" rows="4"
+        class="mt-2 w-full rounded-xl border border-[var(--theme-border)] bg-transparent px-3 py-2"></textarea>
+      @if (form.get('descripcion')?.touched && form.get('descripcion')?.hasError('maxlength')) {
+        <p class="mt-1 text-sm text-[var(--theme-error)]">La descripción puede tener hasta 2000 caracteres</p>
+      }
+    </div>
+
+    <div>
+      <label for="fechaLimite" class="block text-sm font-medium">Fecha de entrega (opcional)</label>
+      <input id="fechaLimite" type="date" formControlName="fechaLimite"
+        class="mt-2 w-full rounded-xl border border-[var(--theme-border)] bg-transparent px-3 py-2">
+    </div>
+
+    <div class="flex gap-3">
+      <button type="submit"
+        class="rounded-[14px] bg-[var(--theme-accent)] px-4 py-3 text-sm font-semibold text-[var(--theme-on-accent)]">
+        Guardar
+      </button>
+      <a [routerLink]="['/estudio/tareas']" [queryParams]="{ materia: materiaId }"
+        class="rounded-[14px] border border-[var(--theme-border)] px-4 py-3 text-sm font-semibold">
+        Cancelar
+      </a>
+    </div>
+  </form>
+</section>
