@@ -6,6 +6,7 @@ import { SubjectsService } from '../../services/subjects.service';
 import { AttendanceBoard } from '../../components/attendance-board/attendance-board';
 import { DeleteSubjectDialog } from '../../components/delete-subject-dialog/delete-subject-dialog';
 import { SubjectFormDialog } from '../../components/subject-form-dialog/subject-form-dialog';
+import { NotesSection } from '../../components/notes-section/notes-section';
 import { dangerButton, primaryButton, secondaryButton } from '../../dialog-styles';
 
 type DetailState = 'loading' | 'error' | 'ready';
@@ -20,12 +21,12 @@ interface DetailSection {
 /**
  * Contenedor del detalle de materia (/estudio/materias/:id).
  *
- * MAT-03: consulta los datos de la materia seleccionada, ofrece el registro de
- * asistencia y mantiene accesos visuales para apuntes, pendientes y evaluaciones.
+ * MAT-03: consulta los datos de la materia seleccionada y ofrece el registro de
+ * asistencia. APU-01: debajo del tablero de asistencia monta la sección Apuntes.
  */
 @Component({
   selector: 'app-subject-detail',
-  imports: [RouterLink, AttendanceBoard, SubjectFormDialog, DeleteSubjectDialog],
+  imports: [RouterLink, AttendanceBoard, NotesSection, SubjectFormDialog, DeleteSubjectDialog],
   templateUrl: './subject-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -44,13 +45,10 @@ export class SubjectDetail {
   readonly finishing = signal(false);
   readonly finishError = signal<string | null>(null);
 
+  /** Cambia cada vez que los apuntes se modifican, para forzar su recarga. */
+  readonly notesRevision = signal(0);
+
   readonly sections: readonly DetailSection[] = [
-    {
-      id: 'apuntes',
-      icon: 'description',
-      title: 'Apuntes',
-      description: 'Tus apuntes de texto para esta materia.',
-    },
     {
       id: 'pendientes',
       icon: 'checklist',
