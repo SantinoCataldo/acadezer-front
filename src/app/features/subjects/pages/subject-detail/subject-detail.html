@@ -1,5 +1,4 @@
-<main class="min-h-dvh bg-[var(--theme-canvas)] px-5 py-8 text-[var(--theme-foreground)] sm:px-8 sm:py-12">
-  <section class="mx-auto w-full max-w-5xl">
+<section class="text-[var(--theme-foreground)]">
     <a
       [routerLink]="['/estudio']"
       class="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-[var(--theme-muted)] hover:text-[var(--theme-foreground)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
@@ -135,8 +134,7 @@
         }
       }
     }
-  </section>
-</main>
+</section>
 
 @if (formTarget(); as target) {
   <app-subject-form-dialog

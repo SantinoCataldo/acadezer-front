@@ -12,14 +12,6 @@ export const routes: Routes = [
     title: 'Acadezer - Inicio',
   },
   {
-    path: 'estudio',
-    pathMatch: 'full',
-    loadComponent: () => import('./pages/estudio/estudio').then((m) => m.StudySpaceComponent),
-    canActivate: [authGuard],
-    data: { layout: 'bare' },
-    title: 'Acadezer - Mi espacio',
-  },
-  {
     path: 'onboarding',
     loadComponent: () => import('./pages/onboarding/onboarding').then((m) => m.Onboarding),
     canActivate: [authGuard],
