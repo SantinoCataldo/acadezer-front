@@ -1,7 +1,7 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { of } from 'rxjs';
 import { AuthService } from '@core/services/auth.service';
 import type { UserResponse } from '@core/models/user.models';
@@ -28,6 +28,17 @@ vi.mock('@material/material-color-utilities', () => {
 
 describe('App', () => {
   beforeEach(async () => {
+    vi.stubGlobal('matchMedia', (query: string): MediaQueryList => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(() => false),
+    }));
+
     const user: UserResponse = {
       id: 1,
       nombre: 'Santino',
@@ -52,6 +63,8 @@ describe('App', () => {
     }).compileComponents();
   });
 
+  afterEach(() => vi.unstubAllGlobals());
+
   it('should create the app', () => {
     const fixture = TestBed.createComponent(App);
     const app = fixture.componentInstance;
@@ -64,6 +77,6 @@ describe('App', () => {
     await fixture.whenStable();
     const root: unknown = fixture.nativeElement;
     if (!(root instanceof HTMLElement)) throw new Error('Missing application root');
-    expect(root.querySelector('h1')?.textContent).toContain('Hola, Santino');
+    expect(root.querySelector('h1')?.textContent).toContain('Todo lo que estudiás');
   });
 });
