@@ -1,0 +1,130 @@
+<main class="min-h-[calc(100dvh-6rem)] bg-[var(--theme-canvas)] px-5 py-8 text-[var(--theme-foreground)] sm:px-8 sm:py-12">
+  <section class="mx-auto w-full max-w-5xl">
+    <header class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">Materias</h1>
+        <p class="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">
+          Tus cursadas con sus apuntes, pendientes, evaluaciones y asistencias.
+        </p>
+      </div>
+
+      <button type="button" [class]="primaryButtonClass" (click)="openCreateDialog()">
+        <span class="material-symbols-rounded text-lg" aria-hidden="true">add</span>
+        Crear materia
+      </button>
+    </header>
+
+    <div class="mt-8">
+      @switch (state()) {
+        @case ('loading') {
+          <div aria-busy="true" class="space-y-3">
+            <p role="status" class="sr-only">Cargando materias…</p>
+            @for (placeholder of [1, 2, 3]; track placeholder) {
+              <div class="h-20 animate-pulse rounded-[20px] bg-[var(--theme-surface)]"></div>
+            }
+          </div>
+        }
+
+        @case ('error') {
+          <div
+            role="alert"
+            class="rounded-[24px] bg-[var(--md-sys-color-error-container)] px-5 py-10 text-center text-[var(--md-sys-color-on-error-container)] sm:px-8"
+          >
+            <p class="font-semibold">No pudimos cargar tus materias.</p>
+            <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed opacity-90">
+              Revisá tu conexión y volvé a intentarlo.
+            </p>
+            <button type="button" [class]="primaryButtonClass + ' mt-6 mx-auto'" (click)="load()">
+              <span class="material-symbols-rounded text-lg" aria-hidden="true">refresh</span>
+              Reintentar
+            </button>
+          </div>
+        }
+
+        @case ('ready') {
+          @if (isEmpty()) {
+            <div class="rounded-[24px] bg-[var(--theme-surface)] px-5 py-12 text-center sm:px-8 sm:py-16">
+              <span class="material-symbols-rounded text-4xl text-[var(--theme-accent-content)]" aria-hidden="true">
+                library_books
+              </span>
+              <h2 class="mt-4 text-lg font-semibold">Todavía no creaste materias</h2>
+              <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--theme-muted)]">
+                Creá tu primera materia para organizar apuntes, pendientes, evaluaciones y asistencias en un solo lugar.
+              </p>
+              <button type="button" [class]="primaryButtonClass + ' mt-6 mx-auto'" (click)="openCreateDialog()">
+                <span class="material-symbols-rounded text-lg" aria-hidden="true">add</span>
+                Crear materia
+              </button>
+            </div>
+          } @else {
+            <ul class="space-y-3">
+              @for (subject of subjects(); track subject.id) {
+                <li
+                  class="flex items-center gap-4 rounded-[20px] border border-[var(--theme-border)] bg-[var(--theme-surface)] p-4 transition-[background-color] duration-150 hover:bg-[var(--theme-surface-high)] sm:p-5"
+                >
+                  <span class="material-symbols-rounded hidden text-2xl text-[var(--theme-accent-content)] sm:block" aria-hidden="true">
+                    menu_book
+                  </span>
+
+                  <div class="min-w-0 flex-1">
+                    <h2 class="truncate text-base font-semibold">
+                      <a
+                        [routerLink]="['/materias', subject.id]"
+                        class="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
+                      >
+                        {{ subject.nombre }}
+                        <span class="sr-only"> — ver detalle</span>
+                      </a>
+                    </h2>
+                    <p class="mt-0.5 truncate text-sm text-[var(--theme-muted)]">
+                      @if (subject.descripcion; as descripcion) {
+                        {{ descripcion }}
+                      } @else {
+                        Sin descripción
+                      }
+                    </p>
+                  </div>
+
+                  <div class="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      [class]="iconButtonClass"
+                      [attr.aria-label]="'Editar ' + subject.nombre"
+                      (click)="openEditDialog(subject)"
+                    >
+                      <span class="material-symbols-rounded text-xl" aria-hidden="true">edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      [class]="iconButtonClass"
+                      [attr.aria-label]="'Eliminar ' + subject.nombre"
+                      (click)="openDeleteDialog(subject)"
+                    >
+                      <span class="material-symbols-rounded text-xl" aria-hidden="true">delete</span>
+                    </button>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        }
+      }
+    </div>
+  </section>
+</main>
+
+@if (formTarget(); as target) {
+  <app-subject-form-dialog
+    [subject]="target === 'new' ? null : target"
+    (saved)="onSubjectSaved($event)"
+    (cancelled)="onDialogCancelled()"
+  />
+}
+
+@if (deleteTarget(); as target) {
+  <app-delete-subject-dialog
+    [subject]="target"
+    (deleted)="onSubjectDeleted(target)"
+    (cancelled)="onDialogCancelled()"
+  />
+}

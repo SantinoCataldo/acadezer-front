@@ -1,0 +1,114 @@
+<main class="min-h-[calc(100dvh-6rem)] bg-[var(--theme-canvas)] px-5 py-8 text-[var(--theme-foreground)] sm:px-8 sm:py-12">
+  <section class="mx-auto w-full max-w-5xl">
+    <a
+      [routerLink]="['/materias']"
+      class="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-[var(--theme-muted)] hover:text-[var(--theme-foreground)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
+    >
+      <span class="material-symbols-rounded text-lg" aria-hidden="true">arrow_back</span>
+      Volver a materias
+    </a>
+
+    @switch (state()) {
+      @case ('loading') {
+        <div aria-busy="true" class="mt-6 space-y-4">
+          <p role="status" class="sr-only">Cargando materia…</p>
+          <div class="h-10 w-2/3 animate-pulse rounded-[14px] bg-[var(--theme-surface)]"></div>
+          <div class="h-4 w-1/2 animate-pulse rounded-[14px] bg-[var(--theme-surface)]"></div>
+          <div class="grid gap-4 pt-4 sm:grid-cols-2">
+            @for (placeholder of [1, 2, 3, 4]; track placeholder) {
+              <div class="h-28 animate-pulse rounded-[20px] bg-[var(--theme-surface)]"></div>
+            }
+          </div>
+        </div>
+      }
+
+      @case ('error') {
+        <div role="alert" class="mt-6 rounded-[24px] bg-[var(--theme-surface)] px-5 py-12 text-center sm:px-8">
+          <span class="material-symbols-rounded text-3xl text-[var(--theme-muted)]" aria-hidden="true">search_off</span>
+          <h1 class="mt-3 text-lg font-semibold">Esta materia no está disponible</h1>
+          <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--theme-muted)]">
+            Puede que la hayas eliminado o que pertenezca a otra cuenta.
+          </p>
+          <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
+            <button type="button" [class]="secondaryButtonClass" (click)="retry()">Reintentar</button>
+            <a
+              [routerLink]="['/materias']"
+              class="flex min-h-12 cursor-pointer items-center justify-center rounded-[14px] border border-[var(--theme-border)] px-4 py-3 text-sm font-semibold text-[var(--theme-foreground)] transition-[transform,background-color] duration-150 hover:bg-[var(--theme-surface-high)] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+            >
+              Volver a materias
+            </a>
+          </div>
+        </div>
+      }
+
+      @case ('ready') {
+        @if (subject(); as current) {
+          <header class="mt-6 flex flex-wrap items-start justify-between gap-4">
+            <div class="min-w-0">
+              <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">{{ current.nombre }}</h1>
+              @if (current.descripcion; as descripcion) {
+                <p class="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--theme-muted)]">{{ descripcion }}</p>
+              } @else {
+                <p class="mt-2 text-sm text-[var(--theme-muted)]">Sin descripción.</p>
+              }
+            </div>
+
+            <div class="flex gap-2">
+              <button type="button" [class]="secondaryButtonClass" (click)="openEditDialog()">
+                <span class="material-symbols-rounded text-lg" aria-hidden="true">edit</span>
+                Editar
+              </button>
+              <button type="button" [class]="dangerButtonClass" (click)="openDeleteDialog()">
+                <span class="material-symbols-rounded text-lg" aria-hidden="true">delete</span>
+                Eliminar
+              </button>
+            </div>
+          </header>
+
+          <!--
+            Punto de integración de apuntes: cuando el equipo de apuntes entregue
+            su componente, se monta acá con la materia actual, por ejemplo
+            <app-notes-section [materiaId]="current.id" />.
+          -->
+          <section class="mt-10" aria-labelledby="sections-heading">
+            <h2 id="sections-heading" class="text-xl font-semibold tracking-tight">Secciones de la materia</h2>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+              @for (section of sections; track section.id) {
+                <article class="rounded-[20px] border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5">
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-rounded text-[var(--theme-accent-content)]" aria-hidden="true">
+                      {{ section.icon }}
+                    </span>
+                    <h3 class="font-semibold">{{ section.title }}</h3>
+                    <span
+                      class="ml-auto rounded-full border border-[var(--theme-border)] px-2.5 py-0.5 text-xs text-[var(--theme-muted)]"
+                    >
+                      Próximamente
+                    </span>
+                  </div>
+                  <p class="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">{{ section.description }}</p>
+                </article>
+              }
+            </div>
+          </section>
+        }
+      }
+    }
+  </section>
+</main>
+
+@if (formTarget(); as target) {
+  <app-subject-form-dialog
+    [subject]="target"
+    (saved)="onSubjectSaved($event)"
+    (cancelled)="onDialogCancelled()"
+  />
+}
+
+@if (deleteTarget(); as target) {
+  <app-delete-subject-dialog
+    [subject]="target"
+    (deleted)="onSubjectDeleted()"
+    (cancelled)="onDialogCancelled()"
+  />
+}
