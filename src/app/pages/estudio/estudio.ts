@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { filter, map } from 'rxjs';
 import { AuthService } from '@core/services/auth.service';
 import { NavigationStylePickerComponent, type NavigationStyle } from './navigation-style-picker.component';
 
@@ -25,7 +27,19 @@ function initialNavigationStyle(): NavigationStyle {
 })
 export class StudySpaceComponent {
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   readonly currentUser = this.auth.currentUser;
+  readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+    ),
+    { initialValue: this.router.url },
+  );
+  readonly subjectsActive = () => {
+    const path = this.currentUrl().split(/[?#]/)[0] ?? '';
+    return path === '/estudio' || path.startsWith('/estudio/materias/');
+  };
   readonly navigationStyle = signal<NavigationStyle>(initialNavigationStyle());
   readonly navigationSettingsOpen = signal(false);
 

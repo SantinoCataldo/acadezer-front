@@ -2,7 +2,7 @@
   <div class="min-h-dvh lg:flex">
   @if (navigationStyle() !== 'dock') {
     <aside
-      [class]="'hidden min-h-dvh shrink-0 flex-col px-3 py-5 transition-[width,background-color] duration-200 motion-reduce:transition-none lg:flex ' + (navigationStyle() === 'melon' ? 'bg-[var(--theme-canvas)] ' : navigationStyle() === 'guapa' ? 'bg-[var(--theme-surface-high)] ' : navigationStyle() !== 'bonita' ? 'bg-[var(--theme-surface-low)] ' : '') + (navigationStyle() === 'bonita' ? 'border-r border-[var(--theme-border)]' : '')"
+      [class]="'sticky top-0 z-40 hidden h-dvh min-h-0 shrink-0 flex-col px-3 py-5 transition-[width,background-color] duration-200 motion-reduce:transition-none lg:flex ' + (navigationStyle() === 'melon' ? 'bg-[var(--theme-canvas)] ' : navigationStyle() === 'guapa' ? 'bg-[var(--theme-surface-high)] ' : navigationStyle() !== 'bonita' ? 'bg-[var(--theme-surface-low)] ' : '') + (navigationStyle() === 'bonita' ? 'border-r border-[var(--theme-border)]' : '')"
       [style.width.px]="navigationStyle() === 'tasks' ? 80 : 256"
     >
       <a routerLink="/estudio" class="flex h-11 items-center gap-3 rounded-xl px-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]" [class.justify-center]="navigationStyle() === 'tasks'">
@@ -17,23 +17,36 @@
       <nav aria-label="Navegación del espacio" [class]="'mt-8 flex flex-col ' + (navigationStyle() === 'tasks' ? 'gap-2.5 ' : 'gap-1 ') + (navigationStyle() === 'melon' ? 'rounded-[20px] bg-[var(--theme-canvas)] p-2' : '')">
         <a
           routerLink="/estudio"
-          routerLinkActive
-          #subjectsActive="routerLinkActive"
-          [routerLinkActiveOptions]="{ exact: false }"
-          ariaCurrentWhenActive="page"
+          [attr.aria-current]="subjectsActive() ? 'page' : null"
           [attr.title]="navigationStyle() === 'tasks' ? 'Materias' : null"
           [attr.aria-label]="navigationStyle() === 'tasks' ? 'Materias' : null"
-          [class]="'flex items-center gap-3 px-3 text-sm font-medium transition-[background-color,color,transform,border-radius] duration-300 hover:scale-[0.99] active:scale-[1.01] motion-reduce:transition-none ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center ' : 'min-h-11 ') + (navigationStyle() === 'guapa' ? 'rounded-full' : navigationStyle() === 'tasks' ? (subjectsActive.isActive ? 'rounded-[13px]' : 'rounded-full') : navigationStyle() === 'melon' ? 'rounded-[13px]' : 'rounded-[14px]') + ' ' + (subjectsActive.isActive ? (navigationStyle() === 'guapa' ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : navigationStyle() === 'bonita' ? 'bg-[var(--theme-surface)] text-[var(--theme-foreground)]' : 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]') : 'text-[var(--theme-muted)] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)]')"
+          [class]="'flex items-center gap-3 px-3 text-sm font-medium transition-[background-color,color,transform,border-radius] duration-300 hover:scale-[0.99] active:scale-[1.01] motion-reduce:transition-none ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center ' : 'min-h-11 ') + (navigationStyle() === 'guapa' ? 'rounded-full' : navigationStyle() === 'tasks' ? (subjectsActive() ? 'rounded-[13px]' : 'rounded-full') : navigationStyle() === 'melon' ? 'rounded-[13px]' : 'rounded-[14px]') + ' ' + (subjectsActive() ? (navigationStyle() === 'guapa' ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : navigationStyle() === 'bonita' ? 'bg-[var(--theme-surface)] text-[var(--theme-foreground)]' : 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]') : 'text-[var(--theme-muted)] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)]')"
         >
           <span class="material-symbols-rounded text-[20px]" aria-hidden="true">menu_book</span>
           @if (navigationStyle() !== 'tasks') { <span>Materias</span> }
         </a>
-        @for (item of [{ icon: 'description', label: 'Apuntes' }, { icon: 'fact_check', label: 'Asistencia' }, { icon: 'calendar_month', label: 'Almanaque' }, { icon: 'event_note', label: 'Evaluaciones' }]; track item.label) {
+        @for (item of [{ icon: 'description', label: 'Apuntes' }, { icon: 'fact_check', label: 'Asistencia' }]; track item.label) {
           <span aria-disabled="true" [attr.title]="item.label + ' · próximamente'" [attr.aria-label]="navigationStyle() === 'tasks' ? item.label + ' próximamente' : null" [class]="'flex items-center gap-3 px-3 text-sm text-[var(--theme-muted)] opacity-80 ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center rounded-full' : 'min-h-11 ' + (navigationStyle() === 'guapa' ? 'rounded-full' : 'rounded-[13px]'))">
             <span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ item.icon }}</span>
             @if (navigationStyle() !== 'tasks') { <span>{{ item.label }}</span> }
           </span>
         }
+        <a
+          routerLink="/estudio/horario"
+          routerLinkActive
+          #scheduleActive="routerLinkActive"
+          ariaCurrentWhenActive="page"
+          [attr.title]="navigationStyle() === 'tasks' ? 'Horario' : null"
+          [attr.aria-label]="navigationStyle() === 'tasks' ? 'Horario' : null"
+          [class]="'flex items-center gap-3 px-3 text-sm font-medium transition-[background-color,color,transform,border-radius] duration-300 hover:scale-[0.99] active:scale-[1.01] motion-reduce:transition-none ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center ' : 'min-h-11 ') + (navigationStyle() === 'guapa' ? 'rounded-full' : navigationStyle() === 'tasks' ? (scheduleActive.isActive ? 'rounded-[13px]' : 'rounded-full') : navigationStyle() === 'melon' ? 'rounded-[13px]' : 'rounded-[14px]') + ' ' + (scheduleActive.isActive ? (navigationStyle() === 'guapa' ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : navigationStyle() === 'bonita' ? 'bg-[var(--theme-surface)] text-[var(--theme-foreground)]' : 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]') : 'text-[var(--theme-muted)] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)]')"
+        >
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">calendar_view_week</span>
+          @if (navigationStyle() !== 'tasks') { <span>Horario</span> }
+        </a>
+        <span aria-disabled="true" title="Evaluaciones · próximamente" [class]="'flex items-center gap-3 px-3 text-sm text-[var(--theme-muted)] opacity-80 ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center rounded-full' : 'min-h-11 ' + (navigationStyle() === 'guapa' ? 'rounded-full' : 'rounded-[13px]'))">
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">event_note</span>
+          @if (navigationStyle() !== 'tasks') { <span>Evaluaciones</span> }
+        </span>
         @if (navigationStyle() !== 'tasks') { <span aria-hidden="true" class="my-2 h-px bg-[var(--theme-border)] opacity-40"></span> }
         <div class="relative">
           <button type="button" (click)="toggleNavigationSettings()" [attr.aria-expanded]="navigationSettingsOpen()" [attr.title]="navigationStyle() === 'tasks' ? 'Estilos de navegación' : null" [attr.aria-label]="navigationStyle() === 'tasks' ? 'Estilos de navegación' : null" [class]="'flex cursor-pointer items-center gap-3 px-3 text-sm text-[var(--theme-muted)] transition-[background-color,color,transform,border-radius] duration-300 hover:scale-[0.99] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center ' + (navigationSettingsOpen() ? 'rounded-[13px]' : 'rounded-full') : 'min-h-11 rounded-[14px]')">
@@ -41,7 +54,7 @@
             @if (navigationStyle() !== 'tasks') { <span>Ajustes</span> }
           </button>
           @if (navigationSettingsOpen()) {
-            <app-navigation-style-picker class="absolute top-0 left-full z-[70] ml-3" [selected]="navigationStyle()" (styleSelected)="setNavigationStyle($event)" (closeRequested)="toggleNavigationSettings()" />
+            <app-navigation-style-picker class="absolute top-0 left-full z-[70] ml-3 block" [style.width]="navigationStyle() === 'tasks' ? 'min(24rem, calc(100vw - 6rem))' : 'min(24rem, calc(100vw - 18rem))'" [selected]="navigationStyle()" (styleSelected)="setNavigationStyle($event)" (closeRequested)="toggleNavigationSettings()" />
           }
         </div>
       </nav>
@@ -78,10 +91,10 @@
 
     <nav aria-label="Navegación principal" [class]="'fixed inset-x-0 bottom-0 z-40 flex items-center justify-center gap-2 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] ' + (navigationStyle() === 'dock' ? '' : 'lg:hidden')">
       <div class="flex items-center gap-1 rounded-full bg-[var(--theme-surface-low)] p-1.5 shadow-[0_10px_36px_-14px_rgba(0,0,0,0.55)]">
-        <a routerLink="/estudio" routerLinkActive="bg-[var(--theme-accent)] text-[var(--theme-on-accent)]" [routerLinkActiveOptions]="{ exact: false }" ariaCurrentWhenActive="page" aria-label="Materias" title="Materias" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)]"><span class="material-symbols-rounded text-xl" aria-hidden="true">menu_book</span></a>
+        <a routerLink="/estudio" [attr.aria-current]="subjectsActive() ? 'page' : null" aria-label="Materias" title="Materias" [class]="'grid size-11 place-items-center rounded-full ' + (subjectsActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">menu_book</span></a>
         <span aria-disabled="true" aria-label="Apuntes próximamente" title="Apuntes" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)] opacity-80"><span class="material-symbols-rounded text-xl" aria-hidden="true">description</span></span>
         <span aria-disabled="true" aria-label="Asistencia próximamente" title="Asistencia" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)] opacity-80"><span class="material-symbols-rounded text-xl" aria-hidden="true">fact_check</span></span>
-        <span aria-disabled="true" aria-label="Almanaque próximamente" title="Almanaque" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)] opacity-80"><span class="material-symbols-rounded text-xl" aria-hidden="true">calendar_month</span></span>
+        <a routerLink="/estudio/horario" routerLinkActive="bg-[var(--theme-accent)] text-[var(--theme-on-accent)]" ariaCurrentWhenActive="page" aria-label="Horario" title="Horario" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)]"><span class="material-symbols-rounded text-xl" aria-hidden="true">calendar_view_week</span></a>
         <details class="group relative">
           <summary aria-label="Menú de cuenta" title="Cuenta" class="grid size-11 cursor-pointer list-none place-items-center rounded-full text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-xl" aria-hidden="true">person</span></summary>
           <div class="absolute right-0 bottom-full z-30 mb-3 w-48 rounded-[16px] bg-[var(--theme-surface-high)] p-2">

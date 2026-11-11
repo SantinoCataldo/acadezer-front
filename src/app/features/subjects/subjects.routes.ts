@@ -20,6 +20,11 @@ export const subjectRoutes: Routes = [
         loadComponent: () => import('./pages/subject-detail/subject-detail').then((m) => m.SubjectDetail),
         title: 'Acadezer - Materia',
       },
+      {
+        path: 'horario',
+        loadComponent: () => import('../almanac/pages/almanac/almanac').then((m) => m.Almanac),
+        title: 'Acadezer - Horario',
+      },
     ],
   },
 ];

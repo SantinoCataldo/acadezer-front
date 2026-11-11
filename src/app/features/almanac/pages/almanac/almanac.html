@@ -1,0 +1,78 @@
+<section aria-labelledby="schedule-heading" class="text-[var(--theme-foreground)]">
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 id="schedule-heading" class="text-2xl font-semibold tracking-tight sm:text-3xl">Horario</h1>
+      <p class="mt-1.5 text-sm text-[var(--theme-muted)]">Tus cursadas ordenadas por día y horario.</p>
+    </div>
+    <button
+      type="button"
+      (click)="toggleWeekends()"
+      [attr.aria-pressed]="showWeekends()"
+      [class]="'inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-[14px] px-3.5 text-sm font-medium transition-[background-color,color,transform] duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none ' + (showWeekends() ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]' : 'bg-[var(--theme-surface)] text-[var(--theme-muted)] hover:bg-[var(--theme-surface-high)] hover:text-[var(--theme-foreground)]')"
+    >
+      <span class="material-symbols-rounded text-lg" aria-hidden="true">calendar_view_week</span>
+      {{ showWeekends() ? 'Ocultar' : 'Mostrar' }} sábados y domingos
+    </button>
+  </header>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div aria-busy="true" class="mt-7 rounded-[22px] bg-[var(--theme-surface)] p-4 sm:p-6">
+        <p role="status" class="sr-only">Cargando horario…</p>
+        <div class="h-9 animate-pulse rounded-[12px] bg-[var(--theme-surface-high)]"></div>
+        <div class="mt-4 h-40 animate-pulse rounded-[16px] bg-[var(--theme-surface-high)]"></div>
+      </div>
+    }
+    @case ('error') {
+      <div role="alert" class="mt-7 rounded-[22px] bg-[var(--md-sys-color-error-container)] px-5 py-10 text-center text-[var(--md-sys-color-on-error-container)]">
+        <p class="font-semibold">No pudimos cargar tus horarios.</p>
+        <p class="mt-1 text-sm opacity-90">Revisá tu conexión e intentá de nuevo.</p>
+        <button type="button" (click)="load()" class="mt-5 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-[14px] bg-[var(--theme-surface)] px-4 text-sm font-medium transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none">
+          <span class="material-symbols-rounded text-lg" aria-hidden="true">refresh</span>
+          Reintentar
+        </button>
+      </div>
+    }
+    @case ('ready') {
+      @if (!hasSchedule()) {
+        <div class="mt-7 rounded-[22px] bg-[var(--theme-surface)] px-5 py-12 text-center sm:px-8 sm:py-16">
+          <span class="material-symbols-rounded text-4xl text-[var(--theme-accent-content)]" aria-hidden="true">calendar_view_week</span>
+          <h2 class="mt-3 text-lg font-semibold">Todavía no hay horarios</h2>
+          <p class="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-[var(--theme-muted)]">Agregá días y horarios al crear o editar una materia para ver acá tu semana.</p>
+          <a routerLink="/estudio" class="mt-5 inline-flex min-h-11 items-center justify-center rounded-[14px] bg-[var(--theme-accent)] px-4 text-sm font-semibold text-[var(--theme-on-accent)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none">Ver materias</a>
+        </div>
+      } @else {
+        <div class="mt-7">
+          <section aria-labelledby="option-columns" class="space-y-3">
+            <header class="flex items-baseline justify-between gap-3">
+              <div>
+                <h2 id="option-columns" class="text-lg font-semibold tracking-tight">Semana por días</h2>
+                <p class="mt-1 text-sm text-[var(--theme-muted)]">Cada día muestra solo sus cursadas.</p>
+              </div>
+            </header>
+
+            <div [class]="'grid grid-cols-2 gap-2 sm:grid-cols-4 ' + (visibleWeeklyColumns().length <= 5 ? 'xl:grid-cols-5' : 'xl:grid-cols-7')">
+              @for (day of visibleWeeklyColumns(); track day.id) {
+                <article class="min-h-32 rounded-[18px] bg-[var(--theme-surface)] p-3 sm:min-h-40 sm:p-3.5">
+                  <h3 class="text-sm font-semibold">{{ day.fullLabel }}</h3>
+                  @if (day.entries.length === 0) {
+                    <p class="mt-5 text-xs text-[var(--theme-muted)]">Libre</p>
+                  } @else {
+                    <ul class="mt-3 space-y-5">
+                      @for (entry of day.entries; track entry.scheduleId) {
+                        <li [style.height.px]="weeklyCardHeight(entry.durationMinutes)" class="flex flex-col justify-center rounded-[12px] bg-[var(--theme-accent-soft)] px-2.5 py-2 text-[var(--theme-accent-content)]">
+                          <p class="text-xs font-semibold leading-snug">{{ entry.subjectName }}</p>
+                          <p class="mt-1 text-[10px] leading-none tabular-nums opacity-85">{{ entry.start }}–{{ entry.end }} hs</p>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </article>
+              }
+            </div>
+          </section>
+        </div>
+      }
+    }
+  }
+</section>
