@@ -1,0 +1,23 @@
+<section class="w-[min(24rem,calc(100vw-2rem))] rounded-[22px] bg-[var(--theme-surface-high)] p-4 text-[var(--theme-foreground)] shadow-[0_18px_50px_-20px_rgba(0,0,0,0.5)]" aria-label="Estilos de navegación">
+  <header class="flex items-center justify-between gap-3">
+    <div>
+      <h2 class="text-sm font-semibold">Navegación</h2>
+      <p class="mt-0.5 text-xs text-[var(--theme-muted)]">Elegí el estilo que más te guste.</p>
+    </div>
+    <button type="button" (click)="closeRequested.emit()" aria-label="Cerrar estilos de navegación" class="grid size-9 cursor-pointer place-items-center rounded-full text-[var(--theme-muted)] hover:bg-[var(--theme-surface)] focus-visible:outline-2 focus-visible:outline-[var(--theme-accent-content)]">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    </button>
+  </header>
+  <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+    @for (style of styles; track style.id) {
+      <button
+        type="button"
+        (click)="styleSelected.emit(style.id)"
+        [attr.aria-pressed]="selected() === style.id"
+        class="flex min-h-[54px] cursor-pointer items-center justify-center rounded-[14px] border border-[var(--theme-border)] bg-[var(--theme-surface)] px-2 py-2 text-xs font-semibold text-[var(--theme-foreground)] transition-[background-color,color,border-color,transform] duration-150 hover:scale-[0.99] active:scale-[1.01] aria-pressed:border-[var(--theme-accent)] aria-pressed:bg-[var(--theme-accent)] aria-pressed:text-[var(--theme-on-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+      >
+        {{ style.label }}
+      </button>
+    }
+  </div>
+</section>

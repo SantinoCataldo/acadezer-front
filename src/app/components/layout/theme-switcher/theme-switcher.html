@@ -65,7 +65,7 @@
             type="button"
             (click)="preferences.setMode(mode.id)"
             [attr.aria-pressed]="preferences.mode() === mode.id"
-            class="min-h-11 rounded-lg px-2 text-xs outline-offset-2 focus-visible:outline-2 focus-visible:outline-[var(--theme-foreground)] aria-pressed:bg-[var(--theme-surface)] aria-pressed:font-semibold"
+            class="min-h-11 cursor-pointer rounded-lg px-2 text-xs outline-offset-2 focus-visible:outline-2 focus-visible:outline-[var(--theme-foreground)] aria-pressed:bg-[var(--theme-surface)] aria-pressed:font-semibold"
           >
             {{ mode.label }}
           </button>
