@@ -35,7 +35,8 @@ export class App {
 
   private shouldShowLayout(url: string): boolean {
     const path = url.split(/[?#]/, 1)[0]?.replace(/\/+$/, '') || '/';
-    return path !== '/' && path !== '/home' && path !== '/login' && path !== '/register' && path !== '/onboarding';
+    const isStudySpace = path === '/estudio' || path.startsWith('/estudio/');
+    return !isStudySpace && path !== '/' && path !== '/home' && path !== '/login' && path !== '/register' && path !== '/onboarding';
   }
 
   private shouldShowThemeSwitcher(url: string): boolean {

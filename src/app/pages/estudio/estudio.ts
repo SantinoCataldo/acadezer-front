@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { AuthService } from '@core/services/auth.service';
+import { SubjectList } from '@features/subjects';
 
 @Component({
   selector: 'app-study-space',
-  imports: [],
+  imports: [SubjectList],
   templateUrl: './estudio.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

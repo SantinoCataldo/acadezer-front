@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '@core/guards/auth-guard';
 import { guestGuard } from '@core/guards/guest-guard';
+import { subjectRoutes } from '@features/subjects/subjects.routes';
 
 export const routes: Routes = [
   {
@@ -12,8 +13,10 @@ export const routes: Routes = [
   },
   {
     path: 'estudio',
+    pathMatch: 'full',
     loadComponent: () => import('./pages/estudio/estudio').then((m) => m.StudySpaceComponent),
     canActivate: [authGuard],
+    data: { layout: 'bare' },
     title: 'Acadezer - Mi espacio',
   },
   {
@@ -47,6 +50,7 @@ export const routes: Routes = [
       },
     ],
   },
+  ...subjectRoutes,
   {
     path: '**',
     redirectTo: '',
