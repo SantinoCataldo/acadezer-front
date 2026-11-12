@@ -21,7 +21,6 @@ export class SubjectRecentTasks {
 
   readonly state = signal<RecentTasksState>('loading');
   readonly tasks = signal<readonly Tarea[]>([]);
-  readonly totalPendientes = signal(0);
 
   constructor() {
     effect(() => this.load(this.materiaId()));
@@ -31,7 +30,6 @@ export class SubjectRecentTasks {
     const requestVersion = ++this.requestVersion;
     this.state.set('loading');
     this.tasks.set([]);
-    this.totalPendientes.set(0);
 
     this.tareaService
       .getTareas(materiaId)
@@ -40,13 +38,16 @@ export class SubjectRecentTasks {
         next: (allTasks) => {
           if (requestVersion !== this.requestVersion) return;
           const pendientes = allTasks.filter((t) => !t.completado);
-          this.totalPendientes.set(pendientes.length);
 
           const ordenadas = [...pendientes].sort((a, b) => {
-            if (a.fechaLimite && b.fechaLimite) return a.fechaLimite.localeCompare(b.fechaLimite);
-            if (a.fechaLimite) return -1;
-            if (b.fechaLimite) return 1;
-            return a.id - b.id;
+            const dateA = a.fechaLimite || null;
+            const dateB = b.fechaLimite || null;
+            if (dateA === null && dateB !== null) return 1;
+            if (dateA !== null && dateB === null) return -1;
+            if (dateA !== null && dateB !== null && dateA !== dateB) {
+              return dateA.localeCompare(dateB);
+            }
+            return a.titulo.localeCompare(b.titulo);
           });
 
           this.tasks.set(ordenadas.slice(0, 3));
@@ -58,16 +59,17 @@ export class SubjectRecentTasks {
       });
   }
 
-  formatearFecha(fecha: string | null | undefined): string {
-    if (!fecha) return '';
-    const [year, month, day] = fecha.split('-').map(Number);
-    if (!year || !month || !day) return fecha;
+  dueAt(value: string | null | undefined): string {
+    if (!value) return 'Sin fecha límite';
+    const [year, month, day] = value.split('-').map(Number);
+    if (!year || !month || !day) return value;
     const date = new Date(Date.UTC(year, month - 1, day));
-    return new Intl.DateTimeFormat('es-AR', {
+    const formatted = new Intl.DateTimeFormat('es-AR', {
       day: 'numeric',
       month: 'short',
       timeZone: 'UTC',
     }).format(date);
+    return `Entrega ${formatted}`;
   }
 
   fechaVencida(fecha: string | null | undefined): boolean {
