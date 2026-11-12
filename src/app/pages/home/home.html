@@ -1,24 +1,309 @@
-<main class="grid min-h-dvh place-items-center bg-[var(--theme-canvas)] px-6 py-12 text-center text-[var(--theme-foreground)] sm:px-10">
-  <section class="mx-auto w-full max-w-5xl">
-    <h1 class="text-[clamp(2.75rem,8vw,5.5rem)] font-semibold leading-[1.02] tracking-[-0.055em]">
-      Todo lo que estudiás, en un solo lugar.
-    </h1>
-    <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-[var(--theme-muted)] sm:text-lg sm:leading-8">
-      Organizá tus materias, guardá tus apuntes y convertí lo que leés en preguntas para repasar.
-    </p>
-    <nav aria-label="Acceso" class="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-      <a
-        routerLink="/register"
-        class="inline-flex min-h-12 items-center justify-center rounded-[15px] bg-[var(--theme-accent)] px-6 text-sm font-semibold text-[var(--theme-on-accent)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+<a
+  href="#main"
+  class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:flex focus:min-h-11 focus:items-center focus:rounded-[14px] focus:bg-[var(--theme-accent)] focus:px-4 focus:text-sm focus:font-semibold focus:text-[var(--theme-on-accent)]"
+>
+  Ir al contenido
+</a>
+
+<header class="landing-header sticky top-0 z-40 border-b border-[var(--theme-border)]">
+  <div class="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
+    <a
+      routerLink="/"
+      class="flex items-center gap-2.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
+    >
+      <span
+        class="flex size-9 items-center justify-center rounded-[12px] bg-[var(--theme-accent)] text-[var(--theme-on-accent)]"
       >
-        Crear cuenta
-      </a>
-      <a
-        routerLink="/login"
-        class="inline-flex min-h-12 items-center justify-center rounded-[15px] px-6 text-sm font-semibold text-[var(--theme-foreground)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+        <span class="material-symbols-rounded text-xl" aria-hidden="true">menu_book</span>
+      </span>
+      <span class="text-base font-semibold tracking-[-0.04em]"
+        >acadezer<span class="text-[var(--theme-accent-content)]">.</span></span
       >
-        Iniciar sesión
-      </a>
+    </a>
+
+    <nav
+      aria-label="Secciones de la página"
+      class="hidden items-center gap-7 text-sm font-medium text-[var(--theme-muted)] md:flex"
+    >
+      <a
+        href="#funciones"
+        class="rounded-sm transition-colors hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
+        >Funciones</a
+      >
+      <a
+        href="#como-funciona"
+        class="rounded-sm transition-colors hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
+        >Cómo funciona</a
+      >
+      <a
+        href="#preguntas"
+        class="rounded-sm transition-colors hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
+        >Preguntas</a
+      >
     </nav>
+
+    <div class="flex items-center gap-2 sm:gap-3">
+      <a routerLink="/login" [class]="navLogin" class="hidden md:flex"> Iniciar sesión </a>
+      <a routerLink="/register" [class]="navRegister"> Crear cuenta </a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="mx-auto w-full max-w-6xl px-5 pt-12 pb-16 sm:px-8 sm:pt-16 sm:pb-20">
+    <div class="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+      <div>
+        <h1
+          class="text-[clamp(2.5rem,7vw,4.25rem)] font-semibold leading-[1.03] tracking-[-0.05em]"
+        >
+          Todo lo que estudiás, en un solo lugar.
+        </h1>
+        <p
+          class="mt-6 max-w-xl text-base leading-7 text-[var(--theme-muted)] sm:text-lg sm:leading-8"
+        >
+          Materias, horarios, asistencia y apuntes. Vos marcás cada clase y Acadezer calcula tu
+          porcentaje; tus apuntes quedan guardados dentro de cada materia.
+        </p>
+        <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+          <a routerLink="/register" [class]="ctaPrimary">
+            Crear cuenta
+            <span class="material-symbols-rounded text-lg" aria-hidden="true">arrow_forward</span>
+          </a>
+          <a routerLink="/login" [class]="ctaSecondary">Iniciar sesión</a>
+        </div>
+      </div>
+
+      <figure
+        class="landing-preview rounded-[26px] border border-[var(--theme-border)] bg-[var(--theme-surface-raised)] p-4 shadow-[0_18px_40px_-24px_rgba(0,0,0,0.35)] sm:p-5"
+      >
+        <figcaption class="sr-only">
+          Vista ilustrada de la aplicación: una lista de materias con el porcentaje de asistencia de
+          cada una.
+        </figcaption>
+        <div aria-hidden="true">
+          <div
+            class="flex items-center justify-between gap-3 border-b border-[var(--theme-border)] pb-4"
+          >
+            <div class="flex min-w-0 items-center gap-2.5">
+              <span
+                class="flex size-8 items-center justify-center rounded-[10px] bg-[var(--theme-accent)] text-[var(--theme-on-accent)]"
+              >
+                <span class="material-symbols-rounded text-lg">menu_book</span>
+              </span>
+              <span class="truncate text-sm font-semibold tracking-[-0.03em]">Mis materias</span>
+            </div>
+            <span
+              class="shrink-0 rounded-full bg-[var(--theme-accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--theme-accent-content)]"
+            >
+              3 activas
+            </span>
+          </div>
+
+          <div class="mt-4 space-y-2.5">
+            @for (materia of previewMaterias; track materia.nombre) {
+              <div
+                class="landing-row flex items-center gap-3 rounded-[16px] bg-[var(--theme-canvas)] px-3 py-3"
+              >
+                <span
+                  class="flex size-10 shrink-0 items-center justify-center rounded-[12px] bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]"
+                >
+                  <span class="material-symbols-rounded text-xl">{{ materia.icon }}</span>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-baseline justify-between gap-3">
+                    <span class="truncate text-sm font-semibold tracking-[-0.02em]">{{
+                      materia.nombre
+                    }}</span>
+                    <span
+                      class="shrink-0 text-xs font-semibold tabular-nums text-[var(--theme-muted)]"
+                    >
+                      {{ materia.porcentaje }}%
+                    </span>
+                  </div>
+                  <p class="mt-0.5 truncate text-[11px] text-[var(--theme-muted)]">
+                    {{ materia.dias }}
+                  </p>
+                  <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--theme-border)]">
+                    <span
+                      class="landing-bar block h-full rounded-full bg-[var(--theme-accent)]"
+                      [style.width.%]="materia.porcentaje"
+                    ></span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div
+            class="mt-3 flex items-center gap-3 rounded-[16px] border border-dashed border-[var(--theme-border)] px-3 py-3"
+          >
+            <span
+              class="material-symbols-rounded text-[var(--theme-accent-content)]"
+              aria-hidden="true"
+              >event_upcoming</span
+            >
+            <p class="text-xs leading-5 text-[var(--theme-muted)]">
+              <span class="font-semibold text-[var(--theme-foreground)]">Próxima clase</span>: lunes
+              18:00, Biología
+            </p>
+          </div>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section id="funciones" class="scroll-mt-16 border-t border-[var(--theme-border)] py-16 sm:py-20">
+    <div class="mx-auto w-full max-w-6xl px-5 sm:px-8">
+      <h2 class="max-w-2xl text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+        Lo que hace Acadezer
+      </h2>
+      <p class="mt-4 max-w-2xl text-base leading-7 text-[var(--theme-muted)]">
+        Cada materia es un espacio propio: horarios, asistencia y apuntes juntos, justo donde los
+        vas a buscar.
+      </p>
+
+      <div class="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+        @for (feature of features; track feature.title) {
+          <article class="border-t border-[var(--theme-border)] pt-6">
+            <span
+              class="flex size-11 items-center justify-center rounded-[14px] bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]"
+            >
+              <span class="material-symbols-rounded text-[22px]" aria-hidden="true">{{
+                feature.icon
+              }}</span>
+            </span>
+            <h3 class="mt-4 text-lg font-semibold tracking-[-0.02em]">{{ feature.title }}</h3>
+            <p class="mt-2 text-sm leading-6 text-[var(--theme-muted)]">
+              {{ feature.description }}
+            </p>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section
+    id="como-funciona"
+    class="scroll-mt-16 border-t border-[var(--theme-border)] py-16 sm:py-20"
+  >
+    <div class="mx-auto w-full max-w-6xl px-5 sm:px-8">
+      <div class="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+        <div>
+          <h2 class="text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">Cómo funciona</h2>
+          <p class="mt-4 text-base leading-7 text-[var(--theme-muted)]">
+            Tres pasos y lista. Después solo cargás lo que pasa en la semana.
+          </p>
+        </div>
+
+        <ol class="space-y-10">
+          @for (step of steps; track step.title; let index = $index) {
+            <li class="flex gap-5 border-t border-[var(--theme-border)] pt-6">
+              <span
+                class="flex size-9 shrink-0 items-center justify-center rounded-full border border-[var(--theme-border)] text-sm font-semibold tabular-nums text-[var(--theme-muted)]"
+                aria-hidden="true"
+              >
+                {{ index + 1 }}
+              </span>
+              <div>
+                <h3 class="text-lg font-semibold tracking-[-0.02em]">
+                  <span class="sr-only">Paso {{ index + 1 }}: </span>{{ step.title }}
+                </h3>
+                <p class="mt-2 max-w-prose text-sm leading-6 text-[var(--theme-muted)]">
+                  {{ step.description }}
+                </p>
+              </div>
+            </li>
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section id="preguntas" class="scroll-mt-16 border-t border-[var(--theme-border)] py-16 sm:py-20">
+    <div class="mx-auto w-full max-w-3xl px-5 sm:px-8">
+      <h2 class="text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">Preguntas frecuentes</h2>
+
+      <div
+        class="mt-10 divide-y divide-[var(--theme-border)] border-y border-[var(--theme-border)]"
+      >
+        @for (faq of faqs; track faq.question) {
+          <details class="group">
+            <summary
+              class="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-left text-base font-semibold tracking-[-0.01em] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+            >
+              {{ faq.question }}
+              <span
+                class="material-symbols-rounded shrink-0 text-[var(--theme-muted)] transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none"
+                aria-hidden="true"
+              >
+                expand_more
+              </span>
+            </summary>
+            <p class="max-w-prose pb-5 text-sm leading-6 text-[var(--theme-muted)]">
+              {{ faq.answer }}
+            </p>
+          </details>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="border-t border-[var(--theme-border)] py-16 sm:py-20">
+    <div class="mx-auto w-full max-w-6xl px-5 sm:px-8">
+      <div
+        class="rounded-[26px] bg-[var(--theme-surface)] px-6 py-12 text-center sm:px-12 sm:py-16"
+      >
+        <h2 class="mx-auto max-w-2xl text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
+          Empezá a organizar la cursada hoy
+        </h2>
+        <p class="mx-auto mt-4 max-w-xl text-base leading-7 text-[var(--theme-muted)]">
+          Creá tu cuenta, cargá la primera materia y marcá la próxima clase. No hace falta instalar
+          nada.
+        </p>
+        <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <a routerLink="/register" [class]="ctaPrimary">Crear cuenta</a>
+          <a routerLink="/login" [class]="ctaSecondary">Ya tengo cuenta</a>
+        </div>
+      </div>
+    </div>
   </section>
 </main>
+
+<footer class="border-t border-[var(--theme-border)] px-5 pt-10 pb-24 sm:px-8">
+  <div class="mx-auto w-full max-w-6xl">
+    <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-center gap-2.5">
+        <span
+          class="flex size-9 items-center justify-center rounded-[12px] bg-[var(--theme-accent)] text-[var(--theme-on-accent)]"
+        >
+          <span class="material-symbols-rounded text-xl" aria-hidden="true">menu_book</span>
+        </span>
+        <span class="text-sm text-[var(--theme-muted)]">
+          <span class="font-semibold tracking-[-0.03em] text-[var(--theme-foreground)]"
+            >Acadezer</span
+          >
+          · hecho para estudiantes universitarios
+        </span>
+      </div>
+
+      <nav
+        aria-label="Pie de página"
+        class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-medium text-[var(--theme-muted)]"
+      >
+        <a
+          routerLink="/login"
+          class="rounded-sm transition-colors hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
+          >Iniciar sesión</a
+        >
+        <a
+          routerLink="/register"
+          class="rounded-sm transition-colors hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
+          >Crear cuenta</a
+        >
+      </nav>
+    </div>
+    <p class="mt-6 text-xs text-[var(--theme-muted)]">
+      © {{ year }} Acadezer. Tus materias, tu asistencia y tus apuntes.
+    </p>
+  </div>
+</footer>

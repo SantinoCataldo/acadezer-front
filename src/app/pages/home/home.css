@@ -1,0 +1,58 @@
+/* Barra fija de la landing: el mismo canvas, con un velo para que el contenido
+   que pasa por debajo no pegue contra el texto. */
+.landing-header {
+  background: color-mix(in srgb, var(--theme-canvas) 88%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+/* Una sola animación en toda la página: la vista previa entra y las barras de
+   asistencia se llenan. Nada más se mueve si no lo pide el usuario. */
+.landing-preview {
+  animation: landing-preview-in 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-bar {
+  transform-origin: left center;
+  animation: landing-bar-fill 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.landing-row:nth-of-type(2) .landing-bar {
+  animation-delay: 140ms;
+}
+
+.landing-row:nth-of-type(3) .landing-bar {
+  animation-delay: 280ms;
+}
+
+@keyframes landing-preview-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes landing-bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-preview,
+  .landing-bar {
+    animation: none;
+  }
+
+  .landing-bar {
+    transform: none;
+  }
+}
