@@ -1,9 +1,5 @@
-/* Barra fija de la landing: el mismo canvas, con un velo para que el contenido
-   que pasa por debajo no pegue contra el texto. */
-.landing-header {
-  background: color-mix(in srgb, var(--theme-canvas) 88%, transparent);
-  backdrop-filter: blur(12px);
-}
+/* La barra fija lleva fondo opaco a propósito: si fuera translúcida, el texto
+   que scrollea por debajo se trasluciría y se pelearía con el de la barra. */
 
 /* Una sola animación en toda la página: la vista previa entra y las barras de
    asistencia se llenan. Nada más se mueve si no lo pide el usuario. */
