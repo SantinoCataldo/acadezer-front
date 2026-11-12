@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ChangeDetectorRef, inject, input, output, signal, viewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { gsap } from 'gsap';
 import { AuthService } from '@core/services/auth.service';
 import { ThemeSwitcher } from '../../components/layout/theme-switcher/theme-switcher';
@@ -9,7 +10,7 @@ type OptionsSection = 'account' | 'appearance' | 'navigation';
 
 @Component({
   selector: 'app-study-options-dialog',
-  imports: [Modal, ThemeSwitcher, NavigationStylePickerComponent],
+  imports: [Modal, ThemeSwitcher, NavigationStylePickerComponent, RouterLink],
   templateUrl: './study-options-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -20,6 +21,8 @@ export class StudyOptionsDialog {
   private readonly sectionContent = viewChild<ElementRef<HTMLElement>>('sectionContent');
   readonly closed = output<void>();
   readonly currentUser = this.auth.currentUser;
+  
+  esAdmin = this.auth.isAdmin;
   readonly section = signal<OptionsSection>('account');
   readonly navigationStyle = input.required<NavigationStyle>();
   readonly styleSelected = output<NavigationStyle>();
