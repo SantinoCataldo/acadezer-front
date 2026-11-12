@@ -1,0 +1,101 @@
+<div class="relative inline-flex items-center">
+  <button
+    #triggerBtn
+    type="button"
+    [id]="id()"
+    [disabled]="disabled()"
+    [attr.aria-expanded]="isOpen()"
+    aria-haspopup="dialog"
+    (click)="toggle()"
+    class="group inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-[var(--theme-border)] bg-transparent px-3.5 py-1.5 text-xs font-medium text-[var(--theme-foreground)] transition-[background-color,border-color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+  >
+    <span class="material-symbols-rounded text-[18px] text-[var(--theme-muted)] transition-colors group-hover:text-[var(--theme-foreground)]" aria-hidden="true">
+      calendar_month
+    </span>
+    <span [class.text-[var(--theme-muted)]]="!value()">{{ displayText() }}</span>
+  </button>
+
+  @if (isOpen()) {
+    <div
+      #popoverEl
+      role="dialog"
+      aria-label="Elegir fecha"
+      class="fixed z-[100] w-72 rounded-[20px] border border-[var(--theme-border)]/50 bg-[var(--theme-surface)] p-3.5 shadow-2xl backdrop-blur-md"
+      [style.top]="popoverPosition().top"
+      [style.bottom]="popoverPosition().bottom"
+      [style.left]="popoverPosition().left"
+    >
+      <header class="flex items-center justify-between pb-2">
+        <h3 class="text-sm font-semibold text-[var(--theme-foreground)]">
+          {{ monthLabel() }}
+        </h3>
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            (click)="prevMonth($event)"
+            aria-label="Mes anterior"
+            class="inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-surface-high)] hover:text-[var(--theme-foreground)] active:scale-[0.97]"
+          >
+            <span class="material-symbols-rounded text-[18px]" aria-hidden="true">chevron_left</span>
+          </button>
+          <button
+            type="button"
+            (click)="nextMonth($event)"
+            aria-label="Mes siguiente"
+            class="inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-surface-high)] hover:text-[var(--theme-foreground)] active:scale-[0.97]"
+          >
+            <span class="material-symbols-rounded text-[18px]" aria-hidden="true">chevron_right</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="grid grid-cols-7 gap-1 pt-1 text-center text-[11px] font-semibold text-[var(--theme-muted)]">
+        @for (dayName of weekdayNames; track dayName) {
+          <span class="py-1">{{ dayName }}</span>
+        }
+      </div>
+
+      <div class="mt-1 grid grid-cols-7 gap-1">
+        @for (cell of calendarCells(); track cell.iso) {
+          <button
+            type="button"
+            (click)="selectDate(cell.iso)"
+            [class.bg-[var(--theme-accent)]]="cell.isSelected"
+            [class.text-[var(--theme-on-accent)]]="cell.isSelected"
+            [class.hover:brightness-105]="cell.isSelected"
+            [class.text-[var(--theme-foreground)]]="!cell.isSelected && cell.inCurrentMonth"
+            [class.text-[var(--theme-muted)]]="!cell.isSelected && !cell.inCurrentMonth"
+            [class.opacity-40]="!cell.isSelected && !cell.inCurrentMonth"
+            [class.hover:bg-[var(--theme-surface-high)]]="!cell.isSelected"
+            [class.hover:text-[var(--theme-foreground)]]="!cell.isSelected"
+            [class.font-semibold]="cell.isSelected || cell.isToday"
+            [class.ring-1]="cell.isToday && !cell.isSelected"
+            [class.ring-[var(--theme-accent-content)]]="cell.isToday && !cell.isSelected"
+            class="inline-flex size-8 cursor-pointer items-center justify-center rounded-full text-xs transition-[background-color,color,transform,opacity] duration-150 hover:scale-[0.96] active:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--theme-accent-content)]"
+          >
+            {{ cell.dayNumber }}
+          </button>
+        }
+      </div>
+
+      <footer class="mt-2.5 flex items-center justify-between pt-1 text-xs">
+        <button
+          type="button"
+          (click)="selectToday($event)"
+          class="cursor-pointer font-medium text-[var(--theme-accent-content)] hover:underline"
+        >
+          Hoy
+        </button>
+        @if (allowClear() && value()) {
+          <button
+            type="button"
+            (click)="clear($event)"
+            class="cursor-pointer text-[var(--theme-muted)] hover:text-[var(--theme-foreground)] hover:underline"
+          >
+            Sin fecha
+          </button>
+        }
+      </footer>
+    </div>
+  }
+</div>
