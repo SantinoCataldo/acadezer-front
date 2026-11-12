@@ -84,13 +84,13 @@ Salida: guards disponibles para las rutas académicas futuras; el backend mantie
 
 ## 7. Entregas posteriores
 
-1. **Identidad y navegación:** resolver diseño de Acadezer; adaptar nombre técnico/público, layout y rutas. Preservar trabajo local existente hasta revisarlo.
-2. **Primer recorrido:** registro → login → crear materia → guardar apunte → generar cinco preguntas y revelar respuestas.
-3. **Organización:** pendientes por materia e inicio con próximos pendientes.
-4. **Seguimiento:** evaluaciones y asistencias; validaciones y conflictos visibles.
-5. **Administración secundaria:** usuarios, bloqueo/habilitación y estadísticas existentes.
-6. **Limpieza:** retirar modelos/servicios/pipes/dependencias inmobiliarios sin consumidores. Registrar cada eliminación y verificar build.
-7. **Pulido:** responsive, teclado, estados y motion de los recorridos reales; no ampliar el laboratorio antes de terminarlos.
+1. [x] **Identidad y navegación:** resolver diseño de Acadezer; adaptar nombre técnico/público, layout y rutas.
+2. [x] **Primer recorrido:** registro → login → crear materia → guardar apunte → generar cinco preguntas y revelar respuestas (con animación de altura y persistencia en sesión).
+3. [x] **Organización y pendientes:** tablero de tareas rediseñado (`tareas-list`), filtros por estado/prioridad, selector de fechas `DatePicker` reutilizable, y tareas recientes por materia (`SubjectRecentTasks`).
+4. [ ] **Seguimiento:** evaluaciones (modelos y servicio listos; pendiente interfaz) y asistencias; validaciones y conflictos visibles.
+5. [ ] **Administración secundaria:** usuarios, bloqueo/habilitación y estadísticas existentes.
+6. [ ] **Limpieza:** retirar modelos/servicios/pipes/dependencias inmobiliarios sin consumidores. Registrar cada eliminación y verificar build.
+7. [x] **Pulido visual y motion:** refinamiento de tema monocromo, micro-interacciones hover, transiciones fluidas de modal con GSAP y adaptación a modo claro/oscuro.
 
 ## 8. Coordinación entre dos integrantes
 

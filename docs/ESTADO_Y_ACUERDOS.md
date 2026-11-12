@@ -1,21 +1,59 @@
 # Acadezer · Estado del frontend y acuerdos de trabajo
 
-Actualizado el 10 de noviembre de 2026. Este documento registra la implementación actual, los pendientes reales y la división acordada para dos personas. Los requisitos siguen siendo el criterio de aceptación; una pantalla parcial no cuenta como requisito terminado.
+Actualizado el 12 de noviembre de 2026. Este documento registra la implementación actual, los cambios integrados en `main`, los pendientes reales y la división acordada para el equipo. Los requisitos siguen siendo el criterio de aceptación; una pantalla parcial no cuenta como requisito terminado.
+
+## Cambios recientes integrados en `main` (12 de noviembre de 2026)
+
+Se integraron en `main` los siguientes avances clave desarrollados por el equipo:
+
+1. **Componentes UI Reutilizables:**
+   - **`DatePickerComponent` (`src/app/components/ui/date-picker/`):** selector de fecha accesible con grilla de calendario interactiva, navegación de meses y años, teclado y tokens de diseño Acadezer.
+
+2. **Gestión de Materias (`src/app/features/subjects/`):**
+   - Modales de creación y edición de materias con días de cursada estilizados (`.schedule-day-pill`), feedback visual en tema claro y oscuro, y estado vacío visible (`.schedule-empty-card`).
+   - Modal de confirmación para eliminar materia con diseño adaptado a la paleta semántica.
+   - Detalle de materia (`subject-detail`) con tarjeta compacta de tareas pendientes (`SubjectRecentTasks`) limitada a las 3 tareas más próximas con micro-interacción hover en flechas.
+
+3. **Módulo de Tareas y Pendientes (`src/app/features/tareas/`):**
+   - Rediseño completo del tablero de gestión de tareas (`tareas-list`): tabs de filtrado (todas, pendientes, completadas), badges de prioridad y fecha, animaciones GSAP en cambios de estado, y modal de creación/edición (`tarea-form`).
+
+4. **Evaluaciones (`src/app/features/evaluaciones/`):**
+   - Incorporación de modelos y `EvaluacionService` para la gestión completa de evaluaciones (calificaciones, fechas, tipos y ponderaciones).
+
+5. **Apuntes y Práctica con IA (`src/app/features/subjects/components/note-practice-dialog/` y `note-editor/`):**
+   - Editor de apuntes enriquecido (`RichTextEditor`) con conteo de palabras y caracteres.
+   - Generación de flashcards y preguntas de autoevaluación con IA (`NotePracticeDialog`).
+   - **Transición fluida de altura (GSAP):** animación suave al cambiar de pregunta o alternar "Mostrar respuesta" / "Ocultar", evitando saltos bruscos de tamaño.
+   - Persistencia temporal en `sessionStorage` para no perder las preguntas al cerrar accidentalmente el diálogo.
+   - Alertas contextuales estilizadas sin bordes duros y respetando paletas de tema claro y oscuro.
+
+6. **Sistema de Temas y Estilos Globales (`src/styles.css`):**
+   - Refinamiento de contraste y jerarquía de superficies para el tema monocromo y escala de grises.
+   - Reglas específicas para componentes interactivos en tema claro evitando pérdidas de visibilidad en hovers.
+
+---
 
 ## Estado implementado
 
-- La sesión académica usa access token en `sessionStorage` (con fallback en memoria), refresh token en cookie HttpOnly y protección CSRF para renovar y cerrar sesión. Login, registro y logout están conectados al backend.
-- Login y registro usan el layout compartido de autenticación y el componente común de campos. El registro tiene dos pasos, detecta conflictos `409` de correo, intenta iniciar sesión después del alta y continúa al onboarding.
-- La apariencia ofrece siete colores tonales, modo monocromo y modos claro, oscuro o sistema. Los componentes consumen tokens semánticos para superficies, texto, acento y contraste.
-- El onboarding de primera entrada tiene cinco pasos, selección de tema y progreso animado. En los cambios de paso se anima solo el contenido central; marca, contador y controles inferiores permanecen quietos.
-- `/` es una landing pública breve con enlaces a registro y login. `/estudio` presenta “Mi espacio”, exige sesión y ofrece cerrar sesión. Login y registro rechazan sesiones existentes mediante `guestGuard`.
-- El cierre de sesión y el onboarding están conectados a la navegación. El navbar y el footer siguen siendo base compartida para el trabajo de navegación.
+- **Sesión y Autenticación:** La sesión académica usa access token en `sessionStorage` (con fallback en memoria), refresh token en cookie HttpOnly y protección CSRF para renovar y cerrar sesión. Login, registro, recuperación y logout están conectados al backend.
+- **Apariencia y Accesibilidad:** Siete colores tonales, modo monocromo y modos claro, oscuro o sistema. Los componentes consumen tokens semánticos para superficies, texto, acento y contraste.
+- **Onboarding:** Flujo de primera entrada con cinco pasos, selección de tema y progreso animado.
+- **Materias (`MAT-*`):** Listado de materias, creación, edición, borrado y vista de detalle con accesos directos a apuntes y tareas.
+- **Apuntes (`APU-*`):** Editor de apuntes de materia con guardado, control de cambios y advertencia antes de salir.
+- **Práctica con IA (`IA-*`):** Generación de 5 preguntas de autoevaluación basadas en el apunte guardado, revelado de respuestas y animación responsiva.
+- **Tareas y Pendientes (`PEN-*`):** Tablero interactivo con filtros, prioridades, fechas de vencimiento y sincronización con materias.
+- **Evaluaciones (`EVA-*`):** Capa de modelos y servicios lista para consumo.
 
-La última compilación Angular completó correctamente. Mostró una advertencia de presupuesto: el bundle inicial supera el límite configurado por aproximadamente 10 kB. Las pruebas del flujo de login/registro y onboarding quedan para verificación manual del equipo; no se declaran aprobadas por el build.
+---
 
 ## Pendiente de producto
 
-Todavía no se implementaron las operaciones de materias, apuntes, pendientes, evaluaciones, asistencias ni generación de preguntas desde la interfaz. Por eso `MAT-*`, `APU-*`, `PEN-*`, `EVA-*`, `ASI-*`, `IA-*` y el recorrido completo `NAV-01` siguen pendientes en [requirements.md](../requirements.md). “Mi espacio” es el punto de entrada preparado para ese trabajo; su estado vacío no simula datos del backend.
+- **Asistencias (`ASI-*`):** Pantallas y servicios de registro de asistencias por fecha y materia.
+- **Evaluaciones UI (`EVA-*`):** Conectar pantallas y vistas de evaluaciones con el servicio `EvaluacionService`.
+- **Administración (`ADM-*`):** Panel secundario de administración de usuarios y estadísticas del sistema.
+- **Recorrido Guiado Completo (`NAV-01`):** Verificación e integración continua del flujo académico de punta a punta.
+
+---
 
 ## División acordada
 
