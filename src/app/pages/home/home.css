@@ -1,16 +1,15 @@
 :host {
   display: block;
-  color-scheme: dark;
-  --bg: #0d0d0e;
-  --surface: #161618;
-  --surface-2: #1d1d20;
-  --line: #2a2a2e;
-  --text: #ededee;
-  --muted: #9b9ba2;
-  --accent: #f26b2a;
-  --on-accent: #0d0d0e;
-  --absent: #ff6b5e;
-  --justified: #f0be46;
+  --bg: var(--theme-canvas);
+  --surface: var(--theme-surface);
+  --surface-2: var(--theme-surface-high);
+  --line: color-mix(in srgb, var(--theme-border) 55%, transparent);
+  --text: var(--theme-foreground);
+  --muted: var(--theme-muted);
+  --accent: var(--theme-accent);
+  --on-accent: var(--theme-on-accent);
+  --absent: var(--attendance-absent);
+  --justified: var(--attendance-justified);
 }
 
 .landing {
@@ -52,8 +51,8 @@
   aspect-ratio: 1;
   border-radius: 36px;
   overflow: hidden;
-  background: #050506;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.07) inset, 0 60px 120px -40px rgba(0, 0, 0, 0.9);
+  background: var(--theme-surface);
+  box-shadow: 0 0 0 1px var(--line) inset, 0 60px 120px -40px rgba(0, 0, 0, 0.45);
 }
 
 .pz-cuadro canvas {
@@ -72,8 +71,8 @@
   aspect-ratio: 1;
   border-radius: 50%;
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.5);
+  background: color-mix(in srgb, var(--theme-foreground) 10%, transparent);
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--theme-foreground) 50%, transparent);
   opacity: 0;
   transform: translate(-50%, -50%);
 }

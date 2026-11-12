@@ -33,7 +33,13 @@ const MAPA = N * CELDA;
 const LOOP = 12;
 const GESTO = 4;
 const PUNTOS = 120;
-const NARANJA = [242, 107, 42];
+
+function aRgb(valor: string): number[] | null {
+  const v = valor.trim();
+  if (/^#[0-9a-f]{6}$/i.test(v)) return [1, 3, 5].map((i) => parseInt(v.slice(i, i + 2), 16));
+  const m = v.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
+}
 
 const cl = (x: number) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const seg = (t: number, a: number, b: number) => cl((t - a) / (b - a));
@@ -160,6 +166,22 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   private contexto: gsap.Context | null = null;
   private mapa: CanvasRenderingContext2D | null = null;
   private brillo: HTMLCanvasElement | null = null;
+
+  // colores de la pizarra, sacados del tema que eligió el usuario
+  private colores = { fondo: [26, 26, 30], punto: [237, 237, 238], acento: [86, 91, 140], oscuro: true };
+  private ultimaLectura = -1;
+
+  private leerColores() {
+    const estilos = getComputedStyle(document.documentElement);
+    const fondo = aRgb(estilos.getPropertyValue('--theme-surface'));
+    const punto = aRgb(estilos.getPropertyValue('--theme-foreground'));
+    const acento = aRgb(estilos.getPropertyValue('--theme-accent'));
+    if (fondo) this.colores.fondo = fondo;
+    if (punto) this.colores.punto = punto;
+    if (acento) this.colores.acento = acento;
+    const luz = (this.colores.fondo[0] * 299 + this.colores.fondo[1] * 587 + this.colores.fondo[2] * 114) / 1000;
+    this.colores.oscuro = luz < 128;
+  }
 
   ngAfterViewInit() {
     this.prepararHero();
@@ -296,9 +318,17 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     const apoyo = seg(lt, 0.22, 0.3) * (1 - seg(lt, 1.35, 1.43));
     const ondas: [number, Punto, number][] = [[g.inicio + 1.45, g.c, 1], [g.inicio + 2.9, g.c, 0.8]];
 
+    // relee los colores cada medio segundo, por si cambiás el tema
+    if (Math.floor(tiempo * 2) !== this.ultimaLectura) {
+      this.ultimaLectura = Math.floor(tiempo * 2);
+      this.leerColores();
+    }
+    const { fondo, punto, acento, oscuro } = this.colores;
+    const rgb = (c: number[]) => 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')';
+
     const esc = lienzo.width / TAM;
     ctx.setTransform(esc, 0, 0, esc, 0, 0);
-    ctx.fillStyle = '#050506';
+    ctx.fillStyle = rgb(fondo);
     ctx.fillRect(0, 0, TAM, TAM);
     b.setTransform(0.5, 0, 0, 0.5, 0, 0);
     b.clearRect(0, 0, TAM, TAM);
@@ -333,10 +363,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         v = cl(v + rp * 0.36 + fa * 0.3);
         const dx = px + ux * 4 + ((px - fx) / (fd + 0.01)) * fa * 7;
         const dy = py + uy * 4 + ((py - fy) / (fd + 0.01)) * fa * 7;
-        const reposo = 0.13 + 0.03 * Math.sin(ambiente + px * 0.012 + py * 0.008);
+        const reposo = (oscuro ? 0.13 : 0.18) + 0.03 * Math.sin(ambiente + px * 0.012 + py * 0.008);
         if (v > 0.03) {
-          const calor = cl(v * 1.2) * 0.4;
-          const color = 'rgb(' + Math.round(lerp(NARANJA[0], 255, calor)) + ',' + Math.round(lerp(NARANJA[1], 225, calor)) + ',' + Math.round(lerp(NARANJA[2], 195, calor)) + ')';
+          // en modo oscuro los puntos más encendidos se aclaran un poco
+          const calor = oscuro ? cl(v * 1.2) * 0.4 : 0;
+          const color = rgb(acento.map((x) => Math.round(lerp(x, 255, calor))));
           ctx.globalAlpha = lerp(reposo, 1, cl(v * 1.35));
           ctx.fillStyle = color;
           ctx.beginPath(); ctx.arc(dx, dy, lerp(0.7, 4.6, v), 0, 6.2832); ctx.fill();
@@ -345,7 +376,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
           b.beginPath(); b.arc(dx, dy, lerp(0.7, 4.6, v), 0, 6.2832); b.fill();
         } else {
           ctx.globalAlpha = reposo;
-          ctx.fillStyle = '#fff';
+          ctx.fillStyle = rgb(punto);
           ctx.beginPath(); ctx.arc(dx, dy, 0.7, 0, 6.2832); ctx.fill();
         }
       }
@@ -353,11 +384,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     ctx.globalAlpha = 1;
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.globalCompositeOperation = 'lighter';
+    // en modo claro el brillo se suma más suave, si no se lava contra el fondo
+    ctx.globalCompositeOperation = oscuro ? 'lighter' : 'source-over';
+    ctx.globalAlpha = oscuro ? 1 : 0.35;
     ctx.filter = 'blur(' + Math.round(lienzo.width * 0.008) + 'px)';
     ctx.drawImage(capaBrillo, 0, 0, lienzo.width, lienzo.height);
     ctx.filter = 'blur(' + Math.round(lienzo.width * 0.022) + 'px)';
-    ctx.globalAlpha = 0.6;
+    ctx.globalAlpha = oscuro ? 0.6 : 0.25;
     ctx.drawImage(capaBrillo, 0, 0, lienzo.width, lienzo.height);
     ctx.restore();
 
