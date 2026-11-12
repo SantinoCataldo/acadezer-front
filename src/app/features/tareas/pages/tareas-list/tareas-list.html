@@ -2,6 +2,20 @@
   <h2 class="text-xl font-semibold sm:text-2xl">Tareas</h2>
   <p class="mt-2 text-sm text-[var(--theme-muted)]">Las tareas de cada materia.</p>
 
+  <div class="mt-6 rounded-[20px] bg-[var(--theme-accent-soft)] px-4 py-3">
+    <h3 class="font-semibold">Próximos 7 días</h3>
+    <ul class="mt-2 space-y-1 text-sm">
+      @for (p of proximas(); track p.id) {
+        <li>
+          <strong>{{ p.fechaLimite }}</strong> · {{ p.titulo }}
+          <span class="text-[var(--theme-muted)]">({{ nombreMateria(p.materiaId) }})</span>
+        </li>
+      } @empty {
+        <li class="text-[var(--theme-muted)]">No tenés tareas para entregar esta semana.</li>
+      }
+    </ul>
+  </div>
+
   @if (materias().length > 0) {
     <label for="materia" class="mt-6 block text-sm font-medium">Materia</label>
     <select

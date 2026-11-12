@@ -17,12 +17,42 @@ export class TareasList implements OnInit {
 
   materias = signal<SubjectResponse[]>([]);
   tareas = signal<Tarea[]>([]);
+  proximas = signal<Tarea[]>([]);
   materiaId = signal<number | null>(null);
   cargando = signal(true);
   error = signal('');
 
   ngOnInit() {
     this.traerMaterias();
+    this.traerProximas();
+  }
+
+  traerProximas() {
+    const hoy = new Date();
+    const enUnaSemana = new Date();
+    enUnaSemana.setDate(hoy.getDate() + 7);
+
+    this.tareaService.getProximas(this.formatearFecha(hoy), this.formatearFecha(enUnaSemana)).subscribe({
+      next: (data) => {
+        this.proximas.set(data);
+      },
+      error: (e) => {
+        console.error('Error al cargar las proximas tareas', e);
+      }
+    })
+  }
+
+
+  formatearFecha(fecha: Date) {
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return anio + '-' + mes + '-' + dia;
+  }
+
+  nombreMateria(id: number) {
+    const materia = this.materias().find((m) => m.id === id);
+    return materia ? materia.nombre : '';
   }
 
   traerMaterias() {
@@ -72,6 +102,7 @@ export class TareasList implements OnInit {
     this.tareaService.cambiarCompletado(t.id, !t.completado).subscribe({
       next: () => {
         this.traerTareas(t.materiaId);
+        this.traerProximas();
       },
       error: (e) => {
         alert('Error al actualizar la tarea');
@@ -88,6 +119,7 @@ export class TareasList implements OnInit {
     this.tareaService.eliminarTarea(t.id).subscribe({
       next: () => {
         this.traerTareas(t.materiaId);
+        this.traerProximas();
       },
       error: (e) => {
         alert('Error al eliminar la tarea');
