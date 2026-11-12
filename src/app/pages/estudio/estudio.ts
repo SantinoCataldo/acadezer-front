@@ -40,6 +40,10 @@ export class StudySpaceComponent {
     const path = this.currentUrl().split(/[?#]/)[0] ?? '';
     return path === '/estudio' || path.startsWith('/estudio/materias/');
   };
+  readonly tasksActive = () => {
+    const path = this.currentUrl().split(/[?#]/)[0] ?? '';
+    return path.startsWith('/estudio/tareas');
+  };
   readonly navigationStyle = signal<NavigationStyle>(initialNavigationStyle());
   readonly navigationSettingsOpen = signal(false);
 

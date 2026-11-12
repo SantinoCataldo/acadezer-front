@@ -25,6 +25,16 @@
           <span class="material-symbols-rounded text-[20px]" aria-hidden="true">menu_book</span>
           @if (navigationStyle() !== 'tasks') { <span>Materias</span> }
         </a>
+        <a
+          routerLink="/estudio/tareas"
+          [attr.aria-current]="tasksActive() ? 'page' : null"
+          [attr.title]="navigationStyle() === 'tasks' ? 'Tareas' : null"
+          [attr.aria-label]="navigationStyle() === 'tasks' ? 'Tareas' : null"
+          [class]="'flex items-center gap-3 px-3 text-sm font-medium transition-[background-color,color,transform,border-radius] duration-300 hover:scale-[0.99] active:scale-[1.01] motion-reduce:transition-none ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center ' : 'min-h-11 ') + (navigationStyle() === 'guapa' ? 'rounded-full' : navigationStyle() === 'tasks' ? (tasksActive() ? 'rounded-[13px]' : 'rounded-full') : navigationStyle() === 'melon' ? 'rounded-[13px]' : 'rounded-[14px]') + ' ' + (tasksActive() ? (navigationStyle() === 'guapa' ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : navigationStyle() === 'bonita' ? 'bg-[var(--theme-surface)] text-[var(--theme-foreground)]' : 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]') : 'text-[var(--theme-muted)] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)]')"
+        >
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">task_alt</span>
+          @if (navigationStyle() !== 'tasks') { <span>Tareas</span> }
+        </a>
         @for (item of [{ icon: 'description', label: 'Apuntes' }, { icon: 'fact_check', label: 'Asistencia' }]; track item.label) {
           <span aria-disabled="true" [attr.title]="item.label + ' · próximamente'" [attr.aria-label]="navigationStyle() === 'tasks' ? item.label + ' próximamente' : null" [class]="'flex items-center gap-3 px-3 text-sm text-[var(--theme-muted)] opacity-80 ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center rounded-full' : 'min-h-11 ' + (navigationStyle() === 'guapa' ? 'rounded-full' : 'rounded-[13px]'))">
             <span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ item.icon }}</span>
@@ -92,6 +102,7 @@
     <nav aria-label="Navegación principal" [class]="'fixed inset-x-0 bottom-0 z-40 flex items-center justify-center gap-2 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] ' + (navigationStyle() === 'dock' ? '' : 'lg:hidden')">
       <div class="flex items-center gap-1 rounded-full bg-[var(--theme-surface-low)] p-1.5 shadow-[0_10px_36px_-14px_rgba(0,0,0,0.55)]">
         <a routerLink="/estudio" [attr.aria-current]="subjectsActive() ? 'page' : null" aria-label="Materias" title="Materias" [class]="'grid size-11 place-items-center rounded-full ' + (subjectsActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">menu_book</span></a>
+        <a routerLink="/estudio/tareas" [attr.aria-current]="tasksActive() ? 'page' : null" aria-label="Tareas" title="Tareas" [class]="'grid size-11 place-items-center rounded-full ' + (tasksActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">task_alt</span></a>
         <span aria-disabled="true" aria-label="Apuntes próximamente" title="Apuntes" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)] opacity-80"><span class="material-symbols-rounded text-xl" aria-hidden="true">description</span></span>
         <span aria-disabled="true" aria-label="Asistencia próximamente" title="Asistencia" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)] opacity-80"><span class="material-symbols-rounded text-xl" aria-hidden="true">fact_check</span></span>
         <a routerLink="/estudio/horario" routerLinkActive="bg-[var(--theme-accent)] text-[var(--theme-on-accent)]" ariaCurrentWhenActive="page" aria-label="Horario" title="Horario" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)]"><span class="material-symbols-rounded text-xl" aria-hidden="true">calendar_view_week</span></a>
