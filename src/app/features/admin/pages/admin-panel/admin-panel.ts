@@ -20,6 +20,7 @@ export class AdminPanel implements OnInit {
   usuarios = signal<UserResponse[]>([]);
   cargandoUsuarios = signal(true);
   errorUsuarios = signal('');
+  busqueda = signal('');
 
   ngOnInit() {
     this.traerEstadisticas();
@@ -39,6 +40,19 @@ export class AdminPanel implements OnInit {
         this.errorUsuarios.set('No se pudieron cargar los usuarios');
       }
     })
+  }
+
+  buscar(texto: string) {
+    this.busqueda.set(texto);
+  }
+
+  // puse para filtrar  nombre o mail,revisar dps
+  usuariosFiltrados() {
+    const texto = this.busqueda().trim().toLowerCase();
+    if (!texto) return this.usuarios();
+    return this.usuarios().filter((u) =>
+      u.nombre.toLowerCase().includes(texto) || u.email.toLowerCase().includes(texto)
+    );
   }
 
   traerEstadisticas() {
