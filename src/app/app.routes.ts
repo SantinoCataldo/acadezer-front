@@ -9,7 +9,7 @@ export const routes: Routes = [
     pathMatch: 'full',
     loadComponent: () => import('./pages/home/home').then((m) => m.HomeComponent),
     data: { layout: 'bare' },
-    title: 'Acadezer - Inicio',
+    title: 'Acadezer - Tu espacio de estudio',
   },
   {
     path: 'onboarding',
