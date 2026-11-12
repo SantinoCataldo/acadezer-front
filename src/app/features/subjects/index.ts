@@ -7,6 +7,7 @@ export { subjectRoutes } from './subjects.routes';
 export type {
   AttendanceControlRequest,
   AttendanceControlResponse,
+  AttendanceSummaryResponse,
   DiaSemana,
   EstadoControlAsistencia,
   HorarioRequest,

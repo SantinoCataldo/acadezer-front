@@ -94,6 +94,7 @@ export class SubjectFormDialog {
   readonly schedules = new FormArray<ScheduleForm>([], [Validators.minLength(1), uniqueWeekdayValidator]);
   readonly form = new FormGroup({
     nombre: new FormControl('', { nonNullable: true, validators: [Validators.required, notBlank, Validators.maxLength(NOMBRE_MAX)] }),
+    fechaInicio: new FormControl(currentDateValue(), { nonNullable: true, validators: [Validators.required] }),
     horarios: this.schedules,
   });
 
@@ -107,6 +108,7 @@ export class SubjectFormDialog {
       this.prefillDone = true;
       this.form.patchValue({
         nombre: current.nombre,
+        fechaInicio: current.fechaInicio ?? currentDateValue(),
       });
       for (const schedule of current.horarios ?? []) this.schedules.push(createSchedule(schedule));
       this.form.markAsPristine();
@@ -165,7 +167,7 @@ export class SubjectFormDialog {
     const base = 'min-h-11 min-w-11 cursor-pointer rounded-full px-3 text-sm font-semibold transition-[background-color,color,transform] duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none';
     return this.isDaySelected(day)
       ? `${base} bg-[var(--theme-accent)] text-[var(--theme-on-accent)]`
-      : `${base} bg-[var(--theme-surface-high)] text-[var(--theme-foreground)] hover:bg-[var(--theme-surface)]`;
+      : `${base} bg-[var(--theme-surface-raised)] text-[var(--theme-foreground)] hover:bg-[var(--theme-surface-high)]`;
   }
 
   removeSchedule(index: number): void {
@@ -271,7 +273,7 @@ export class SubjectFormDialog {
     const current = this.subject();
     const request: SubjectRequest = {
       nombre: raw.nombre.trim(),
-      fechaInicio: current?.fechaInicio ?? currentDateValue(),
+      fechaInicio: raw.fechaInicio,
       fechaFin: current?.fechaFin ?? null,
       horarios,
     };

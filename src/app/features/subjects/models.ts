@@ -41,6 +41,16 @@ export interface AttendanceControlResponse {
   estado: EstadoControlAsistencia;
 }
 
+export interface AttendanceSummaryResponse {
+  presentes: number;
+  ausentes: number;
+  justificadas: number;
+  pendientes: number;
+  controlesMarcados: number;
+  porcentajeAsistencia: number | null;
+  controles: AttendanceControlResponse[];
+}
+
 export interface AttendanceControlRequest {
   estado: Exclude<EstadoControlAsistencia, 'PENDIENTE'>;
 }

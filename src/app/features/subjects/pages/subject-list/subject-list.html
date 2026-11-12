@@ -13,10 +13,20 @@
       </button>
     </header>
 
-    <div class="mt-8">
+    <nav aria-label="Vistas de materias" class="relative mt-5 grid w-full max-w-md grid-cols-3 rounded-full bg-[var(--theme-surface)] p-1">
+      <span aria-hidden="true" class="pointer-events-none absolute inset-y-1 left-1 rounded-full bg-[var(--theme-accent)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none" [style.width]="'calc((100% - 0.5rem) / 3)'" [style.transform]="'translateX(' + (activeViewIndex() * 100) + '%)'" ></span>
+      <button type="button" (click)="setActiveView('subjects')" [attr.aria-pressed]="activeView() === 'subjects'" [class]="'relative z-10 min-h-10 cursor-pointer rounded-full px-3 text-sm font-medium transition-colors ' + (activeView() === 'subjects' ? 'text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)] hover:text-[var(--theme-foreground)]')">Lista</button>
+      <button type="button" (click)="setActiveView('grid')" [attr.aria-pressed]="activeView() === 'grid'" [class]="'relative z-10 min-h-10 cursor-pointer rounded-full px-3 text-sm font-medium transition-colors ' + (activeView() === 'grid' ? 'text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)] hover:text-[var(--theme-foreground)]')">Grilla</button>
+      <button type="button" (click)="setActiveView('week')" [attr.aria-pressed]="activeView() === 'week'" [class]="'relative z-10 min-h-10 cursor-pointer rounded-full px-3 text-sm font-medium transition-colors ' + (activeView() === 'week' ? 'text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)] hover:text-[var(--theme-foreground)]')">Semana</button>
+    </nav>
+
+    <div #viewPanel class="mt-8">
+      @if (activeView() === 'week') {
+        <div data-view-enter><app-almanac [subjects]="subjects()" /></div>
+      } @else {
       @switch (state()) {
         @case ('loading') {
-          <div aria-busy="true" class="space-y-3">
+          <div data-view-enter aria-busy="true" class="space-y-3">
             <p role="status" class="sr-only">Cargando materias…</p>
             @for (placeholder of [1, 2, 3]; track placeholder) {
               <div class="h-20 animate-pulse rounded-[20px] bg-[var(--theme-surface)]"></div>
@@ -26,6 +36,7 @@
 
         @case ('error') {
           <div
+            data-view-enter
             role="alert"
             class="rounded-[24px] bg-[var(--md-sys-color-error-container)] px-5 py-10 text-center text-[var(--md-sys-color-on-error-container)] sm:px-8"
           >
@@ -42,7 +53,7 @@
 
         @case ('ready') {
           @if (isEmpty()) {
-            <div class="rounded-[24px] bg-[var(--theme-surface)] px-5 py-12 text-center sm:px-8 sm:py-16">
+            <div data-view-enter class="rounded-[24px] bg-[var(--theme-surface)] px-5 py-12 text-center sm:px-8 sm:py-16">
               <span class="material-symbols-rounded text-4xl text-[var(--theme-accent-content)]" aria-hidden="true">
                 library_books
               </span>
@@ -56,52 +67,57 @@
               </button>
             </div>
           } @else {
-            <ul class="space-y-3">
+            <ul [class]="activeView() === 'grid' ? 'grid gap-3 sm:grid-cols-2 xl:grid-cols-3' : 'space-y-3'">
               @for (subject of subjects(); track subject.id) {
-                <li
-                  class="flex items-center gap-3 rounded-[20px] bg-[var(--theme-surface)] px-3 py-2.5 transition-colors duration-150 hover:bg-[var(--theme-surface-high)] sm:gap-4 sm:px-4 sm:py-3"
-                >
-                  <span class="hidden size-10 shrink-0 place-items-center rounded-[14px] bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)] sm:grid" aria-hidden="true">
-                    <span class="material-symbols-rounded block text-[22px] leading-none">menu_book</span>
-                  </span>
-
-                  <div class="min-w-0 flex-1">
-                    <div class="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                      <h2 class="min-w-0 truncate text-base font-semibold">
-                        <a
-                          [routerLink]="['/estudio/materias', subject.id]"
-                          class="rounded-sm hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
-                        >
-                          {{ subject.nombre }}
-                          <span class="sr-only"> — ver detalle</span>
-                        </a>
-                      </h2>
+                <li data-view-enter [class]="'group relative rounded-[20px] bg-[var(--theme-surface)] transition-[background-color,transform,box-shadow] duration-200 motion-reduce:transition-none ' + (activeView() === 'grid' ? 'flex min-h-[220px] flex-col p-4 hover:-translate-y-0.5 hover:bg-[var(--theme-surface-high)] hover:shadow-[0_12px_28px_-20px_rgba(0,0,0,0.55)] sm:min-h-[244px] sm:p-5' : 'flex min-h-20 items-center gap-3 px-3 py-3 hover:bg-[var(--theme-surface-high)] sm:gap-4 sm:px-4 sm:py-3.5')">
+                  <a [routerLink]="['/estudio/materias', subject.id]" [attr.aria-label]="'Abrir materia ' + subject.nombre" class="absolute inset-0 z-0 rounded-[20px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"><span class="sr-only">Abrir {{ subject.nombre }}</span></a>
+                  @if (activeView() === 'grid') {
+                    <div class="pointer-events-none relative z-[1] flex min-h-0 flex-1 flex-col">
+                      <div class="flex items-start gap-3 pr-16">
+                        <span aria-hidden="true" class="grid size-12 shrink-0 place-items-center rounded-[16px] bg-[var(--theme-accent-soft)] text-lg font-semibold text-[var(--theme-accent-content)]">{{ subjectInitial(subject.nombre) }}</span>
+                      </div>
+                      <h2 class="mt-4 line-clamp-2 text-lg font-semibold leading-tight sm:text-xl">{{ subject.nombre }}</h2>
+                      <div role="group" aria-label="Horarios de cursada" class="mt-auto grid gap-1.5 pt-3 text-xs">
+                        @if (subject.horarios.length > 0) {
+                          @for (schedule of subject.horarios.slice(0, 2); track schedule.id) {
+                            <div class="flex min-h-9 items-center justify-between gap-3 rounded-[11px] bg-[var(--theme-canvas)] px-3 py-2">
+                              <span class="font-medium uppercase tracking-wide text-[var(--theme-muted)]">{{ dayLabel(schedule.diaSemana) }}</span>
+                              <span class="font-semibold tabular-nums text-[var(--theme-foreground)]">{{ schedule.horaInicio.slice(0, 5) }}–{{ schedule.horaFin.slice(0, 5) }}</span>
+                            </div>
+                          }
+                          @if (subject.horarios.length > 2) {
+                            <span class="px-1 pt-0.5 text-[var(--theme-muted)]">+{{ subject.horarios.length - 2 }} días más</span>
+                          }
+                        } @else {
+                          <div class="flex min-h-9 items-center rounded-[11px] bg-[var(--theme-canvas)] px-3 py-2 text-[var(--theme-muted)]">Sin horario cargado</div>
+                        }
+                      </div>
                     </div>
-
-                    <div role="group" aria-label="Fechas y horarios de cursada" class="mt-1 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-[var(--theme-muted)]">
-                      <span class="inline-flex shrink-0 items-center gap-1">
-                        <span class="material-symbols-rounded text-[15px] leading-none" aria-hidden="true">calendar_month</span>
-                        {{ dateRange(subject) }}
-                      </span>
-                      @if (subject.horarios.length === 0) {
-                        <span>Sin horario cargado</span>
-                      } @else {
+                  } @else {
+                    <div class="pointer-events-none relative z-[1] flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+                      <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-[15px] bg-[var(--theme-accent-soft)] text-base font-semibold text-[var(--theme-accent-content)]">{{ subjectInitial(subject.nombre) }}</span>
+                      <div class="min-w-0 flex-1">
+                        <h2 class="truncate text-base font-semibold">{{ subject.nombre }}</h2>
+                        <div role="group" aria-label="Horarios de cursada" class="mt-1.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5 text-xs text-[var(--theme-muted)]">
+                      @if (subject.horarios.length > 0) {
                         @for (schedule of subject.horarios.slice(0, 2); track schedule.id) {
-                          <span class="inline-flex items-center gap-1 whitespace-nowrap">
+                          <span class="inline-flex items-center gap-1.5 whitespace-nowrap">
                             <span>{{ dayLabel(schedule.diaSemana) }}</span>
-                            <span class="font-medium tabular-nums text-[var(--theme-foreground)]">
-                              {{ schedule.horaInicio.slice(0, 5) }}–{{ schedule.horaFin.slice(0, 5) }}
-                            </span>
+                            <span class="font-semibold tabular-nums text-[var(--theme-foreground)]">{{ schedule.horaInicio.slice(0, 5) }}–{{ schedule.horaFin.slice(0, 5) }}</span>
                           </span>
                         }
                         @if (subject.horarios.length > 2) {
-                          <span>+{{ subject.horarios.length - 2 }} días</span>
+                          <span class="whitespace-nowrap">+{{ subject.horarios.length - 2 }} días</span>
                         }
+                      } @else {
+                        <span>Sin horario cargado</span>
                       }
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  }
 
-                  <div class="flex shrink-0 items-center gap-1">
+                  <div [class]="activeView() === 'grid' ? 'absolute right-3 top-3 z-10 flex items-center gap-1 sm:right-4 sm:top-4' : 'relative z-10 flex shrink-0 items-center gap-1'">
                     <button
                       type="button"
                       [class]="iconButtonClass"
@@ -119,11 +135,15 @@
                       <span class="material-symbols-rounded text-xl" aria-hidden="true">delete</span>
                     </button>
                   </div>
+                  @if (activeView() !== 'grid') {
+                    <span aria-hidden="true" class="material-symbols-rounded pointer-events-none relative z-[1] mr-2 text-[var(--theme-muted)] transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[var(--theme-accent-content)] motion-reduce:transition-none sm:mr-3">arrow_forward</span>
+                  }
                 </li>
               }
             </ul>
           }
         }
+      }
       }
     </div>
 </section>

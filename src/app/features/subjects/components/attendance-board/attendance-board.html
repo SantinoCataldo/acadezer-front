@@ -17,9 +17,9 @@
     </div>
   </header>
 
-  @if (!subject().fechaInicio || (subject().horarios?.length ?? 0) === 0) {
+  @if ((subject().horarios?.length ?? 0) === 0) {
     <div class="mt-5 rounded-[18px] bg-[var(--theme-surface-high)] p-4 text-sm leading-relaxed text-[var(--theme-muted)]">
-      Completá las fechas y agregá al menos un horario para usar el calendario de asistencia.
+      Agregá al menos un horario para usar el calendario de asistencia.
     </div>
   } @else {
     @switch (state()) {
@@ -129,7 +129,7 @@
                           <h4 class="text-sm font-semibold">Bloque {{ control.numero }}</h4>
                           <p class="mt-0.5 text-xs text-[var(--theme-muted)]">{{ control.horaInicio.slice(0, 5) }}–{{ control.horaFin.slice(0, 5) }}</p>
                         </div>
-                        <span class="text-xs font-medium text-[var(--theme-muted)]">{{ statusText(control.estado) }}</span>
+                        <span [class]="'rounded-full px-2 py-1 text-xs font-medium ' + statusBadgeClass(control.estado)">{{ statusText(control.estado) }}</span>
                       </div>
 
                       <div class="mt-3 grid grid-cols-3 gap-1.5">
@@ -139,21 +139,21 @@
                           [disabled]="actionKey() !== null || isFutureDate(control.fecha)"
                           [attr.aria-pressed]="control.estado === 'PRESENTE'"
                           (click)="setStatus(control, 'PRESENTE')"
-                        >Presente</button>
+                        ><span class="material-symbols-rounded text-base" aria-hidden="true">check_circle</span>Presente</button>
                         <button
                           type="button"
                           [class]="statusButtonClass(control, 'AUSENTE')"
                           [disabled]="actionKey() !== null || isFutureDate(control.fecha)"
                           [attr.aria-pressed]="control.estado === 'AUSENTE'"
                           (click)="setStatus(control, 'AUSENTE')"
-                        >Ausente</button>
+                        ><span class="material-symbols-rounded text-base" aria-hidden="true">cancel</span>Ausente</button>
                         <button
                           type="button"
                           [class]="statusButtonClass(control, 'JUSTIFICADA')"
                           [disabled]="actionKey() !== null || isFutureDate(control.fecha)"
                           [attr.aria-pressed]="control.estado === 'JUSTIFICADA'"
                           (click)="setStatus(control, 'JUSTIFICADA')"
-                        >Justificada</button>
+                        ><span class="material-symbols-rounded text-base" aria-hidden="true">verified</span>Justificada</button>
                       </div>
 
                       @if (control.id !== null) {

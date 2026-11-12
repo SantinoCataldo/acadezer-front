@@ -1,14 +1,21 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import type { SubjectResponse } from '../../models';
+import { forkJoin } from 'rxjs';
+import type { AttendanceControlResponse, EstadoControlAsistencia, SubjectResponse } from '../../models';
 import { SubjectsService } from '../../services/subjects.service';
-import { AttendanceBoard } from '../../components/attendance-board/attendance-board';
 import { DeleteSubjectDialog } from '../../components/delete-subject-dialog/delete-subject-dialog';
 import { SubjectFormDialog } from '../../components/subject-form-dialog/subject-form-dialog';
 import { dangerButton, primaryButton, secondaryButton } from '../../dialog-styles';
 
 type DetailState = 'loading' | 'error' | 'ready';
+type AttendanceHistoryState = 'loading' | 'error' | 'ready';
+
+interface AttendanceTotals {
+  present: number;
+  absent: number;
+  justified: number;
+}
 
 interface DetailSection {
   id: string;
@@ -20,12 +27,12 @@ interface DetailSection {
 /**
  * Contenedor del detalle de materia (/estudio/materias/:id).
  *
- * MAT-03: consulta los datos de la materia seleccionada, ofrece el registro de
- * asistencia y mantiene accesos visuales para apuntes, pendientes y evaluaciones.
+ * MAT-03: consulta los datos de la materia seleccionada y mantiene accesos
+ * visuales para apuntes, pendientes y evaluaciones.
  */
 @Component({
   selector: 'app-subject-detail',
-  imports: [RouterLink, AttendanceBoard, SubjectFormDialog, DeleteSubjectDialog],
+  imports: [RouterLink, SubjectFormDialog, DeleteSubjectDialog],
   templateUrl: './subject-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -40,6 +47,19 @@ export class SubjectDetail {
   readonly formTarget = signal<SubjectResponse | null>(null);
   readonly deleteTarget = signal<SubjectResponse | null>(null);
   readonly firstPresentDate = signal<string | null>(null);
+  readonly attendanceRecords = signal<readonly AttendanceControlResponse[]>([]);
+  readonly attendanceHistoryState = signal<AttendanceHistoryState>('loading');
+  readonly attendanceTotals = computed(() => this.attendanceRecords().reduce<AttendanceTotals>((totals, control) => {
+    if (control.estado === 'PRESENTE') totals.present += 1;
+    if (control.estado === 'AUSENTE') totals.absent += 1;
+    if (control.estado === 'JUSTIFICADA') totals.justified += 1;
+    return totals;
+  }, { present: 0, absent: 0, justified: 0 }));
+  readonly attendanceRate = computed(() => {
+    const totals = this.attendanceTotals();
+    const marked = totals.present + totals.absent + totals.justified;
+    return marked === 0 ? null : Math.round((totals.present / marked) * 100);
+  });
   readonly finishConfirmation = signal(false);
   readonly finishing = signal(false);
   readonly finishError = signal<string | null>(null);
@@ -77,6 +97,8 @@ export class SubjectDetail {
       this.finishConfirmation.set(false);
       this.finishError.set(null);
       this.firstPresentDate.set(null);
+      this.attendanceRecords.set([]);
+      this.attendanceHistoryState.set('loading');
       this.load(params.get('id'));
     });
   }
@@ -97,12 +119,63 @@ export class SubjectDetail {
         next: (subject) => {
           this.subject.set(subject);
           this.state.set('ready');
+          this.loadFirstPresentDate(subject);
         },
         error: () => {
           this.subject.set(null);
           this.state.set('error');
         },
       });
+  }
+
+  private loadFirstPresentDate(subject: SubjectResponse): void {
+    if ((subject.horarios?.length ?? 0) === 0) {
+      this.firstPresentDate.set(null);
+      this.attendanceRecords.set([]);
+      this.attendanceHistoryState.set('ready');
+      return;
+    }
+
+    this.attendanceHistoryState.set('loading');
+    this.attendanceRecords.set([]);
+    const endDate = subject.fechaFin ?? this.localIsoDate(new Date());
+    const startDate = this.historyStartDate(endDate);
+    forkJoin({
+      controls: this.subjects.attendanceControls(subject.id, startDate, endDate),
+      excludedDates: this.subjects.noClassDates(subject.id, startDate, endDate),
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ controls, excludedDates }) => {
+          const validControls = controls.filter((control) => !excludedDates.includes(control.fecha));
+          const firstPresentDate = validControls
+            .filter((control) => control.estado === 'PRESENTE')
+            .map((control) => control.fecha)
+            .sort()[0] ?? null;
+          this.firstPresentDate.set(firstPresentDate);
+          this.attendanceRecords.set(validControls
+            .filter((control) => control.estado !== 'PENDIENTE')
+            .sort((first, second) => second.fecha.localeCompare(first.fecha)
+              || second.horaInicio.localeCompare(first.horaInicio)
+              || second.numero - first.numero));
+          this.attendanceHistoryState.set('ready');
+        },
+        error: () => {
+          this.firstPresentDate.set(null);
+          this.attendanceHistoryState.set('error');
+        },
+      });
+  }
+
+  private localIsoDate(date: Date): string {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  private historyStartDate(endDate: string): string {
+    const [year, month, day] = endDate.split('-').map(Number);
+    const start = new Date(Date.UTC(year, month - 1, day));
+    start.setUTCDate(start.getUTCDate() - 365);
+    return `${start.getUTCFullYear()}-${String(start.getUTCMonth() + 1).padStart(2, '0')}-${String(start.getUTCDate()).padStart(2, '0')}`;
   }
 
   openEditDialog(): void {
@@ -118,11 +191,12 @@ export class SubjectDetail {
   onSubjectSaved(saved: SubjectResponse): void {
     this.formTarget.set(null);
     this.subject.set(saved);
+    this.loadFirstPresentDate(saved);
   }
 
   onSubjectDeleted(): void {
     this.deleteTarget.set(null);
-    void this.router.navigateByUrl('/estudio');
+    void this.router.navigateByUrl('/estudio/materias');
   }
 
   requestFinish(): void {
@@ -180,5 +254,51 @@ export class SubjectDetail {
 
   shortWeekday(value: string): string {
     return value.slice(0, 3).toLowerCase();
+  }
+
+  formatAttendanceDate(value: string): string {
+    return new Intl.DateTimeFormat('es-AR', {
+      weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC',
+    }).format(new Date(`${value}T00:00:00Z`));
+  }
+
+  attendanceLabel(status: EstadoControlAsistencia): string {
+    const labels: Record<EstadoControlAsistencia, string> = {
+      PRESENTE: 'Presente',
+      AUSENTE: 'Ausente',
+      JUSTIFICADA: 'Justificada',
+      PENDIENTE: 'Pendiente',
+    };
+    return labels[status];
+  }
+
+  attendanceIcon(status: EstadoControlAsistencia): string {
+    const icons: Record<EstadoControlAsistencia, string> = {
+      PRESENTE: 'check_circle',
+      AUSENTE: 'cancel',
+      JUSTIFICADA: 'verified',
+      PENDIENTE: 'radio_button_unchecked',
+    };
+    return icons[status];
+  }
+
+  attendanceTone(status: EstadoControlAsistencia): string {
+    const tones: Record<EstadoControlAsistencia, string> = {
+      PRESENTE: 'text-[var(--attendance-present-ink)]',
+      AUSENTE: 'text-[var(--attendance-absent-ink)]',
+      JUSTIFICADA: 'text-[var(--attendance-justified-ink)]',
+      PENDIENTE: 'text-[var(--theme-muted)]',
+    };
+    return tones[status];
+  }
+
+  attendanceBlockLabel(control: AttendanceControlResponse): string | null {
+    const schedule = this.subject()?.horarios.find((item) => item.id === control.horarioId);
+    return schedule?.controlesAsistencia === 2 ? `Bloque ${control.numero}` : null;
+  }
+
+  loadAttendanceHistoryAgain(): void {
+    const current = this.subject();
+    if (current) this.loadFirstPresentDate(current);
   }
 }

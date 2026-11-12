@@ -1,10 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import type {
   AttendanceControlRequest,
   AttendanceControlResponse,
+  AttendanceSummaryResponse,
   NumeroControlAsistencia,
   SubjectRequest,
   SubjectResponse,
@@ -41,7 +42,9 @@ export class SubjectsService {
 
   attendanceControls(materiaId: number, desde: string, hasta: string): Observable<AttendanceControlResponse[]> {
     const params = new HttpParams().set('desde', desde).set('hasta', hasta);
-    return this.http.get<AttendanceControlResponse[]>(`${this.baseUrl}/${materiaId}/controles-asistencia`, { params });
+    return this.http.get<AttendanceSummaryResponse | AttendanceControlResponse[]>(`${this.baseUrl}/${materiaId}/controles-asistencia`, { params }).pipe(
+      map((response) => Array.isArray(response) ? response : response.controles),
+    );
   }
 
   setAttendanceControl(
@@ -50,8 +53,8 @@ export class SubjectsService {
     fecha: string,
     numero: NumeroControlAsistencia,
     request: AttendanceControlRequest,
-  ): Observable<void> {
-    return this.http.put<void>(
+  ): Observable<AttendanceControlResponse> {
+    return this.http.put<AttendanceControlResponse>(
       `${this.baseUrl}/${materiaId}/horarios/${horarioId}/controles/${fecha}/${numero}`,
       request,
     );

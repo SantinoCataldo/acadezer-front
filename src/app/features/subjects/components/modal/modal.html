@@ -13,7 +13,7 @@
     [attr.aria-labelledby]="titleId"
     [attr.aria-describedby]="description() ? descriptionId : null"
     tabindex="-1"
-    class="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-y-auto rounded-t-[24px] border-0 bg-[var(--theme-modal-surface)] text-[var(--theme-foreground)] shadow-[0_24px_60px_-24px_rgba(0,0,0,0.35)] outline-none sm:rounded-[24px]"
+    [class]="'relative flex max-h-[calc(100dvh-2rem)] w-full max-w-md flex-col overflow-y-auto rounded-t-[24px] border-0 bg-[var(--theme-modal-surface)] text-[var(--theme-foreground)] shadow-[0_24px_60px_-24px_rgba(0,0,0,0.35)] outline-none sm:rounded-[24px] ' + panelClass()"
   >
     <div class="flex h-5 shrink-0 select-none items-center justify-center sm:hidden" aria-hidden="true">
       <span class="h-1 w-9 rounded-full bg-[var(--theme-muted)] opacity-55"></span>

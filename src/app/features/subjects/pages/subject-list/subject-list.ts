@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, Injector, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { gsap } from 'gsap';
 import type { DiaSemana, SubjectResponse } from '../../models';
 import { SubjectsService } from '../../services/subjects.service';
 import { DeleteSubjectDialog } from '../../components/delete-subject-dialog/delete-subject-dialog';
 import { SubjectFormDialog } from '../../components/subject-form-dialog/subject-form-dialog';
+import { Almanac } from '../../../almanac/pages/almanac/almanac';
 import { iconButton, primaryButton } from '../../dialog-styles';
 
 type ListState = 'loading' | 'error' | 'ready';
@@ -28,7 +30,7 @@ const shortDayLabels: Record<DiaSemana, string> = {
  */
 @Component({
   selector: 'app-subject-list',
-  imports: [RouterLink, SubjectFormDialog, DeleteSubjectDialog],
+  imports: [RouterLink, SubjectFormDialog, DeleteSubjectDialog, Almanac],
   host: { class: 'block' },
   templateUrl: './subject-list.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,9 +38,14 @@ const shortDayLabels: Record<DiaSemana, string> = {
 export class SubjectList {
   private readonly subjectsService = inject(SubjectsService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+
+  @ViewChild('viewPanel') private viewPanel?: ElementRef<HTMLElement>;
+  private viewTimeline: gsap.core.Timeline | null = null;
 
   readonly subjects = signal<readonly SubjectResponse[]>([]);
   readonly state = signal<ListState>('loading');
+  readonly activeView = signal<'subjects' | 'grid' | 'week'>('subjects');
 
   /** null = cerrado; 'new' o una materia concreta = diálogo de formulario. */
   readonly formTarget = signal<SubjectResponse | 'new' | null>(null);
@@ -50,23 +57,16 @@ export class SubjectList {
   readonly primaryButtonClass = primaryButton;
   readonly iconButtonClass = iconButton;
 
-  dateRange(subject: SubjectResponse): string {
-    if (!subject.fechaInicio) return 'Fecha de inicio pendiente';
-    const start = this.formatDate(subject.fechaInicio);
-    if (!subject.fechaFin) return `Previsto · ${start}`;
-    return `Previsto · ${start} – ${this.formatDate(subject.fechaFin)}`;
-  }
-
   dayLabel(day: DiaSemana): string {
     return shortDayLabels[day];
   }
 
-  private formatDate(value: string): string {
-    const date = new Date(`${value}T00:00:00Z`);
-    return new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(date);
+  subjectInitial(name: string): string {
+    return Array.from(name.trim())[0]?.toLocaleUpperCase('es-AR') ?? '?';
   }
 
   constructor() {
+    this.destroyRef.onDestroy(() => this.viewTimeline?.kill());
     this.load();
   }
 
@@ -85,6 +85,49 @@ export class SubjectList {
           this.state.set('error');
         },
       });
+  }
+
+  activeViewIndex(): number {
+    return ['subjects', 'grid', 'week'].indexOf(this.activeView());
+  }
+
+  setActiveView(view: 'subjects' | 'grid' | 'week'): void {
+    if (this.activeView() === view) return;
+    const panel = this.viewPanel?.nativeElement;
+    const startHeight = panel?.getBoundingClientRect().height ?? 0;
+    this.viewTimeline?.kill();
+    this.activeView.set(view);
+    if (!panel) return;
+
+    afterNextRender(() => this.animateView(panel, startHeight), { injector: this.injector });
+  }
+
+  private animateView(panel: HTMLElement, startHeight: number): void {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const entering = panel.querySelectorAll<HTMLElement>('[data-view-enter]');
+    const targetHeight = panel.scrollHeight;
+    if (reduceMotion) return;
+
+    gsap.set(panel, { height: startHeight, overflow: 'hidden' });
+    gsap.set(entering, { autoAlpha: 0, y: 8, filter: 'blur(7px)' });
+    this.viewTimeline = gsap.timeline({
+      onComplete: () => gsap.set(panel, { clearProps: 'height,overflow' }),
+    });
+    this.viewTimeline.to(panel, {
+      height: targetHeight,
+      duration: 0.36,
+      ease: 'power3.out',
+      clearProps: 'height,overflow',
+    }, 0);
+    this.viewTimeline.to(entering, {
+      autoAlpha: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      duration: 0.32,
+      stagger: 0.045,
+      ease: 'power2.out',
+      clearProps: 'opacity,visibility,transform,filter',
+    }, 0.04);
   }
 
   openCreateDialog(): void {

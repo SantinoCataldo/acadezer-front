@@ -1,14 +1,9 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, input, output, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { SubjectsService } from '../../services/subjects.service';
 import type { AttendanceControlResponse, DiaSemana, EstadoControlAsistencia, SubjectResponse } from '../../models';
-
-interface DateRange {
-  desde: string;
-  hasta: string;
-}
 
 interface CalendarCell {
   key: number;
@@ -46,21 +41,10 @@ function parseIsoDate(value: string): Date {
   return new Date(Date.UTC(year, month - 1, day));
 }
 
-function splitRange(desde: string, hasta: string): DateRange[] {
-  const ranges: DateRange[] = [];
-  const end = parseIsoDate(hasta);
-  let cursor = parseIsoDate(desde);
-
-  while (cursor <= end) {
-    const chunkEnd = new Date(cursor);
-    chunkEnd.setUTCDate(chunkEnd.getUTCDate() + 365);
-    const hastaChunk = chunkEnd < end ? chunkEnd : end;
-    ranges.push({ desde: isoDate(cursor), hasta: isoDate(hastaChunk) });
-    cursor = new Date(hastaChunk);
-    cursor.setUTCDate(cursor.getUTCDate() + 1);
-  }
-
-  return ranges;
+function historyStartDate(endDate: string): string {
+  const start = parseIsoDate(endDate);
+  start.setUTCDate(start.getUTCDate() - 365);
+  return isoDate(start);
 }
 
 function responseErrorMessage(error: unknown): string | null {
@@ -130,7 +114,7 @@ export class AttendanceBoard {
   }
 
   load(subject = this.subject()): void {
-    if (!subject.fechaInicio) {
+    if (subject.horarios.length === 0) {
       this.controls.set([]);
       this.noClassDates.set([]);
       this.firstPresentDateChange.emit(null);
@@ -143,19 +127,20 @@ export class AttendanceBoard {
 
     if (this.state() !== 'ready') this.state.set('loading');
     this.errorMessage.set(null);
-    const ranges = splitRange(subject.fechaInicio, subject.fechaFin ?? localIsoDate(new Date()));
-    const controlRequests = ranges.map((range) => this.subjects.attendanceControls(subject.id, range.desde, range.hasta));
-    const noClassRequests = ranges.map((range) => this.subjects.noClassDates(subject.id, range.desde, range.hasta));
+    const endDate = subject.fechaFin ?? localIsoDate(new Date());
+    const startDate = historyStartDate(endDate);
+    const controlRequest = this.subjects.attendanceControls(subject.id, startDate, endDate);
+    const noClassRequest = this.subjects.noClassDates(subject.id, startDate, endDate);
 
     forkJoin({
-      controls: controlRequests.length > 0 ? forkJoin(controlRequests) : of([] as AttendanceControlResponse[][]),
-      dates: noClassRequests.length > 0 ? forkJoin(noClassRequests) : of([] as string[][]),
+      controls: controlRequest,
+      dates: noClassRequest,
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          const controls = response.controls.flat();
-          const noClassDates = response.dates.flat();
+          const controls = response.controls;
+          const noClassDates = response.dates;
           this.controls.set(controls);
           this.noClassDates.set(noClassDates);
           const firstPresentDate = controls
@@ -185,11 +170,10 @@ export class AttendanceBoard {
 
   canMoveMonth(offset: number): boolean {
     const subject = this.subject();
-    if (!subject.fechaInicio) return false;
     const current = this.month();
     const next = new Date(Date.UTC(current.getUTCFullYear(), current.getUTCMonth() + offset, 1));
-    const start = this.firstDayOfMonth(parseIsoDate(subject.fechaInicio));
     const endDate = subject.fechaFin ?? localIsoDate(new Date());
+    const start = this.firstDayOfMonth(parseIsoDate(historyStartDate(endDate)));
     const end = this.firstDayOfMonth(parseIsoDate(endDate));
     return next >= start && next <= end;
   }
@@ -235,18 +219,24 @@ export class AttendanceBoard {
 
   statusButtonClass(control: AttendanceControlResponse, status: Exclude<EstadoControlAsistencia, 'PENDIENTE'>): string {
     const selected = control.estado === status;
-    const colors: Record<Exclude<EstadoControlAsistencia, 'PENDIENTE'>, string> = {
-      PRESENTE: selected
-        ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]'
-        : 'bg-[var(--theme-surface-high)] text-[var(--theme-foreground)] hover:bg-[var(--theme-accent-soft)]',
-      AUSENTE: selected
-        ? 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]'
-        : 'bg-[var(--theme-surface-high)] text-[var(--theme-foreground)] hover:bg-[var(--md-sys-color-error-container)]',
-      JUSTIFICADA: selected
-        ? 'bg-[var(--theme-tertiary)] text-[var(--md-sys-color-on-tertiary)]'
-        : 'bg-[var(--theme-surface-high)] text-[var(--theme-foreground)] hover:bg-[var(--theme-surface)]',
-    };
-    return `min-h-10 cursor-pointer rounded-[11px] px-2 text-xs font-semibold transition-[background-color,transform] duration-150 hover:scale-[0.99] active:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none ${colors[status]}`;
+    const selectedColors = {
+      PRESENTE: 'bg-[var(--attendance-present-soft)] text-[var(--attendance-present-ink)]',
+      AUSENTE: 'bg-[var(--attendance-absent-soft)] text-[var(--attendance-absent-ink)]',
+      JUSTIFICADA: 'bg-[var(--attendance-justified-soft)] text-[var(--attendance-justified-ink)]',
+    }[status];
+    const appearance = selected
+      ? selectedColors
+      : 'bg-[var(--theme-surface-raised)] text-[var(--theme-foreground)] hover:opacity-80';
+    return `inline-flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-[11px] px-2 text-xs font-semibold transition-[background-color,color,opacity,transform] duration-150 hover:scale-[0.99] active:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none ${appearance}`;
+  }
+
+  statusBadgeClass(status: EstadoControlAsistencia): string {
+    return {
+      PRESENTE: 'bg-[var(--attendance-present-soft)] text-[var(--attendance-present-ink)]',
+      AUSENTE: 'bg-[var(--attendance-absent-soft)] text-[var(--attendance-absent-ink)]',
+      JUSTIFICADA: 'bg-[var(--attendance-justified-soft)] text-[var(--attendance-justified-ink)]',
+      PENDIENTE: 'bg-[var(--theme-surface-high)] text-[var(--theme-muted)]',
+    }[status];
   }
 
   formatSelectedDate(): string {
@@ -265,11 +255,7 @@ export class AttendanceBoard {
     return labels[status];
   }
 
-  private runAction(key: string, action: () => ReturnType<SubjectsService['setAttendanceControl']>): void;
-  private runAction(key: string, action: () => ReturnType<SubjectsService['resetAttendanceControl']>): void;
-  private runAction(key: string, action: () => ReturnType<SubjectsService['excludeClassDate']>): void;
-  private runAction(key: string, action: () => ReturnType<SubjectsService['includeClassDate']>): void;
-  private runAction(key: string, action: () => ReturnType<SubjectsService['setAttendanceControl']> | ReturnType<SubjectsService['resetAttendanceControl']> | ReturnType<SubjectsService['excludeClassDate']> | ReturnType<SubjectsService['includeClassDate']>): void {
+  private runAction(key: string, action: () => Observable<unknown>): void {
     this.actionKey.set(key);
     this.errorMessage.set(null);
     action().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -315,7 +301,7 @@ export class AttendanceBoard {
 
   private isScheduled(date: string): boolean {
     const subject = this.subject();
-    if (!subject.fechaInicio || !this.isWithinCourse(date) || this.noClassDates().includes(date)) return false;
+    if (!this.isWithinCourse(date) || this.noClassDates().includes(date)) return false;
     const weekday = WEEKDAYS_BY_DATE[parseIsoDate(date).getUTCDay()];
     return (subject.horarios ?? []).some((schedule) => schedule.diaSemana === weekday);
   }
@@ -323,7 +309,7 @@ export class AttendanceBoard {
   private isWithinCourse(date: string): boolean {
     const subject = this.subject();
     const end = subject.fechaFin ?? localIsoDate(new Date());
-    return !!subject.fechaInicio && date >= subject.fechaInicio && date <= end;
+    return date <= end && date >= historyStartDate(end);
   }
 
   private firstScheduledDate(): string | null {
@@ -339,9 +325,8 @@ export class AttendanceBoard {
 
   private clampMonthToCourse(): void {
     const subject = this.subject();
-    if (!subject.fechaInicio) return;
-    const start = this.firstDayOfMonth(parseIsoDate(subject.fechaInicio));
     const endDate = subject.fechaFin ?? localIsoDate(new Date());
+    const start = this.firstDayOfMonth(parseIsoDate(historyStartDate(endDate)));
     const end = this.firstDayOfMonth(parseIsoDate(endDate));
     const current = this.month();
     if (current < start) this.month.set(start);

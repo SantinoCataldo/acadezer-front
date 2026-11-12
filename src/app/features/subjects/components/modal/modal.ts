@@ -41,6 +41,7 @@ let modalSequence = 0;
 export class Modal implements AfterViewInit {
   readonly title = input.required<string>();
   readonly description = input<string | null>(null);
+  readonly panelClass = input('');
   /** Mientras sea true, Escape y el fondo no cierran el diálogo. */
   readonly pending = input(false);
   readonly closed = output<void>();

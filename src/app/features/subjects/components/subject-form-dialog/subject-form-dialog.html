@@ -1,6 +1,6 @@
 <app-modal
   [title]="editing() ? 'Editar materia' : 'Crear materia'"
-  [description]="editing() ? 'Modificá el nombre y los horarios.' : 'Organizá los días y horarios.'"
+  [description]="editing() ? 'Modificá el nombre, el inicio y los horarios.' : 'Organizá el inicio y los horarios.'"
   [pending]="action.pending()"
   (closed)="cancelled.emit()"
 >
@@ -20,6 +20,18 @@
       [errorText]="nombreError()"
       formControlName="nombre"
     />
+
+    <div class="max-w-64 space-y-1.5">
+      <label for="subject-start-date" class="block text-xs font-medium text-[var(--theme-muted)]">Inicio de cursada</label>
+      <input
+        id="subject-start-date"
+        type="date"
+        formControlName="fechaInicio"
+        required
+        class="min-h-11 w-full rounded-[12px] bg-[var(--theme-surface-raised)] px-3 text-sm text-[var(--theme-foreground)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+      />
+      <p class="text-xs text-[var(--theme-muted)]">Si empezaste antes, cambiá la fecha para incluir el historial.</p>
+    </div>
 
     <section class="space-y-3" aria-labelledby="schedule-heading">
       <div>

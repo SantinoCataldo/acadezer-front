@@ -1,9 +1,9 @@
 <section class="text-[var(--theme-foreground)]">
     <a
-      [routerLink]="['/estudio']"
-      class="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-[var(--theme-muted)] hover:text-[var(--theme-foreground)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
+      [routerLink]="['/estudio/materias']"
+      class="group inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]"
     >
-      <span class="material-symbols-rounded text-lg" aria-hidden="true">arrow_back</span>
+      <span class="material-symbols-rounded text-lg transition-transform duration-200 group-hover:-translate-x-1 motion-reduce:transition-none" aria-hidden="true">arrow_back</span>
       Volver a materias
     </a>
 
@@ -31,9 +31,10 @@
           <div class="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
             <button type="button" [class]="secondaryButtonClass" (click)="retry()">Reintentar</button>
             <a
-              [routerLink]="['/estudio']"
-              class="flex min-h-12 cursor-pointer items-center justify-center rounded-[14px] border border-[var(--theme-border)] px-4 py-3 text-sm font-semibold text-[var(--theme-foreground)] transition-[transform,background-color] duration-150 hover:bg-[var(--theme-surface-high)] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+              [routerLink]="['/estudio/materias']"
+              class="group flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-[var(--theme-border)] px-4 py-3 text-sm font-semibold text-[var(--theme-foreground)] transition-[transform,background-color] duration-150 hover:bg-[var(--theme-surface-high)] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
             >
+              <span class="material-symbols-rounded text-lg transition-transform duration-200 group-hover:-translate-x-1 motion-reduce:transition-none" aria-hidden="true">arrow_back</span>
               Volver a materias
             </a>
           </div>
@@ -104,11 +105,90 @@
             <p role="alert" class="mt-4 text-sm text-[var(--theme-error)]">{{ message }}</p>
           }
 
-          <app-attendance-board
-            class="mt-8"
-            [subject]="current"
-            (firstPresentDateChange)="firstPresentDate.set($event)"
-          />
+          <section class="mt-8" aria-labelledby="attendance-heading">
+            <div class="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 id="attendance-heading" class="text-xl font-semibold tracking-tight">Asistencia</h2>
+                <p class="mt-1 text-sm text-[var(--theme-muted)]">Tus clases registradas de los últimos 12 meses.</p>
+              </div>
+              @if (attendanceHistoryState() === 'ready' && attendanceRecords().length > 0) {
+                <span class="text-xs text-[var(--theme-muted)]">{{ attendanceRecords().length }} controles</span>
+              }
+            </div>
+
+            @if (attendanceHistoryState() === 'loading') {
+              <div aria-busy="true" class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                @for (placeholder of [1, 2, 3, 4]; track placeholder) {
+                  <div class="h-20 animate-pulse rounded-[16px] bg-[var(--theme-surface)]"></div>
+                }
+                <div class="h-16 animate-pulse rounded-[16px] bg-[var(--theme-surface)] sm:col-span-2 lg:col-span-4"></div>
+              </div>
+            } @else if (attendanceHistoryState() === 'error') {
+              <div class="mt-4 rounded-[16px] bg-[var(--theme-surface)] p-4" role="status">
+                <p class="text-sm text-[var(--theme-muted)]">No pudimos cargar el historial de asistencia.</p>
+                <button type="button" class="mt-2 text-sm font-medium text-[var(--theme-accent-content)] hover:underline" (click)="loadAttendanceHistoryAgain()">
+                  Reintentar
+                </button>
+              </div>
+            } @else {
+              <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <article class="rounded-[16px] bg-[var(--theme-surface)] p-4">
+                  <p class="text-xs font-medium uppercase tracking-wide text-[var(--theme-muted)]">Presentes</p>
+                  <p class="mt-1 text-2xl font-semibold text-[var(--attendance-present-ink)]">{{ attendanceTotals().present }}</p>
+                </article>
+                <article class="rounded-[16px] bg-[var(--theme-surface)] p-4">
+                  <p class="text-xs font-medium uppercase tracking-wide text-[var(--theme-muted)]">Ausentes</p>
+                  <p class="mt-1 text-2xl font-semibold text-[var(--attendance-absent-ink)]">{{ attendanceTotals().absent }}</p>
+                </article>
+                <article class="rounded-[16px] bg-[var(--theme-surface)] p-4">
+                  <p class="text-xs font-medium uppercase tracking-wide text-[var(--theme-muted)]">Justificadas</p>
+                  <p class="mt-1 text-2xl font-semibold text-[var(--attendance-justified-ink)]">{{ attendanceTotals().justified }}</p>
+                </article>
+                <article class="rounded-[16px] bg-[var(--theme-surface)] p-4">
+                  <p class="text-xs font-medium uppercase tracking-wide text-[var(--theme-muted)]">Asistencia</p>
+                  @if (attendanceRate() === null) {
+                    <p class="mt-1 text-2xl font-semibold text-[var(--theme-muted)]">—</p>
+                  } @else {
+                    <p class="mt-1 text-2xl font-semibold">{{ attendanceRate() }}%</p>
+                  }
+                  <p class="mt-0.5 text-xs text-[var(--theme-muted)]">de los controles registrados</p>
+                </article>
+              </div>
+
+              <div class="mt-4 rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5">
+                <div class="flex items-center justify-between gap-3">
+                  <h3 class="font-semibold">Historial</h3>
+                  <span class="text-xs text-[var(--theme-muted)]">Más recientes primero</span>
+                </div>
+
+                @if (attendanceRecords().length === 0) {
+                  <p class="mt-4 rounded-[14px] bg-[var(--theme-surface-high)] px-4 py-5 text-sm text-[var(--theme-muted)]">
+                    Todavía no hay asistencias registradas para esta materia.
+                  </p>
+                } @else {
+                  <ol aria-label="Historial de asistencias" class="mt-3 max-h-80 space-y-2 overflow-y-auto overscroll-contain pr-1">
+                    @for (control of attendanceRecords(); track control.fecha + '-' + control.horarioId + '-' + control.numero) {
+                      <li class="flex min-h-14 items-center gap-3 rounded-[14px] bg-[var(--theme-surface-raised)] px-3 py-2.5 sm:px-4">
+                        <span class="material-symbols-rounded shrink-0 text-lg" [class]="attendanceTone(control.estado)" aria-hidden="true">
+                          {{ attendanceIcon(control.estado) }}
+                        </span>
+                        <div class="min-w-0 flex-1">
+                          <p class="truncate text-sm font-medium capitalize">{{ formatAttendanceDate(control.fecha) }}</p>
+                          <p class="mt-0.5 text-xs text-[var(--theme-muted)]">
+                            {{ control.horaInicio.slice(0, 5) }}–{{ control.horaFin.slice(0, 5) }}
+                            @if (attendanceBlockLabel(control); as blockLabel) { · {{ blockLabel }} }
+                          </p>
+                        </div>
+                        <span class="shrink-0 text-xs font-semibold" [class]="attendanceTone(control.estado)">
+                          {{ attendanceLabel(control.estado) }}
+                        </span>
+                      </li>
+                    }
+                  </ol>
+                }
+              </div>
+            }
+          </section>
 
           <section class="mt-10" aria-labelledby="sections-heading">
             <h2 id="sections-heading" class="text-xl font-semibold tracking-tight">Secciones de la materia</h2>
