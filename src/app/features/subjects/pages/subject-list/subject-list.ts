@@ -7,7 +7,7 @@ import { SubjectsService } from '../../services/subjects.service';
 import { DeleteSubjectDialog } from '../../components/delete-subject-dialog/delete-subject-dialog';
 import { SubjectFormDialog } from '../../components/subject-form-dialog/subject-form-dialog';
 import { Almanac } from '../../../almanac/pages/almanac/almanac';
-import { iconButton, primaryButton } from '../../dialog-styles';
+import { dangerIconButton, iconButton, primaryButton } from '../../dialog-styles';
 
 type ListState = 'loading' | 'error' | 'ready';
 
@@ -56,6 +56,7 @@ export class SubjectList {
   // Referencias para la plantilla.
   readonly primaryButtonClass = primaryButton;
   readonly iconButtonClass = iconButton;
+  readonly dangerIconButtonClass = dangerIconButton;
 
   dayLabel(day: DiaSemana): string {
     return shortDayLabels[day];

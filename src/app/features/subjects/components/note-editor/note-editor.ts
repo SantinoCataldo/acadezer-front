@@ -25,6 +25,7 @@ import { RichTextEditor } from '../rich-text-editor/rich-text-editor';
 import { Modal } from '../modal/modal';
 import {
   dangerButton,
+  dangerIconButton,
   errorSurface,
   iconButton,
   primaryButton,
@@ -91,6 +92,7 @@ export class NoteEditor {
   readonly secondaryButtonClass = secondaryButton;
   readonly dangerButtonClass = dangerButton;
   readonly iconButtonClass = iconButton;
+  readonly dangerIconButtonClass = dangerIconButton;
   readonly errorSurfaceClass = errorSurface;
 
   constructor() {

@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormControl, FormGroup, ReactiveFormsModule, AbstractControl, ValidationErrors, Validators } from '@angular/forms';
 import { gsap } from 'gsap';
 import { TextField } from '../../../../components/ui/text-field/text-field';
+import { DatePicker } from '../../../../components/ui/date-picker/date-picker';
 import { createRequestAction } from '../../../../core/services/request-action';
 import type { DiaSemana, HorarioRequest, HorarioResponse, SubjectRequest, SubjectResponse } from '../../models';
 import { SubjectsService } from '../../services/subjects.service';
@@ -67,7 +68,7 @@ function createSchedule(schedule?: Partial<HorarioResponse>): ScheduleForm {
 
 @Component({
   selector: 'app-subject-form-dialog',
-  imports: [ReactiveFormsModule, Modal, TextField],
+  imports: [ReactiveFormsModule, Modal, TextField, DatePicker],
   templateUrl: './subject-form-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

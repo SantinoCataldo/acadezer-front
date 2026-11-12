@@ -12,3 +12,7 @@ export const errorSurface =
 
 export const iconButton =
   'flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] hover:text-[var(--theme-foreground)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none';
+
+export const dangerIconButton =
+  'flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] hover:text-[var(--md-sys-color-error)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none';
+

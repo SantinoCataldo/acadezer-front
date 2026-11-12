@@ -21,15 +21,16 @@
       formControlName="nombre"
     />
 
-    <div class="max-w-64 space-y-1.5">
+    <div class="space-y-1.5">
       <label for="subject-start-date" class="block text-xs font-medium text-[var(--theme-muted)]">Inicio de cursada</label>
-      <input
-        id="subject-start-date"
-        type="date"
-        formControlName="fechaInicio"
-        required
-        class="min-h-11 w-full rounded-[12px] bg-[var(--theme-surface-raised)] px-3 text-sm text-[var(--theme-foreground)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
-      />
+      <div>
+        <app-date-picker
+          id="subject-start-date"
+          formControlName="fechaInicio"
+          label="Inicio de cursada"
+          [allowClear]="false"
+        />
+      </div>
       <p class="text-xs text-[var(--theme-muted)]">Si empezaste antes, cambiá la fecha para incluir el historial.</p>
     </div>
 
