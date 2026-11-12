@@ -76,10 +76,12 @@ export class DatePicker implements ControlValueAccessor {
   private readonly destroyRef = inject(DestroyRef);
   private readonly triggerBtn = viewChild<ElementRef<HTMLButtonElement>>('triggerBtn');
   private readonly popoverEl = viewChild<ElementRef<HTMLElement>>('popoverEl');
+  private readonly bottomSheetEl = viewChild<ElementRef<HTMLElement>>('bottomSheetEl');
 
   readonly value = signal<string | null>(null);
   readonly disabled = signal<boolean>(false);
   readonly isOpen = signal<boolean>(false);
+  readonly isMobile = signal<boolean>(typeof window !== 'undefined' ? window.innerWidth < 640 : false);
   readonly popoverPosition = signal<PopoverPosition>({ left: '0px' });
 
   private isClosing = false;
@@ -217,7 +219,10 @@ export class DatePicker implements ControlValueAccessor {
       return;
     }
 
-    this.recalculatePosition();
+    this.checkMobile();
+    if (!this.isMobile()) {
+      this.recalculatePosition();
+    }
     const val = this.value();
     const parsed = val ? parseIso(val) : parseIso(this.today);
     if (parsed) {
@@ -227,22 +232,30 @@ export class DatePicker implements ControlValueAccessor {
 
     if (!this.prefersReducedMotion()) {
       requestAnimationFrame(() => {
-        const el = this.popoverEl()?.nativeElement;
-        if (el) {
-          gsap.killTweensOf(el);
-          gsap.fromTo(
-            el,
-            { autoAlpha: 0, y: 10, scale: 0.985, filter: 'blur(6px)' },
-            {
-              autoAlpha: 1,
-              y: 0,
-              scale: 1,
-              filter: 'blur(0px)',
-              duration: 0.24,
-              ease: 'power2.out',
-              onComplete: () => gsap.set(el, { clearProps: 'willChange,filter,transform' }),
-            },
-          );
+        if (this.isMobile()) {
+          const sheet = this.bottomSheetEl()?.nativeElement;
+          if (sheet) {
+            gsap.killTweensOf(sheet);
+            gsap.fromTo(sheet, { y: '100%' }, { y: '0%', duration: 0.28, ease: 'power3.out' });
+          }
+        } else {
+          const el = this.popoverEl()?.nativeElement;
+          if (el) {
+            gsap.killTweensOf(el);
+            gsap.fromTo(
+              el,
+              { autoAlpha: 0, y: 10, scale: 0.985, filter: 'blur(6px)' },
+              {
+                autoAlpha: 1,
+                y: 0,
+                scale: 1,
+                filter: 'blur(0px)',
+                duration: 0.24,
+                ease: 'power2.out',
+                onComplete: () => gsap.set(el, { clearProps: 'willChange,filter,transform' }),
+              },
+            );
+          }
         }
       });
     }
@@ -257,26 +270,45 @@ export class DatePicker implements ControlValueAccessor {
       return;
     }
 
-    const el = this.popoverEl()?.nativeElement;
-    if (!el) {
-      this.isOpen.set(false);
-      return;
-    }
-
     this.isClosing = true;
-    gsap.killTweensOf(el);
-    gsap.to(el, {
-      autoAlpha: 0,
-      y: 8,
-      scale: 0.985,
-      filter: 'blur(4px)',
-      duration: 0.18,
-      ease: 'power1.in',
-      onComplete: () => {
+
+    if (this.isMobile()) {
+      const sheet = this.bottomSheetEl()?.nativeElement;
+      if (!sheet) {
         this.isClosing = false;
         this.isOpen.set(false);
-      },
-    });
+        return;
+      }
+      gsap.to(sheet, {
+        y: '100%',
+        duration: 0.2,
+        ease: 'power2.in',
+        onComplete: () => {
+          this.isClosing = false;
+          this.isOpen.set(false);
+        },
+      });
+    } else {
+      const el = this.popoverEl()?.nativeElement;
+      if (!el) {
+        this.isClosing = false;
+        this.isOpen.set(false);
+        return;
+      }
+      gsap.killTweensOf(el);
+      gsap.to(el, {
+        autoAlpha: 0,
+        y: 8,
+        scale: 0.985,
+        filter: 'blur(4px)',
+        duration: 0.18,
+        ease: 'power1.in',
+        onComplete: () => {
+          this.isClosing = false;
+          this.isOpen.set(false);
+        },
+      });
+    }
   }
 
   selectDate(iso: string): void {
@@ -336,13 +368,20 @@ export class DatePicker implements ControlValueAccessor {
     }
   }
 
+  private checkMobile(): void {
+    if (typeof window !== 'undefined') {
+      this.isMobile.set(window.innerWidth < 640);
+    }
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.isOpen() || this.isClosing) return;
     const target = event.target as Node;
     const clickedInsideTrigger = this.elementRef.nativeElement.contains(target);
     const clickedInsidePopover = this.popoverEl()?.nativeElement.contains(target);
-    if (!clickedInsideTrigger && !clickedInsidePopover) {
+    const clickedInsideSheet = this.bottomSheetEl()?.nativeElement.contains(target);
+    if (!clickedInsideTrigger && !clickedInsidePopover && !clickedInsideSheet) {
       this.close();
     }
   }
@@ -354,7 +393,8 @@ export class DatePicker implements ControlValueAccessor {
 
   @HostListener('window:resize')
   onResize(): void {
-    if (this.isOpen() && !this.isClosing) {
+    this.checkMobile();
+    if (this.isOpen() && !this.isClosing && !this.isMobile()) {
       this.recalculatePosition();
     }
   }

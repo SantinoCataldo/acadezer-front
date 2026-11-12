@@ -8,12 +8,13 @@ import { SubjectResponse } from '../../../subjects/models';
 import { Modal } from '../../../subjects/components/modal/modal';
 import { TextField } from '../../../../components/ui/text-field/text-field';
 import { DatePicker } from '../../../../components/ui/date-picker/date-picker';
+import { Select, SelectOption } from '../../../../components/ui/select/select';
 import { Tarea, TareaRequest } from '../../tarea';
 import { TareaService } from '../../tarea-service';
 
 @Component({
   selector: 'app-tareas-list',
-  imports: [ReactiveFormsModule, RouterLink, Modal, TextField, DatePicker],
+  imports: [ReactiveFormsModule, RouterLink, Modal, TextField, DatePicker, Select],
   templateUrl: './tareas-list.html',
   styleUrl: './tareas-list.css',
 })
@@ -24,6 +25,12 @@ export class TareasList implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly materias = signal<SubjectResponse[]>([]);
+  readonly materiasSelectOptions = computed<readonly SelectOption<number>[]>(() =>
+    this.materias().map((m) => ({
+      value: m.id,
+      label: m.nombre,
+    })),
+  );
   readonly tareas = signal<Tarea[]>([]);
   readonly materiasSeleccionadas = signal<ReadonlySet<number>>(new Set());
 
