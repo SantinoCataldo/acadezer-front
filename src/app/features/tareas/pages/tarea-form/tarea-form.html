@@ -35,12 +35,13 @@
 
       <div>
         <label for="task-due-date" class="mb-2 block text-sm font-medium">Fecha de entrega (opcional)</label>
-        <input
-          id="task-due-date"
-          type="date"
-          formControlName="fechaLimite"
-          class="min-h-14 w-full rounded-[14px] border border-[var(--theme-border)] bg-transparent px-3 text-base text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
-        >
+        <div>
+          <app-date-picker
+            id="task-due-date"
+            formControlName="fechaLimite"
+            label="Fecha de entrega"
+          />
+        </div>
       </div>
 
       @if (submitError()) {

@@ -3,12 +3,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TextField } from '../../../../components/ui/text-field/text-field';
+import { DatePicker } from '../../../../components/ui/date-picker/date-picker';
 import { TareaService } from '../../tarea-service';
 import { TareaRequest } from '../../tarea';
 
 @Component({
   selector: 'app-tarea-form',
-  imports: [ReactiveFormsModule, RouterLink, TextField],
+  imports: [ReactiveFormsModule, RouterLink, TextField, DatePicker],
   templateUrl: './tarea-form.html',
 })
 export class TareaForm implements OnInit {

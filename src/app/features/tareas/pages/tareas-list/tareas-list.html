@@ -1,135 +1,458 @@
-<section aria-labelledby="tasks-heading" class="text-[var(--theme-foreground)]">
-  <header class="flex flex-wrap items-end justify-between gap-4">
-    <div>
-      <h2 id="tasks-heading" class="text-xl font-semibold tracking-tight sm:text-2xl">Tareas</h2>
-      <p class="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">Las tareas de cada materia.</p>
-    </div>
-  </header>
-
-  <section aria-labelledby="upcoming-heading" class="mt-6 rounded-[20px] bg-[var(--theme-surface)] px-4 py-4 sm:px-5">
-    <h3 id="upcoming-heading" class="font-semibold">Próximos 7 días</h3>
-    @if (proximasCargando()) {
-      <p role="status" class="mt-2 text-sm text-[var(--theme-muted)]">Cargando próximas tareas…</p>
-    } @else if (proximasError()) {
-      <div role="alert" class="mt-2 flex flex-wrap items-center justify-between gap-3 text-sm">
-        <p class="text-[var(--theme-error)]">{{ proximasError() }}</p>
-        <button
-          type="button"
-          [disabled]="proximasCargando()"
-          (click)="traerProximas()"
-          class="min-h-11 cursor-pointer rounded-[12px] px-3 font-semibold transition-transform duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
-        >
-          Reintentar
-        </button>
-      </div>
-    } @else {
-      <ul class="mt-2 space-y-1 text-sm">
-        @for (task of proximas(); track task.id) {
-          <li>
-            <strong>{{ task.fechaLimite }}</strong> · {{ task.titulo }}
-            <span class="text-[var(--theme-muted)]">({{ nombreMateria(task.materiaId) }})</span>
-          </li>
-        } @empty {
-          <li class="text-[var(--theme-muted)]">No tenés tareas para entregar esta semana.</li>
-        }
-      </ul>
-    }
-  </section>
-
-  @if (materias().length > 0) {
-    <div class="mt-6 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <label for="task-subject" class="block text-sm font-medium">Materia</label>
-        <select
-          id="task-subject"
-          #select
-          class="mt-2 min-h-11 w-full max-w-xs rounded-[14px] bg-[var(--theme-surface)] px-3 text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
-          (change)="cambiarMateria(select.value)"
-        >
-          @for (subject of materias(); track subject.id) {
-            <option [value]="subject.id" [selected]="subject.id === materiaId()">{{ subject.nombre }}</option>
-          }
-        </select>
-      </div>
-
-      <a
-        [routerLink]="['/estudio/tareas/nueva', materiaId()]"
-        class="inline-flex min-h-11 items-center rounded-[14px] bg-[var(--theme-accent)] px-4 py-3 text-sm font-semibold text-[var(--theme-on-accent)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
-      >
-        Nueva tarea
-      </a>
-    </div>
-  }
-
+<main aria-labelledby="tasks-heading" class="tareas-page-layout w-full text-[var(--theme-foreground)]">
   @if (accionError()) {
-    <p role="alert" class="mt-5 rounded-[14px] bg-[var(--md-sys-color-error-container)] px-4 py-3 text-sm text-[var(--md-sys-color-on-error-container)]">
+    <p role="alert" class="mb-3 shrink-0 rounded-[14px] bg-[var(--md-sys-color-error-container)] px-4 py-2.5 text-xs text-[var(--md-sys-color-on-error-container)]">
       {{ accionError() }}
     </p>
   }
 
-  <div class="mt-6" [attr.aria-busy]="cargando()">
-    @if (cargando()) {
-      <p role="status" class="rounded-[16px] bg-[var(--theme-surface)] px-4 py-5 text-sm text-[var(--theme-muted)]">Cargando tareas…</p>
-    } @else if (error()) {
-      <div role="alert" class="rounded-[16px] bg-[var(--md-sys-color-error-container)] px-4 py-4 text-sm text-[var(--md-sys-color-on-error-container)]">
-        <p>{{ error() }}</p>
-        <button type="button" (click)="reintentarCarga()" class="mt-3 min-h-11 cursor-pointer rounded-[12px] px-3 font-semibold hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]">
-          Reintentar
-        </button>
+  @if (cargando()) {
+    <div role="status" aria-label="Cargando tareas" class="grid min-h-0 flex-1 gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+      <section class="flex h-full min-h-96 flex-col rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5">
+        <div class="h-6 w-32 animate-pulse rounded-full bg-[var(--theme-surface-high)]"></div>
+        <div class="mt-4 space-y-2">
+          @for (row of [0, 1, 2]; track row) {
+            <div class="h-16 animate-pulse rounded-[14px] bg-[var(--theme-surface-high)]"></div>
+          }
+        </div>
+      </section>
+      <div class="flex h-full min-h-0 flex-col gap-3 sm:gap-4">
+        <section class="h-28 shrink-0 rounded-[20px] bg-[var(--theme-surface)] p-4">
+          <div class="h-5 w-28 animate-pulse rounded-full bg-[var(--theme-surface-high)]"></div>
+        </section>
+        <section class="flex min-h-48 flex-1 flex-col rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5">
+          <div class="h-6 w-32 animate-pulse rounded-full bg-[var(--theme-surface-high)]"></div>
+        </section>
       </div>
-    } @else if (materias().length === 0) {
-      <p class="rounded-[16px] bg-[var(--theme-surface)] px-4 py-5 text-sm text-[var(--theme-muted)]">Primero tenés que crear una materia.</p>
-    } @else {
-      <ul class="space-y-3">
-        @for (task of tareas(); track task.id) {
-          <li class="rounded-[20px] bg-[var(--theme-surface)] px-4 py-3 sm:px-5">
-            <div class="flex items-center gap-3">
-              <label [for]="'task-' + task.id" class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--theme-accent-content)]">
-                <input
-                  type="checkbox"
-                  [id]="'task-' + task.id"
-                  [checked]="task.completado"
-                  [disabled]="estaEnProceso(task.id)"
-                  [attr.aria-label]="(task.completado ? 'Reabrir ' : 'Completar ') + task.titulo"
-                  (change)="marcarCompletada(task)"
-                  class="size-5 cursor-pointer accent-[var(--theme-accent)] disabled:cursor-wait"
-                >
-              </label>
-              <label [for]="'task-' + task.id" class="min-w-0 cursor-pointer rounded-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]" [class.line-through]="task.completado">
-                {{ task.titulo }}
-              </label>
-              @if (estaEnProceso(task.id)) {
-                <span role="status" class="ml-auto text-xs text-[var(--theme-muted)]">Guardando…</span>
-              }
-            </div>
-            @if (task.descripcion) {
-              <p class="ml-11 mt-1 text-sm text-[var(--theme-muted)]">{{ task.descripcion }}</p>
-            }
-            <p class="ml-11 mt-2 text-xs text-[var(--theme-muted)]">
-              Entrega: {{ task.fechaLimite ?? 'sin fecha' }}
-              · {{ task.completado ? 'Completada' : 'Pendiente' }}
+    </div>
+  } @else if (error()) {
+    <section role="alert" class="rounded-[20px] bg-[var(--md-sys-color-error-container)] p-5 text-[var(--md-sys-color-on-error-container)]">
+      <p class="font-medium text-sm">{{ error() }}</p>
+      <button
+        type="button"
+        (click)="cargarTablero()"
+        class="mt-3 min-h-10 cursor-pointer rounded-[12px] px-3 text-xs font-semibold transition-transform duration-150 hover:scale-[0.99] hover:bg-black/5 active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+      >
+        Reintentar
+      </button>
+    </section>
+  } @else if (materias().length === 0) {
+    <section class="grid min-h-80 place-items-center rounded-[20px] bg-[var(--theme-surface)] px-5 py-12 text-center">
+      <div class="max-w-md">
+        <h2 class="text-lg font-semibold">Primero necesitás una materia</h2>
+        <p class="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">Las tareas se organizan dentro de una materia para que puedas seguir sus entregas.</p>
+        <a
+          routerLink="/estudio/materias"
+          class="mt-5 inline-flex min-h-10 items-center justify-center rounded-[12px] bg-[var(--theme-accent)] px-4 py-2 text-xs font-semibold text-[var(--theme-on-accent)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+        >
+          Ir a materias
+        </a>
+      </div>
+    </section>
+  } @else {
+    <div class="grid min-h-0 flex-1 items-stretch gap-2 sm:gap-2.5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <section
+        aria-labelledby="tasks-heading"
+        class="flex h-full min-h-0 flex-col rounded-[20px] bg-[var(--theme-surface)] p-3.5 sm:p-5"
+        (dragover)="permitirDrop($event)"
+        (drop)="soltarEnZona($event, 'pendientes')"
+      >
+        <header class="shrink-0 flex items-start justify-between gap-3">
+          <div>
+            <h1 id="tasks-heading" class="text-xl font-semibold tracking-tight sm:text-2xl">Tus tareas</h1>
+            <p class="mt-0.5 text-xs text-[var(--theme-muted)]">
+              {{ pendientes().length }} {{ pendientes().length === 1 ? 'pendiente' : 'pendientes' }}
             </p>
-            <div class="ml-11 mt-2 flex flex-wrap gap-2">
-              <a
-                [routerLink]="['/estudio/tareas/editar', task.id]"
-                class="inline-flex min-h-11 items-center rounded-[12px] px-3 text-sm font-semibold text-[var(--theme-accent-content)] transition-transform duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
-              >
-                Editar
-              </a>
-              <button
-                type="button"
-                [disabled]="estaEnProceso(task.id)"
-                (click)="eliminar(task)"
-                class="min-h-11 cursor-pointer rounded-[12px] px-3 text-sm font-semibold text-[var(--theme-error)] transition-transform duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
-              >
-                Eliminar
+          </div>
+          <button
+            type="button"
+            (click)="ayudaAbierta.set(!ayudaAbierta())"
+            class="text-xs text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-foreground)] hover:underline"
+          >
+            ¿Dónde quedaron mis tareas anteriores?
+          </button>
+        </header>
+
+        @if (ayudaAbierta()) {
+          <div role="status" class="mt-3 shrink-0 rounded-[12px] bg-[var(--theme-surface-high)] p-3 text-xs leading-relaxed text-[var(--theme-muted)]">
+            <div class="flex items-start justify-between gap-2">
+              <p>Tus tareas completadas se encuentran archivadas en el panel <strong>Completadas</strong>. Podés hacer clic en la tilde o arrastrarlas nuevamente aquí en cualquier momento para reabrirlas.</p>
+              <button type="button" (click)="ayudaAbierta.set(false)" class="text-[var(--theme-muted)] hover:text-[var(--theme-foreground)]">
+                <span class="material-symbols-rounded text-sm" aria-hidden="true">close</span>
               </button>
             </div>
-          </li>
-        } @empty {
-          <li class="rounded-[16px] bg-[var(--theme-surface)] px-4 py-5 text-sm text-[var(--theme-muted)]">No hay tareas en esta materia.</li>
+          </div>
         }
-      </ul>
-    }
-  </div>
-</section>
+
+        <div class="mt-3 shrink-0">
+          <button
+            type="button"
+            (click)="abrirModal()"
+            [disabled]="materias().length === 0 || cargando()"
+            class="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-[10px] px-2 text-xs font-medium text-[var(--theme-accent-content)] transition-[background-color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-accent)]/10 active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+          >
+            <span class="material-symbols-rounded text-[18px]" aria-hidden="true">add</span>
+            Añadir Tarea
+          </button>
+        </div>
+
+        <ul class="task-list mt-3 min-h-0 flex-1 overflow-y-auto pr-1">
+          @for (task of pendientes(); track task.id) {
+            <li
+              animate.enter="task-card-enter"
+              animate.leave="task-card-leave"
+              [attr.draggable]="!estaEnProceso(task.id)"
+              (dragstart)="iniciarArrastre($event, task)"
+              (dragend)="tareaArrastrada.set(null)"
+              class="task-card group relative rounded-[14px] border border-transparent bg-[var(--theme-canvas)] p-3 transition-[background-color,border-color,box-shadow,opacity] duration-150"
+              [class.opacity-45]="tareaArrastrada() === task.id"
+              [class.opacity-60]="estaEnProceso(task.id)"
+              [class.cursor-wait]="estaEnProceso(task.id)"
+            >
+              <div class="flex items-start gap-2.5 sm:gap-3">
+                <button
+                  type="button"
+                  [disabled]="estaEnProceso(task.id)"
+                  (click)="cambiarEstado(task)"
+                  [attr.aria-label]="'Marcar como completada: ' + task.titulo"
+                  [attr.aria-pressed]="false"
+                  class="completion-control group/check mt-0.5 grid size-5 shrink-0 cursor-pointer place-items-center rounded-[6px] border border-[var(--theme-muted)]/50 bg-transparent text-[var(--theme-accent-content)] transition-all duration-150 hover:scale-105 hover:border-[var(--theme-accent-content)] active:scale-95 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                  [class.border-[var(--theme-accent-content)]]="estaEnProceso(task.id)"
+                >
+                  @if (estaEnProceso(task.id)) {
+                    <svg class="size-3 animate-spin loader-spinner text-[var(--theme-accent-content)]" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="28" stroke-dashoffset="11" />
+                    </svg>
+                  } @else {
+                    <svg class="size-3 opacity-0 transition-opacity duration-150 group-hover/check:opacity-60" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M2.5 6.5L5 9L9.5 3.5"/>
+                    </svg>
+                  }
+                </button>
+
+                <div class="min-w-0 flex-1 cursor-pointer" (click)="abrirModal(task)">
+                  <h2 class="break-words text-sm font-semibold leading-snug">{{ task.titulo }}</h2>
+                  @if (task.descripcion) {
+                    <p class="mt-0.5 line-clamp-2 whitespace-pre-line text-xs leading-relaxed text-[var(--theme-muted)]">{{ task.descripcion }}</p>
+                  }
+                  <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--theme-muted)]">
+                    <span class="font-medium text-[var(--theme-foreground)]/80">{{ nombreMateria(task.materiaId) }}</span>
+                    @if (task.fechaLimite) {
+                      <span class="text-[var(--theme-muted)]/40" aria-hidden="true">·</span>
+                      <span
+                        class="inline-flex items-center gap-1"
+                        [style.color]="fechaVencida(task.fechaLimite) ? 'var(--md-sys-color-error)' : null"
+                      >
+                        <span class="material-symbols-rounded text-[13px]" aria-hidden="true">event</span>
+                        {{ fechaTexto(task.fechaLimite) }}
+                        @if (fechaVencida(task.fechaLimite)) { <span class="font-medium">(vencida)</span> }
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <div class="task-actions flex shrink-0 items-center gap-0.5 opacity-100 transition-opacity duration-150 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                  <button
+                    type="button"
+                    (click)="abrirModal(task)"
+                    title="Editar tarea"
+                    aria-label="Editar tarea"
+                    class="task-action grid size-7 cursor-pointer place-items-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.98] hover:bg-[var(--theme-surface-raised)] hover:text-[var(--theme-foreground)] active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                  >
+                    <span class="material-symbols-rounded text-[15px]" aria-hidden="true">edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    [disabled]="estaEnProceso(task.id)"
+                    (click)="eliminar(task, $event)"
+                    title="Eliminar tarea"
+                    aria-label="Eliminar tarea"
+                    class="task-action grid size-7 cursor-pointer place-items-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.98] hover:bg-[var(--theme-error)]/15 hover:text-[var(--theme-error)] active:scale-95 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                  >
+                    <span class="material-symbols-rounded text-[15px]" aria-hidden="true">delete</span>
+                  </button>
+                </div>
+              </div>
+            </li>
+          } @empty {
+            <li class="task-empty-placeholder grid min-h-32 place-items-center rounded-[14px] border border-dashed border-[var(--theme-border)]/50 px-4 text-center text-xs text-[var(--theme-muted)]">
+              No tenés tareas pendientes aquí. Hacé clic en "+ Añadir Tarea" para crear una.
+            </li>
+          }
+        </ul>
+      </section>
+
+      <div class="flex h-full min-h-0 flex-col gap-2 sm:gap-2.5">
+        <section
+          aria-labelledby="filters-heading"
+          class="shrink-0 rounded-[20px] border border-[var(--theme-border)]/60 bg-[var(--theme-canvas)] p-3.5 sm:p-4"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <h2 id="filters-heading" class="text-base font-semibold">Filtros</h2>
+            @if (hayFiltrosActivos()) {
+              <button
+                type="button"
+                (click)="limpiarFiltros()"
+                class="cursor-pointer text-xs font-medium text-[var(--theme-accent-content)] hover:underline"
+              >
+                Restablecer
+              </button>
+            }
+          </div>
+
+          <div
+            #materiasStrip
+            (mousedown)="iniciarArrastreMaterias($event, materiasStrip)"
+            (mousemove)="moverArrastreMaterias($event, materiasStrip)"
+            (mouseup)="detenerArrastreMaterias()"
+            (mouseleave)="detenerArrastreMaterias()"
+            class="mt-2.5 flex cursor-grab flex-nowrap items-center gap-2 overflow-x-auto pb-1 text-xs select-none active:cursor-grabbing no-scrollbar"
+          >
+            @for (subject of materias(); track subject.id) {
+              <button
+                type="button"
+                (click)="seleccionarMateria(subject.id)"
+                [attr.aria-pressed]="materiaActiva(subject.id)"
+                [class]="'inline-flex min-h-9 shrink-0 cursor-pointer items-center gap-2.5 rounded-full px-3.5 text-xs sm:text-[13px] font-semibold whitespace-nowrap transition-[background-color,border-color,opacity,transform] duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none ' + (materiaActiva(subject.id) ? 'border border-[var(--theme-border)] bg-[var(--theme-surface)] text-[var(--theme-foreground)]' : 'border border-[var(--theme-border)]/60 bg-transparent text-[var(--theme-muted)] opacity-70 hover:bg-[var(--theme-surface)]/50 hover:opacity-100')"
+              >
+                <span class="size-2.5 rounded-full bg-[var(--theme-accent)]"></span>
+                {{ subject.nombre }}
+              </button>
+            }
+          </div>
+        </section>
+
+        <section
+          aria-labelledby="completed-heading"
+          class="flex min-h-0 flex-1 flex-col rounded-[20px] bg-[var(--theme-surface)] p-3.5 sm:p-5"
+          (dragover)="permitirDrop($event)"
+          (drop)="soltarEnZona($event, 'completadas')"
+        >
+          <header class="shrink-0 flex items-center justify-between gap-3">
+            <div>
+              <h2 id="completed-heading" class="text-base font-semibold">Completadas</h2>
+              <p class="mt-0.5 text-xs text-[var(--theme-muted)]">{{ completadas().length }} {{ completadas().length === 1 ? 'completada' : 'completadas' }}</p>
+            </div>
+            <span class="material-symbols-rounded text-[20px] text-[var(--theme-accent-content)]" aria-hidden="true">task_alt</span>
+          </header>
+
+          <ul class="task-list mt-3 min-h-0 flex-1 overflow-y-auto pr-1">
+            @for (task of completadas(); track task.id) {
+              <li
+                animate.enter="task-card-enter"
+                animate.leave="task-card-leave"
+                [attr.draggable]="!estaEnProceso(task.id)"
+                (dragstart)="iniciarArrastre($event, task)"
+                (dragend)="tareaArrastrada.set(null)"
+                class="task-card task-card-completed group relative rounded-[14px] border border-transparent bg-[var(--theme-canvas)] p-3 opacity-90 transition-[background-color,border-color,box-shadow,opacity] duration-150 hover:opacity-100"
+                [class.opacity-45]="tareaArrastrada() === task.id"
+                [class.opacity-60]="estaEnProceso(task.id)"
+                [class.cursor-wait]="estaEnProceso(task.id)"
+              >
+                <div class="flex items-start gap-2.5 sm:gap-3">
+                  <button
+                    type="button"
+                    [disabled]="estaEnProceso(task.id)"
+                    (click)="cambiarEstado(task)"
+                    [attr.aria-label]="'Volver a pendientes: ' + task.titulo"
+                    [attr.aria-pressed]="true"
+                    class="completion-control mt-0.5 grid size-5 shrink-0 cursor-pointer place-items-center rounded-[6px] bg-[var(--theme-accent)] text-[var(--theme-on-accent)] shadow-xs transition-all duration-150 hover:scale-105 hover:brightness-105 active:scale-95 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                  >
+                    @if (estaEnProceso(task.id)) {
+                      <svg class="size-3 animate-spin loader-spinner text-[var(--theme-on-accent)]" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                        <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="28" stroke-dashoffset="11" />
+                      </svg>
+                    } @else {
+                      <svg class="size-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M2.5 6.5L5 9L9.5 3.5"/>
+                      </svg>
+                    }
+                  </button>
+
+                  <div class="min-w-0 flex-1 cursor-pointer" (click)="abrirModal(task)">
+                    <h3 class="break-words text-sm font-semibold leading-snug text-[var(--theme-foreground)]/80">{{ task.titulo }}</h3>
+                    @if (task.descripcion) {
+                      <p class="mt-0.5 line-clamp-2 whitespace-pre-line text-xs leading-relaxed text-[var(--theme-muted)]">{{ task.descripcion }}</p>
+                    }
+                    <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--theme-muted)]">
+                      <span class="font-medium text-[var(--theme-foreground)]/80">{{ nombreMateria(task.materiaId) }}</span>
+                      @if (task.fechaLimite) {
+                        <span class="text-[var(--theme-muted)]/40" aria-hidden="true">·</span>
+                        <span class="inline-flex items-center gap-1">
+                          <span class="material-symbols-rounded text-[13px]" aria-hidden="true">event</span>
+                          {{ fechaTexto(task.fechaLimite) }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="task-actions flex shrink-0 items-center gap-0.5 opacity-100 transition-opacity duration-150 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+                    <button
+                      type="button"
+                      (click)="abrirModal(task)"
+                      title="Editar tarea"
+                      aria-label="Editar tarea"
+                      class="task-action grid size-7 cursor-pointer place-items-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.98] hover:bg-[var(--theme-surface-raised)] hover:text-[var(--theme-foreground)] active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                    >
+                      <span class="material-symbols-rounded text-[15px]" aria-hidden="true">edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      [disabled]="estaEnProceso(task.id)"
+                      (click)="eliminar(task, $event)"
+                      title="Eliminar tarea"
+                      aria-label="Eliminar tarea"
+                      class="task-action grid size-7 cursor-pointer place-items-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.98] hover:bg-[var(--theme-error)]/15 hover:text-[var(--theme-error)] active:scale-95 disabled:cursor-wait focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                    >
+                      <span class="material-symbols-rounded text-[15px]" aria-hidden="true">delete</span>
+                    </button>
+                  </div>
+                </div>
+              </li>
+            } @empty {
+              <li class="task-empty-placeholder grid min-h-24 place-items-center rounded-[14px] border border-dashed border-[var(--theme-border)]/50 px-4 text-center text-xs text-[var(--theme-muted)]">
+                Las tareas completadas van a aparecer acá.
+              </li>
+            }
+          </ul>
+        </section>
+      </div>
+    </div>
+  }
+</main>
+
+@if (modalAbierto()) {
+  <app-modal
+    [title]="tareaEditando() ? 'Editar Tarea' : 'Añadir Tarea'"
+    [description]="tareaEditando() ? 'Modificá los detalles de la tarea.' : 'Ingresá el nombre y detalles de tu entrega.'"
+    [pending]="guardando()"
+    (closed)="cerrarModal()"
+  >
+    <form
+      [formGroup]="form"
+      (ngSubmit)="guardarTarea()"
+      class="space-y-4"
+      style="--text-field-label-background: var(--theme-modal-surface)"
+    >
+      <div>
+        <label for="task-subject" class="mb-1.5 block text-xs font-medium text-[var(--theme-muted)]">Materia</label>
+        <div class="relative">
+          <select
+            id="task-subject"
+            formControlName="materiaId"
+            class="min-h-11 w-full appearance-none cursor-pointer rounded-[12px] bg-[var(--theme-surface-raised)] pl-3.5 pr-10 text-sm font-medium text-[var(--theme-foreground)] outline-none transition-[background-color] hover:bg-[var(--theme-surface)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+          >
+            @for (subject of materias(); track subject.id) {
+              <option [ngValue]="subject.id" class="bg-[var(--theme-surface)] text-[var(--theme-foreground)] py-1.5">{{ subject.nombre }}</option>
+            }
+          </select>
+          <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--theme-muted)]" aria-hidden="true">
+            <span class="material-symbols-rounded text-[20px]">keyboard_arrow_down</span>
+          </span>
+        </div>
+      </div>
+
+      <app-text-field
+        id="task-title"
+        label="Nombre de la tarea"
+        placeholder="Ej. Entregar el trabajo práctico"
+        autocomplete="off"
+        [required]="true"
+        [maxLength]="200"
+        [errorText]="tituloError()"
+        formControlName="titulo"
+      />
+
+      <app-text-field
+        id="task-description"
+        label="Descripción (opcional)"
+        placeholder="Agregá detalles o pasos para completar"
+        [maxLength]="2000"
+        [multiline]="true"
+        [rows]="3"
+        formControlName="descripcion"
+      />
+
+      @if (accionError()) {
+        <p role="alert" class="rounded-[13px] bg-[var(--md-sys-color-error-container)] px-4 py-3 text-sm text-[var(--md-sys-color-on-error-container)]">{{ accionError() }}</p>
+      }
+
+      <footer class="flex items-center justify-between gap-2 sm:gap-3 pt-2">
+        <div class="shrink-0">
+          <app-date-picker formControlName="fechaLimite" label="Fecha" />
+        </div>
+
+        <div class="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            [disabled]="guardando()"
+            (click)="cerrarModal()"
+            class="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[12px] border border-[var(--theme-border)] bg-transparent px-3.5 py-2 text-xs font-medium text-[var(--theme-foreground)] transition-[background-color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="guardando()"
+            class="inline-flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-[12px] bg-[var(--theme-accent)] px-4 py-2 text-xs font-semibold text-[var(--theme-on-accent)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+          >
+            @if (guardando()) {
+              <span class="material-symbols-rounded animate-spin text-[16px]" aria-hidden="true">progress_activity</span>
+              Guardando…
+            } @else {
+              <span class="material-symbols-rounded text-[16px]" aria-hidden="true">{{ tareaEditando() ? 'save' : 'add' }}</span>
+              {{ tareaEditando() ? 'Guardar cambios' : 'Añadir tarea' }}
+            }
+          </button>
+        </div>
+      </footer>
+    </form>
+  </app-modal>
+}
+
+@if (tareaAEliminar(); as tarea) {
+  <app-modal
+    [title]="'¿Eliminar ' + tarea.titulo + '?'"
+    [pending]="estaEnProceso(tarea.id)"
+    (closed)="cerrarConfirmacionEliminar()"
+  >
+    <div class="space-y-4">
+      <div class="flex items-start gap-3 rounded-[16px] bg-[var(--theme-surface-high)] p-4">
+        <span class="material-symbols-rounded shrink-0 text-xl text-[var(--theme-error)]" aria-hidden="true">delete_forever</span>
+        <p class="text-sm leading-relaxed text-[var(--theme-foreground)]">
+          La tarea se eliminará de tu lista y no vas a poder recuperarla.
+        </p>
+      </div>
+
+      @if (errorEliminar()) {
+        <p role="alert" class="rounded-[13px] bg-[var(--md-sys-color-error-container)] px-4 py-3 text-sm text-[var(--md-sys-color-on-error-container)]">
+          {{ errorEliminar() }}
+        </p>
+      }
+
+      <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          [disabled]="estaEnProceso(tarea.id)"
+          (click)="cerrarConfirmacionEliminar()"
+          class="inline-flex min-h-10 cursor-pointer items-center justify-center rounded-[12px] border border-[var(--theme-border)] bg-transparent px-4 py-2 text-sm font-medium text-[var(--theme-foreground)] transition-[background-color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          [disabled]="estaEnProceso(tarea.id)"
+          (click)="confirmarEliminacion()"
+          class="inline-flex min-h-10 cursor-pointer items-center justify-center gap-1.5 rounded-[12px] bg-[var(--theme-error)] px-4 py-2 text-sm font-semibold text-[var(--md-sys-color-on-error)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] disabled:cursor-wait disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-error)] motion-reduce:transition-none"
+        >
+          @if (estaEnProceso(tarea.id)) {
+            <span class="material-symbols-rounded animate-spin text-[16px]" aria-hidden="true">progress_activity</span>
+            Eliminando…
+          } @else {
+            <span class="material-symbols-rounded text-[16px]" aria-hidden="true">delete</span>
+            Eliminar tarea
+          }
+        </button>
+      </div>
+    </div>
+  </app-modal>
+}
