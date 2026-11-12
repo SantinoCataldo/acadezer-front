@@ -7,6 +7,7 @@ import { SubjectsService } from '../../services/subjects.service';
 import { DeleteSubjectDialog } from '../../components/delete-subject-dialog/delete-subject-dialog';
 import { SubjectFormDialog } from '../../components/subject-form-dialog/subject-form-dialog';
 import { SubjectRecentNotes } from '../../components/subject-recent-notes/subject-recent-notes';
+import { SubjectRecentTasks } from '../../components/subject-recent-tasks/subject-recent-tasks';
 import { dangerButton, primaryButton, secondaryButton } from '../../dialog-styles';
 
 type DetailState = 'loading' | 'error' | 'ready';
@@ -18,13 +19,6 @@ interface AttendanceTotals {
   justified: number;
 }
 
-interface DetailSection {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-}
-
 /**
  * Contenedor del detalle de materia (/estudio/materias/:id).
  *
@@ -34,7 +28,7 @@ interface DetailSection {
  */
 @Component({
   selector: 'app-subject-detail',
-  imports: [RouterLink, SubjectRecentNotes, SubjectFormDialog, DeleteSubjectDialog],
+  imports: [RouterLink, SubjectRecentNotes, SubjectRecentTasks, SubjectFormDialog, DeleteSubjectDialog],
   templateUrl: './subject-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -66,22 +60,6 @@ export class SubjectDetail {
   readonly finishing = signal(false);
   readonly finishError = signal<string | null>(null);
 
-  readonly sections: readonly DetailSection[] = [
-    {
-      id: 'pendientes',
-      icon: 'checklist',
-      title: 'Pendientes',
-      description: 'Tareas con fecha límite y estado de completado.',
-    },
-    {
-      id: 'evaluaciones',
-      icon: 'assignment',
-      title: 'Evaluaciones',
-      description: 'Fechas de examen y calificaciones de 0 a 10.',
-    },
-  ];
-
-  // Referencias para la plantilla.
   readonly secondaryButtonClass = secondaryButton;
   readonly dangerButtonClass = dangerButton;
   readonly primaryButtonClass = primaryButton;

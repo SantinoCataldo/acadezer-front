@@ -195,42 +195,24 @@
           <section class="mt-10" aria-labelledby="sections-heading">
             <h2 id="sections-heading" class="text-xl font-semibold tracking-tight">Secciones de la materia</h2>
             <div class="mt-4 grid gap-4 sm:grid-cols-2">
-              @for (section of sections; track section.id) {
-                @if (section.id === 'pendientes') {
-                  <a
-                    [routerLink]="['/estudio/tareas']"
-                    [queryParams]="{ materiaId: current.id }"
-                    class="group block rounded-[20px] border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5 transition-[background-color,transform] duration-200 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
-                  >
-                    <div class="flex items-center gap-3">
-                      <span class="material-symbols-rounded text-[var(--theme-accent-content)]" aria-hidden="true">
-                        {{ section.icon }}
-                      </span>
-                      <h3 class="font-semibold group-hover:text-[var(--theme-accent-content)]">{{ section.title }}</h3>
-                      <span class="ml-auto inline-flex items-center gap-1 text-xs font-semibold text-[var(--theme-accent-content)]">
-                        Ver tareas
-                        <span class="material-symbols-rounded text-sm" aria-hidden="true">arrow_forward</span>
-                      </span>
-                    </div>
-                    <p class="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">{{ section.description }}</p>
-                  </a>
-                } @else {
-                  <article class="rounded-[20px] border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5">
-                    <div class="flex items-center gap-3">
-                      <span class="material-symbols-rounded text-[var(--theme-accent-content)]" aria-hidden="true">
-                        {{ section.icon }}
-                      </span>
-                      <h3 class="font-semibold">{{ section.title }}</h3>
-                      <span
-                        class="ml-auto rounded-full border border-[var(--theme-border)] px-2.5 py-0.5 text-xs text-[var(--theme-muted)]"
-                      >
-                        Próximamente
-                      </span>
-                    </div>
-                    <p class="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">{{ section.description }}</p>
-                  </article>
-                }
-              }
+              <app-subject-recent-tasks [materiaId]="current.id" />
+
+              <article class="flex flex-col justify-between rounded-[20px] border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5">
+                <div>
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-rounded text-[20px] text-[var(--theme-accent-content)]" aria-hidden="true">
+                      assignment
+                    </span>
+                    <h3 class="font-semibold">Evaluaciones</h3>
+                    <span
+                      class="ml-auto rounded-full border border-[var(--theme-border)] px-2.5 py-0.5 text-xs text-[var(--theme-muted)]"
+                    >
+                      Próximamente
+                    </span>
+                  </div>
+                  <p class="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">Fechas de examen y calificaciones de 0 a 10.</p>
+                </div>
+              </article>
             </div>
           </section>
         }

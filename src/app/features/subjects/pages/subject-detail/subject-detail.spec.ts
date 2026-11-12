@@ -8,7 +8,6 @@ import { environment } from '../../../../../environments/environment';
 import type { SubjectResponse } from '../../models';
 import { SubjectDetail } from './subject-detail';
 
-/** El router real lo conecta el equipo: acá solo se necesita un destino válido. */
 @Component({ selector: 'app-route-stub', template: '' })
 class RouteStub {}
 
@@ -56,14 +55,13 @@ describe('SubjectDetail', () => {
   }
 
   function nombreInput(): HTMLInputElement {
-    // El host de app-text-field también lleva el id: hay que buscar el input interno.
     return fixture.nativeElement.querySelector('app-text-field input') as HTMLInputElement;
   }
 
-  /** La sección Apuntes pide su lista apenas se monta: hay que responderla. */
   function flushNotes(): void {
     fixture.detectChanges();
     requests.expectOne(`${environment.apiUrl}/api/materias/7/apuntes`).flush([]);
+    requests.expectOne(`${environment.apiUrl}/api/materias/7/pendientes`).flush([]);
   }
 
   it('shows the subject and its sections', () => {
@@ -74,14 +72,11 @@ describe('SubjectDetail', () => {
 
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Física');
-    // La descripción quedó fuera del modelo: el rango de fechas es lo que se ve.
     expect(text).toContain('Fecha de inicio pendiente');
     expect(text).toContain('Apuntes');
-    expect(text).toContain('Pendientes');
+    expect(text).toContain('Tareas pendientes');
     expect(text).toContain('Evaluaciones');
-    // APU-01: la sección Apuntes ya está montada dentro del detalle.
     expect(text).toContain('Nuevo apunte');
-    // El tablero de asistencia conserva su título.
     expect(text).toContain('Asistencia');
     requests.verify();
   });
