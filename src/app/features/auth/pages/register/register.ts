@@ -16,10 +16,11 @@ import { TextField } from '@components/ui/text-field/text-field';
 import { AuthService } from '@core/services/auth.service';
 import { AuthFormReveal } from '@features/auth/directives/auth-form-reveal.directive';
 import { authAppearance } from '@features/auth/auth-theme';
+import { Buho, EstadoBuho } from '@features/auth/components/buho/buho';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, TextField, AuthFormReveal],
+  imports: [ReactiveFormsModule, TextField, AuthFormReveal, Buho],
   host: { class: 'block w-full' },
   templateUrl: './register.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,6 +39,11 @@ export class Register {
   readonly emailAlreadyRegistered = signal(false);
   readonly step = signal<1 | 2>(1);
   readonly action = this.auth.registerAction;
+
+  // El búho reacciona a lo que pasa en el formulario
+  estadoBuho = signal<EstadoBuho>('normal');
+  miradaBuho = signal(0);
+  espiando = signal(false);
 
   readonly form = inject(NonNullableFormBuilder).group({
     nombre: ['', [Validators.required, Validators.pattern(/\S/)]],
@@ -129,6 +135,7 @@ export class Register {
         tap(() => {
           this.registered.set(true);
           this.autoLoginPending.set(true);
+          this.estadoBuho.set('feliz');
         }),
         switchMap(() => this.auth.login({ email: normalizedEmail, password })),
         takeUntilDestroyed(this.destroyRef),
@@ -138,9 +145,11 @@ export class Register {
           this.autoLoginPending.set(false);
           this.form.controls.password.reset();
           this.form.controls.confirmPassword.reset();
-          void this.router.navigateByUrl('/onboarding');
+          // el búho festeja un momento antes de ir al onboarding
+          setTimeout(() => void this.router.navigateByUrl('/onboarding'), 700);
         },
         error: (error: unknown) => {
+          this.estadoBuho.set('error');
           this.autoLoginPending.set(false);
           if (this.registered()) {
             this.form.controls.password.reset();
@@ -158,6 +167,30 @@ export class Register {
           }
         },
       });
+  }
+
+  enfocarTexto(campo: 'nombre' | 'email') {
+    this.estadoBuho.set('escribiendo');
+    this.escribir(campo);
+  }
+
+  escribir(campo: 'nombre' | 'email') {
+    // cuanto más largo el texto, más a la derecha mira
+    this.miradaBuho.set(Math.min(this.form.controls[campo].value.length / 30, 1));
+  }
+
+  enfocarPassword() {
+    this.estadoBuho.set('tapado');
+  }
+
+  // si tocás el ojito de "mostrar contraseña", el búho espía
+  revisarEspia(event: Event) {
+    const campo = event.currentTarget as HTMLElement;
+    setTimeout(() => this.espiando.set(campo.querySelector('input')?.type === 'text'));
+  }
+
+  desenfocar() {
+    this.estadoBuho.set('normal');
   }
 
   navigateToLogin(event: MouseEvent): void {

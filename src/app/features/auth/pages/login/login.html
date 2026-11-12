@@ -5,6 +5,13 @@
   style="--text-field-label-background: var(--theme-canvas)"
   appAuthFormReveal
 >
+      <app-buho
+        data-reveal-item
+        class="-mb-1 -ml-4 block w-fit"
+        [estado]="estadoBuho()"
+        [mirada]="miradaBuho()"
+        [espiando]="espiando()"
+      />
       <h1 data-reveal-item class="text-3xl font-semibold leading-tight tracking-[-0.045em] text-[var(--theme-foreground)] sm:text-4xl">
         Iniciar sesión
       </h1>
@@ -29,6 +36,9 @@
           [maxLength]="254"
           [errorText]="emailErrorMessage()"
           formControlName="email"
+          (focusin)="enfocarEmail()"
+          (focusout)="desenfocar()"
+          (input)="escribirEmail()"
         />
 
         <app-text-field
@@ -43,6 +53,9 @@
           [revealable]="true"
           [errorText]="passwordErrorMessage()"
           formControlName="password"
+          (focusin)="enfocarPassword()"
+          (focusout)="desenfocar()"
+          (click)="revisarEspia($event)"
         />
 
         @if (action.errorMessage()) {
