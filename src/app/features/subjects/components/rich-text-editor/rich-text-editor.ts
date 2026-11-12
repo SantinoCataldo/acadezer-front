@@ -12,6 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { toast } from 'ngx-sonner';
 
 interface ToolbarAction {
   icon: string;
@@ -77,6 +78,7 @@ export class RichTextEditor {
   private readonly sanitizer = inject(DomSanitizer);
   private lastEmitted = '';
   private savedRange: Range | null = null;
+  private userEditedLocally = false;
 
   constructor() {
     // El valor entra desde el padre (abrir un apunte o resetear el formulario);
@@ -87,6 +89,7 @@ export class RichTextEditor {
       if (!element || next === this.lastEmitted) return;
       element.innerHTML = this.sanitize(next);
       this.lastEmitted = next;
+      this.userEditedLocally = false;
     });
   }
 
@@ -99,6 +102,7 @@ export class RichTextEditor {
     }
     this.captureSelection(element);
     this.refreshActiveActions();
+    this.userEditedLocally = true;
     this.emit(element.innerHTML);
   }
 
@@ -115,6 +119,7 @@ export class RichTextEditor {
     const element = this.editable().nativeElement;
     this.captureSelection(element);
     this.refreshActiveActions();
+    this.userEditedLocally = true;
     this.emit(element.innerHTML);
   }
 
@@ -122,7 +127,66 @@ export class RichTextEditor {
     const element = this.editable().nativeElement;
     this.captureSelection(element);
     this.focused.set(false);
-    this.emit(element.innerHTML);
+    if (this.userEditedLocally) {
+      this.emit(element.innerHTML);
+    }
+  }
+
+  protected onPaste(event: ClipboardEvent): void {
+    const clipboard = event.clipboardData;
+    if (!clipboard) return;
+
+    const items = clipboard.items;
+    let hasImage = false;
+    if (items) {
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.startsWith('image/')) {
+          hasImage = true;
+          break;
+        }
+      }
+    }
+
+    if (hasImage) {
+      event.preventDefault();
+      toast.warning('Imágenes no admitidas', {
+        description:
+          'Los apuntes solo admiten texto con formato (títulos, listas, negrita). No es posible pegar imágenes.',
+      });
+      return;
+    }
+
+    const html = clipboard.getData('text/html');
+    if (html && /<img\b[^>]*>/i.test(html)) {
+      event.preventDefault();
+      const plainText = clipboard.getData('text/plain') ?? '';
+      if (plainText && typeof document.execCommand === 'function') {
+        document.execCommand('insertText', false, plainText);
+      }
+      toast.warning('Imágenes omitidas', {
+        description:
+          'Se omitieron las imágenes pegadas. Los apuntes solo admiten texto con formato.',
+      });
+      const element = this.editable().nativeElement;
+      this.userEditedLocally = true;
+      this.emit(element.innerHTML);
+    }
+  }
+
+  protected onDrop(event: DragEvent): void {
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        if (files[i].type.startsWith('image/')) {
+          event.preventDefault();
+          toast.warning('Imágenes no admitidas', {
+            description:
+              'Los apuntes solo admiten texto con formato. No es posible arrastrar imágenes.',
+          });
+          return;
+        }
+      }
+    }
   }
 
   @HostListener('document:selectionchange')
@@ -188,6 +252,7 @@ export class RichTextEditor {
   }
 
   private sanitize(html: string): string {
-    return this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
+    const withoutImages = html.replace(/<img\b[^>]*>/gi, '');
+    return this.sanitizer.sanitize(SecurityContext.HTML, withoutImages) ?? '';
   }
 }

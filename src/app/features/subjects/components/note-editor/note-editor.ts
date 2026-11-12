@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  HostListener,
   computed,
   effect,
   inject,
@@ -11,10 +12,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { createRequestAction } from '../../../../core/services/request-action';
+import { UnsavedChangesService } from '../../../../core/services/unsaved-changes.service';
 import {
+  CONTENIDO_APUNTE_MAX,
   TITULO_APUNTE_MAX,
   type NoteRequest,
   type NoteResponse,
@@ -23,6 +26,11 @@ import { NotesService } from '../../services/notes.service';
 import { hasContent } from '../../note-text';
 import { RichTextEditor } from '../rich-text-editor/rich-text-editor';
 import { Modal } from '../modal/modal';
+import {
+  NotePracticeDialog,
+  clearPracticeCache,
+} from '../note-practice-dialog/note-practice-dialog';
+import { toast } from 'ngx-sonner';
 import {
   dangerButton,
   dangerIconButton,
@@ -36,22 +44,25 @@ function notBlank(control: AbstractControl): { blank: true } | null {
   return (control.value as string).trim().length === 0 ? { blank: true } : null;
 }
 
-/**
- * APU-03: panel de edición de un apunte.
- *
- * Abre un apunte existente o uno nuevo: título de una línea, editor de
- * contenido enriquecido y acciones de guardar, cancelar y eliminar. El envío y
- * la confirmación de borrado viven acá para no dejar la pantalla a medias; el
- * candidato solo informa el resultado al contenedor.
- */
+function normalizeNoteHtml(html: string): string {
+  if (!html) return '';
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  return (doc.body.innerHTML || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/<br\s*\/?>/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 @Component({
   selector: 'app-note-editor',
-  imports: [ReactiveFormsModule, RichTextEditor, Modal],
+  imports: [ReactiveFormsModule, RichTextEditor, Modal, NotePracticeDialog],
   templateUrl: './note-editor.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NoteEditor {
-  /** null crea un apunte nuevo. */
   readonly note = input<NoteResponse | null>(null);
   readonly materiaId = input.required<number>();
   readonly materiaNombre = input<string | null>(null);
@@ -62,6 +73,7 @@ export class NoteEditor {
 
   private readonly notes = inject(NotesService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly unsavedChanges = inject(UnsavedChangesService);
   private readonly tituloInput = viewChild<ElementRef<HTMLInputElement>>('tituloInput');
 
   readonly titulo = new FormControl('', {
@@ -69,25 +81,58 @@ export class NoteEditor {
     validators: [Validators.required, notBlank, Validators.maxLength(TITULO_APUNTE_MAX)],
   });
   readonly contenido = signal('');
+  readonly contentDirty = signal(false);
   readonly contenidoTouched = signal(false);
   readonly confirmingDelete = signal(false);
+  readonly confirmingDiscard = signal(false);
   readonly showingInfo = signal(false);
+  readonly showingPractice = signal(false);
   readonly exportError = signal<string | null>(null);
   readonly copiedContent = signal(false);
+
+  private readonly tituloValue = toSignal(this.titulo.valueChanges, {
+    initialValue: this.titulo.value,
+  });
 
   readonly saveAction = createRequestAction();
   readonly deleteAction = createRequestAction();
 
   readonly editing = computed(() => this.note() !== null);
   readonly hasContenido = computed(() => hasContent(this.contenido()));
+  readonly plainTextLength = computed(() => {
+    const parsed = new DOMParser().parseFromString(this.contenido(), 'text/html');
+    return parsed.body.textContent?.trim().length ?? 0;
+  });
   readonly contenidoError = computed(() =>
     this.contenidoTouched() && !hasContent(this.contenido())
       ? 'El contenido no puede quedar vacío.'
       : null,
   );
 
+  readonly isDirty = computed(() => {
+    const current = this.note();
+    const currentTitulo = (this.tituloValue() ?? this.titulo.value).trim();
+    const currentContenido = this.contenido();
+
+    if (!current) {
+      return currentTitulo.length > 0 || hasContent(currentContenido);
+    }
+
+    // Para una nota existente, si el usuario no interactuó con los campos,
+    // se asegura que no esté sucia al abrir.
+    if (!this.titulo.dirty && !this.contentDirty()) {
+      return false;
+    }
+
+    const titleChanged = currentTitulo !== current.titulo.trim();
+    const contentChanged =
+      this.contentDirty() &&
+      normalizeNoteHtml(currentContenido) !== normalizeNoteHtml(current.contenido);
+
+    return titleChanged || contentChanged;
+  });
+
   readonly tituloMax = TITULO_APUNTE_MAX;
-  // Referencias para la plantilla.
   readonly primaryButtonClass = primaryButton;
   readonly secondaryButtonClass = secondaryButton;
   readonly dangerButtonClass = dangerButton;
@@ -95,13 +140,28 @@ export class NoteEditor {
   readonly dangerIconButtonClass = dangerIconButton;
   readonly errorSurfaceClass = errorSurface;
 
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.isDirty()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
   constructor() {
-    // El candidato entra por `note`: al cambiar de apunte se recargan los campos
-    // sin reescribir lo que el usuario está escribiendo.
+    effect(() => {
+      this.unsavedChanges.hasPendingChanges.set(this.isDirty());
+    });
+    this.destroyRef.onDestroy(() => {
+      this.unsavedChanges.hasPendingChanges.set(false);
+    });
+
     effect(() => {
       const current = this.note();
-      this.titulo.reset(current?.titulo ?? '');
+      this.titulo.reset(current?.titulo ?? '', { emitEvent: false });
+      this.titulo.markAsPristine();
       this.contenido.set(current?.contenido ?? '');
+      this.contentDirty.set(false);
       this.contenidoTouched.set(false);
       if (!current) queueMicrotask(() => this.tituloInput()?.nativeElement.focus());
     });
@@ -117,6 +177,7 @@ export class NoteEditor {
 
   onContenido(html: string): void {
     this.contenido.set(html);
+    this.contentDirty.set(true);
   }
 
   submit(): void {
@@ -124,6 +185,21 @@ export class NoteEditor {
     this.contenidoTouched.set(true);
     if (this.titulo.invalid || !hasContent(this.contenido())) {
       this.titulo.markAsTouched();
+      return;
+    }
+
+    if (/<img\b[^>]*>/i.test(this.contenido())) {
+      toast.error('No se pueden guardar imágenes', {
+        description:
+          'Los apuntes solo admiten texto con formato. Por favor eliminá la imagen para poder guardar.',
+      });
+      return;
+    }
+
+    if (this.contenido().length > CONTENIDO_APUNTE_MAX) {
+      toast.error('El contenido es demasiado extenso', {
+        description: `El contenido supera el límite máximo permitido (${this.contenido().length.toLocaleString('es-AR')} de ${CONTENIDO_APUNTE_MAX.toLocaleString('es-AR')} caracteres).`,
+      });
       return;
     }
 
@@ -137,7 +213,13 @@ export class NoteEditor {
       .run(() => send)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (saved) => this.saved.emit(saved),
+        next: (saved) => {
+          this.contentDirty.set(false);
+          this.titulo.markAsPristine();
+          clearPracticeCache(saved.id);
+          toast.success(current ? 'Apunte actualizado' : 'Apunte guardado');
+          this.saved.emit(saved);
+        },
         error: () => undefined,
       });
   }
@@ -159,7 +241,9 @@ export class NoteEditor {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
+          clearPracticeCache(current.id);
           this.confirmingDelete.set(false);
+          toast.success('Apunte eliminado');
           this.deleted.emit();
         },
         error: () => undefined,
@@ -268,5 +352,55 @@ export class NoteEditor {
       };
       return entities[character] ?? character;
     });
+  }
+
+  openPractice(): void {
+    if (!this.editing() || !this.note()) return;
+
+    const parsed = new DOMParser().parseFromString(this.contenido(), 'text/html');
+    const plainText = parsed.body.textContent?.trim() ?? '';
+
+    if (plainText.length < 80) {
+      toast.error('Apunte demasiado breve para la IA', {
+        description: `Tiene ${plainText.length} caracteres y se necesitan al menos 80 para generar preguntas útiles. Escribí un poco más de contenido.`,
+      });
+      return;
+    }
+
+    if (this.isDirty()) {
+      toast.warning('Guardá el apunte primero', {
+        description: 'Tenés cambios sin guardar. Guardalos para que la IA practique sobre tu versión más reciente.',
+      });
+      return;
+    }
+
+    this.showingPractice.set(true);
+  }
+
+  closePractice(): void {
+    this.showingPractice.set(false);
+  }
+
+  readonly showingDiscardDialog = computed(
+    () => this.confirmingDiscard() || this.unsavedChanges.confirmRequested(),
+  );
+
+  requestCancel(): void {
+    if (this.isDirty()) {
+      this.confirmingDiscard.set(true);
+      return;
+    }
+    this.cancelled.emit();
+  }
+
+  cancelDiscard(): void {
+    this.confirmingDiscard.set(false);
+    this.unsavedChanges.resolveConfirmation(false);
+  }
+
+  confirmDiscard(): void {
+    this.confirmingDiscard.set(false);
+    this.unsavedChanges.resolveConfirmation(true);
+    this.cancelled.emit();
   }
 }
