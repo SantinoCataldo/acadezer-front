@@ -11,5 +11,35 @@
         Hola {{ usuario()?.nombre }}. Desde acá ves el uso de la plataforma y manejás las cuentas.
       </p>
     </header>
+
+    <section class="mt-10" aria-labelledby="titulo-estadisticas">
+      <h2 id="titulo-estadisticas" class="text-lg font-semibold">Estadísticas</h2>
+
+      @if (cargandoEstadisticas()) {
+        <p class="mt-4 text-sm text-[var(--theme-muted)]">Cargando estadísticas...</p>
+      } @else if (errorEstadisticas()) {
+        <div class="mt-4 flex flex-wrap items-center gap-3 rounded-[16px] bg-[var(--md-sys-color-error-container)] px-4 py-3 text-sm text-[var(--md-sys-color-on-error-container)]">
+          <p>{{ errorEstadisticas() }}</p>
+          <button type="button" (click)="traerEstadisticas()" class="min-h-10 cursor-pointer rounded-[12px] px-3 font-semibold underline underline-offset-4">
+            Reintentar
+          </button>
+        </div>
+      } @else {
+        <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+          @for (t of tarjetas(); track t.titulo) {
+            <article class="rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5">
+              <div class="flex items-center gap-2 text-sm text-[var(--theme-muted)]">
+                <span class="material-symbols-rounded text-xl text-[var(--theme-accent-content)]" aria-hidden="true">{{ t.icono }}</span>
+                {{ t.titulo }}
+              </div>
+              <p class="mt-3 text-3xl font-semibold tabular-nums tracking-tight">{{ t.valor }}</p>
+              @if (t.detalle) {
+                <p class="mt-1 text-xs text-[var(--theme-muted)]">{{ t.detalle }}</p>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
   </div>
 </main>
