@@ -70,14 +70,21 @@
           <p class="text-sm text-[var(--theme-muted)]">{{ usuariosFiltrados().length }} de {{ usuarios().length }} usuarios</p>
         </div>
 
+        @if (errorAccion()) {
+          <p role="alert" class="mt-4 rounded-[14px] bg-[var(--md-sys-color-error-container)] px-4 py-3 text-sm text-[var(--md-sys-color-on-error-container)]">
+            {{ errorAccion() }}
+          </p>
+        }
+
         <div class="mt-4 overflow-x-auto rounded-[20px] bg-[var(--theme-surface)]">
-          <table class="w-full min-w-[560px] text-left text-sm">
+          <table class="w-full min-w-[680px] text-left text-sm">
             <thead class="text-xs text-[var(--theme-muted)]">
               <tr>
                 <th class="px-4 py-3 font-medium sm:px-5">Nombre</th>
                 <th class="px-4 py-3 font-medium sm:px-5">Correo</th>
                 <th class="px-4 py-3 font-medium sm:px-5">Rol</th>
                 <th class="px-4 py-3 font-medium sm:px-5">Estado</th>
+                <th class="px-4 py-3 font-medium sm:px-5"><span class="sr-only">Acciones</span></th>
               </tr>
             </thead>
             <tbody>
@@ -93,10 +100,29 @@
                       <span class="rounded-full bg-[var(--md-sys-color-error-container)] px-2.5 py-1 text-xs font-semibold text-[var(--md-sys-color-on-error-container)]">Suspendida</span>
                     }
                   </td>
+                  <td class="px-4 py-3 text-right sm:px-5">
+                    @if (u.role === 'ADMIN') {
+                      <span class="text-xs text-[var(--theme-muted)]">No se puede suspender</span>
+                    } @else {
+                      <button
+                        type="button"
+                        (click)="cambiarEstado(u)"
+                        [disabled]="procesando() !== null"
+                        [class]="'min-h-10 cursor-pointer rounded-[12px] px-3 text-sm font-semibold transition-colors disabled:cursor-wait disabled:opacity-60 ' +
+                          (u.enabled ? 'text-[var(--theme-error)] hover:bg-[var(--theme-surface-high)]' : 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)] hover:brightness-110')"
+                      >
+                        @if (procesando() === u.id) {
+                          Guardando...
+                        } @else {
+                          {{ u.enabled ? 'Suspender' : 'Habilitar' }}
+                        }
+                      </button>
+                    }
+                  </td>
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="4" class="px-4 py-6 text-center text-[var(--theme-muted)] sm:px-5">
+                  <td colspan="5" class="px-4 py-6 text-center text-[var(--theme-muted)] sm:px-5">
                     {{ busqueda() ? 'Ningún usuario coincide con "' + busqueda() + '".' : 'No hay usuarios cargados.' }}
                   </td>
                 </tr>

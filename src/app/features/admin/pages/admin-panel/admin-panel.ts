@@ -21,6 +21,8 @@ export class AdminPanel implements OnInit {
   cargandoUsuarios = signal(true);
   errorUsuarios = signal('');
   busqueda = signal('');
+  procesando = signal<number | null>(null); // este es el id del usuario q,ue yo voy a estar cambiando, le puse o null porque cuando entras a la pag, no estas cambiando a nadie.
+  errorAccion = signal('');
 
   ngOnInit() {
     this.traerEstadisticas();
@@ -38,6 +40,28 @@ export class AdminPanel implements OnInit {
       error: (e) => {
         this.cargandoUsuarios.set(false);
         this.errorUsuarios.set('No se pudieron cargar los usuarios');
+      }
+    })
+  }
+
+  // suspende o habilita la cuenta (el backend no deja cambiar a los administradores)
+  cambiarEstado(u: UserResponse) {
+    if (u.role === 'ADMIN') return;
+    if (u.enabled && !confirm('¿Suspender la cuenta de ' + u.nombre + '? No va a poder iniciar sesión.')) {
+      return;
+    }
+
+    this.procesando.set(u.id);
+    this.errorAccion.set('');
+    this.adminService.setEnabled(u.id, !u.enabled).subscribe({
+      next: (actualizado) => {
+        this.usuarios.set(this.usuarios().map((x) => (x.id === actualizado.id ? actualizado : x)));
+        this.procesando.set(null);
+        this.traerEstadisticas(); // cambia la cantidad de habilitados
+      },
+      error: (e) => {
+        this.procesando.set(null);
+        this.errorAccion.set('No se pudo cambiar el estado de ' + u.nombre);
       }
     })
   }
