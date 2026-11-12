@@ -16,11 +16,11 @@ import { TextField } from '@components/ui/text-field/text-field';
 import { AuthService } from '@core/services/auth.service';
 import { AuthFormReveal } from '@features/auth/directives/auth-form-reveal.directive';
 import { authAppearance } from '@features/auth/auth-theme';
-import { Buho, EstadoBuho } from '@features/auth/components/buho/buho';
+import { BuhoStateService } from '../../services/buho-state.service';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, TextField, AuthFormReveal, Buho],
+  imports: [ReactiveFormsModule, TextField, AuthFormReveal],
   host: { class: 'block w-full' },
   templateUrl: './register.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,6 +30,7 @@ export class Register {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly buhoState = inject(BuhoStateService);
   private isNavigating = false;
 
   readonly appearance = authAppearance;
@@ -39,11 +40,6 @@ export class Register {
   readonly emailAlreadyRegistered = signal(false);
   readonly step = signal<1 | 2>(1);
   readonly action = this.auth.registerAction;
-
-  // El búho reacciona a lo que pasa en el formulario
-  estadoBuho = signal<EstadoBuho>('normal');
-  miradaBuho = signal(0);
-  espiando = signal(false);
 
   readonly form = inject(NonNullableFormBuilder).group({
     nombre: ['', [Validators.required, Validators.pattern(/\S/)]],
@@ -56,6 +52,10 @@ export class Register {
     this.form.controls.email.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.emailAlreadyRegistered.set(false));
+
+    this.destroyRef.onDestroy(() => {
+      this.buhoState.reset();
+    });
   }
 
   nameErrorMessage(): string | null {
@@ -135,7 +135,7 @@ export class Register {
         tap(() => {
           this.registered.set(true);
           this.autoLoginPending.set(true);
-          this.estadoBuho.set('feliz');
+          this.buhoState.setEstado('feliz');
         }),
         switchMap(() => this.auth.login({ email: normalizedEmail, password })),
         takeUntilDestroyed(this.destroyRef),
@@ -149,7 +149,7 @@ export class Register {
           setTimeout(() => void this.router.navigateByUrl('/onboarding'), 700);
         },
         error: (error: unknown) => {
-          this.estadoBuho.set('error');
+          this.buhoState.setEstado('error');
           this.autoLoginPending.set(false);
           if (this.registered()) {
             this.form.controls.password.reset();
@@ -169,28 +169,28 @@ export class Register {
       });
   }
 
-  enfocarTexto(campo: 'nombre' | 'email') {
-    this.estadoBuho.set('escribiendo');
+  enfocarTexto(campo: 'nombre' | 'email'): void {
+    this.buhoState.setEstado('escribiendo');
     this.escribir(campo);
   }
 
-  escribir(campo: 'nombre' | 'email') {
+  escribir(campo: 'nombre' | 'email'): void {
     // cuanto más largo el texto, más a la derecha mira
-    this.miradaBuho.set(Math.min(this.form.controls[campo].value.length / 30, 1));
+    this.buhoState.setMirada(Math.min(this.form.controls[campo].value.length / 30, 1));
   }
 
-  enfocarPassword() {
-    this.estadoBuho.set('tapado');
+  enfocarPassword(): void {
+    this.buhoState.setEstado('tapado');
   }
 
   // si tocás el ojito de "mostrar contraseña", el búho espía
-  revisarEspia(event: Event) {
+  revisarEspia(event: Event): void {
     const campo = event.currentTarget as HTMLElement;
-    setTimeout(() => this.espiando.set(campo.querySelector('input')?.type === 'text'));
+    setTimeout(() => this.buhoState.setEspiando(campo.querySelector('input')?.type === 'text'));
   }
 
-  desenfocar() {
-    this.estadoBuho.set('normal');
+  desenfocar(): void {
+    this.buhoState.setEstado('normal');
   }
 
   navigateToLogin(event: MouseEvent): void {

@@ -4,7 +4,6 @@ import {
   DestroyRef,
   ElementRef,
   inject,
-  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -13,12 +12,12 @@ import { AuthService } from '@core/services/auth.service';
 import { TextField } from '@components/ui/text-field/text-field';
 import { AuthFormReveal } from '@features/auth/directives/auth-form-reveal.directive';
 import { authAppearance } from '@features/auth/auth-theme';
-import { Buho, EstadoBuho } from '@features/auth/components/buho/buho';
+import { BuhoStateService } from '../../services/buho-state.service';
 import { gsap } from 'gsap';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, TextField, AuthFormReveal, Buho],
+  imports: [ReactiveFormsModule, TextField, AuthFormReveal],
   host: { class: 'block w-full' },
   templateUrl: './login.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,15 +27,17 @@ export class Login {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly buhoState = inject(BuhoStateService);
   private isNavigating = false;
   readonly appearance = authAppearance;
 
   readonly action = this.auth.loginAction;
 
-  // El búho reacciona a lo que pasa en el formulario
-  estadoBuho = signal<EstadoBuho>('normal');
-  miradaBuho = signal(0);
-  espiando = signal(false);
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.buhoState.reset();
+    });
+  }
 
   readonly form = inject(NonNullableFormBuilder).group({
     email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
@@ -72,37 +73,37 @@ export class Login {
         next: () => {
           this.form.controls.password.reset();
           // el búho festeja un momento antes de entrar
-          this.estadoBuho.set('feliz');
+          this.buhoState.setEstado('feliz');
           setTimeout(() => void this.router.navigateByUrl('/estudio'), 700);
         },
         error: () => {
-          this.estadoBuho.set('error');
+          this.buhoState.setEstado('error');
         },
       });
   }
 
-  enfocarEmail() {
-    this.estadoBuho.set('escribiendo');
+  enfocarEmail(): void {
+    this.buhoState.setEstado('escribiendo');
     this.escribirEmail();
   }
 
-  escribirEmail() {
+  escribirEmail(): void {
     // cuanto más largo el correo, más a la derecha mira
-    this.miradaBuho.set(Math.min(this.form.controls.email.value.length / 30, 1));
+    this.buhoState.setMirada(Math.min(this.form.controls.email.value.length / 30, 1));
   }
 
-  enfocarPassword() {
-    this.estadoBuho.set('tapado');
+  enfocarPassword(): void {
+    this.buhoState.setEstado('tapado');
   }
 
   // si tocás el ojito de "mostrar contraseña", el búho espía
-  revisarEspia(event: Event) {
+  revisarEspia(event: Event): void {
     const campo = event.currentTarget as HTMLElement;
-    setTimeout(() => this.espiando.set(campo.querySelector('input')?.type === 'text'));
+    setTimeout(() => this.buhoState.setEspiando(campo.querySelector('input')?.type === 'text'));
   }
 
-  desenfocar() {
-    this.estadoBuho.set('normal');
+  desenfocar(): void {
+    this.buhoState.setEstado('normal');
   }
 
   navigateToRegister(event: MouseEvent): void {

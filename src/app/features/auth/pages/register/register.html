@@ -5,14 +5,6 @@
   style="--text-field-label-background: var(--theme-canvas)"
   appAuthFormReveal
 >
-    <app-buho
-      data-reveal-item
-      class="-mb-1 -ml-4 block w-fit"
-      [estado]="estadoBuho()"
-      [mirada]="miradaBuho()"
-      [espiando]="espiando()"
-    />
-
     @if (registered()) {
       <div role="status" class="auth-step-enter text-center">
         <h1 data-reveal-item class="text-[28px] font-semibold leading-tight tracking-[-0.045em] text-[var(--theme-foreground)]">

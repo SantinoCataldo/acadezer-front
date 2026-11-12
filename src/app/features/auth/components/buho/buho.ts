@@ -167,15 +167,17 @@ export class Buho implements OnInit, OnDestroy {
     if (!ctx) return;
     ctx.clearRect(0, 0, ANCHO, ALTO);
     const respira = this.reducido ? 0 : Math.sin(this.tiempo * 2.2) * 0.015;
-    const flote = this.reducido ? 0 : Math.sin(this.tiempo * 2.2) * 2;
 
-    // Sombra en el piso: se achica cuando salta
+    // Sombra suave debajo de la rama
     ctx.fillStyle = this.c.sombra;
-    this.elipse(100, 188, 40 * (1 - Math.min(this.salto / 120, 0.5)), 6);
+    this.elipse(100, 194, 52, 4);
+
+    // Rama / perch firme donde se apoya el búho
+    this.rama();
 
     ctx.save();
-    // Se escala desde las patas para que el salto y el aplastón se vean naturales
-    ctx.translate(100, 184 - this.salto + flote);
+    // Se apoya firme en las patas (salto solo si festeja éxito)
+    ctx.translate(100, 184 - this.salto);
     ctx.scale(1 + this.aplasta, 1 - this.aplasta + respira);
     ctx.translate(-100, -184);
 
@@ -195,6 +197,50 @@ export class Buho implements OnInit, OnDestroy {
     ctx.restore();
 
     this.alas(true);
+    ctx.restore();
+  }
+
+  // Rama de madera con acabado cálido y hojas para que el búho esté apoyado y no flote
+  private rama() {
+    const ctx = this.ctx!;
+    ctx.save();
+    const g = ctx.createLinearGradient(0, 182, 0, 193);
+    g.addColorStop(0, '#5a3d2e');
+    g.addColorStop(0.5, '#452c20');
+    g.addColorStop(1, '#321e16');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    const x = 36;
+    const y = 182;
+    const w = 128;
+    const h = 10;
+    const r = 5;
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h);
+    ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+    ctx.fill();
+
+    // Detalle de nudo / veta de madera
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(62, 187, 2.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Hojitas verdes frescas brotando a la izquierda
+    ctx.fillStyle = '#4ade80';
+    ctx.beginPath();
+    ctx.ellipse(32, 181, 6, 3, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(36, 177, 4.5, 2.2, -0.9, 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.restore();
   }
 

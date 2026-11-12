@@ -24,40 +24,53 @@
       </p>
     </div>
 
-    <figure data-study-flow class="mt-7 w-full max-w-[440px] rounded-[24px] bg-[var(--theme-canvas)] p-4 sm:p-5">
-      <div class="flex items-center gap-3">
-        <span [class]="'flex size-11 shrink-0 items-center justify-center rounded-[15px] ' + appearance.mark">
-          <span class="material-symbols-rounded text-[22px]" aria-hidden="true">edit_note</span>
+    <div
+      data-buho-card
+      class="mt-7 flex w-full max-w-[440px] flex-col items-center rounded-[24px] bg-[var(--theme-canvas)] p-5 sm:p-6 border border-[var(--theme-border)]/40 shadow-xs"
+    >
+      <!-- Cabecera del compañero de estudio -->
+      <div class="flex w-full items-center justify-between pb-1">
+        <div class="flex items-center gap-2.5">
+          <span [class]="'flex size-10 shrink-0 items-center justify-center rounded-[13px] ' + appearance.mark">
+            <span class="material-symbols-rounded text-[20px]" aria-hidden="true">school</span>
+          </span>
+          <div>
+            <p class="text-sm font-semibold text-[var(--theme-foreground)]">Tu copiloto de estudio</p>
+            <p [class]="'text-xs ' + appearance.muted">Atento a cada paso de tu aprendizaje</p>
+          </div>
+        </div>
+
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-[var(--theme-surface-high)] px-2.5 py-1 text-xs font-medium text-[var(--theme-muted)]">
+          <span class="size-2 rounded-full bg-[var(--theme-accent)] animate-pulse" aria-hidden="true"></span>
+          En vivo
         </span>
-        <div class="min-w-0">
-          <p class="text-sm font-semibold text-[var(--theme-foreground)]">Así se organiza tu estudio</p>
-          <p [class]="'mt-0.5 text-xs ' + appearance.muted">De la materia a la práctica</p>
+      </div>
+
+      <!-- Contenedor del Búho apoyado -->
+      <div class="relative mt-3 flex w-full flex-col items-center justify-center">
+        <!-- Burbuja de diálogo contextual que reacciona a los formularios -->
+        <div class="relative mb-1 max-w-[280px] rounded-[16px] bg-[var(--theme-surface-high)] px-4 py-2 text-center text-xs font-medium text-[var(--theme-foreground)] shadow-2xs border border-[var(--theme-border)]/30">
+          {{ buhoMensaje() }}
+          <!-- Piquito de la burbuja hacia abajo -->
+          <span class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 size-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-[var(--theme-surface-high)]" aria-hidden="true"></span>
+        </div>
+
+        <!-- Búho -->
+        <div class="relative flex items-center justify-center">
+          <app-buho
+            class="block"
+            [estado]="buhoState.estado()"
+            [mirada]="buhoState.mirada()"
+            [espiando]="buhoState.espiando()"
+          />
+        </div>
+
+        <!-- Pedestal / repisa de estudio debajo de la rama para asentar el conjunto -->
+        <div class="-mt-3 flex w-full max-w-[200px] flex-col items-center" aria-hidden="true">
+          <div class="h-2 w-44 rounded-full bg-[var(--theme-surface-high)] border border-[var(--theme-border)]/40 shadow-xs"></div>
+          <div class="h-1 w-28 rounded-full bg-[var(--theme-border)]/30 mt-0.5"></div>
         </div>
       </div>
-
-      <div class="mt-4 grid grid-cols-3 gap-2" role="list" aria-label="Etapas de estudio">
-        @for (step of steps; track step.key; let index = $index) {
-          <div
-            [class]="stepClass(index)"
-            role="listitem"
-            [attr.aria-current]="activeStep() === index ? 'step' : null"
-          >
-            <span class="material-symbols-rounded block text-[22px]" aria-hidden="true">{{ step.icon }}</span>
-            <span class="mt-2 block truncate text-xs font-semibold sm:text-[13px]">{{ step.label }}</span>
-          </div>
-        }
-      </div>
-
-      <div class="mt-4 h-1 overflow-hidden rounded-full bg-[var(--theme-surface-high)]" aria-hidden="true">
-        <span
-          class="block h-full rounded-full bg-[var(--theme-accent)] transition-[width] duration-300"
-          [style.width.%]="((activeStep() + 1) / steps.length) * 100"
-        ></span>
-      </div>
-
-      <p data-study-copy class="mt-3 min-h-5 text-xs leading-5 text-[var(--theme-muted)]">
-        {{ steps[activeStep()].description }}
-      </p>
-    </figure>
+    </div>
   </div>
 </aside>
