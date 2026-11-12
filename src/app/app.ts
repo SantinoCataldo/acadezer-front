@@ -5,10 +5,11 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { Footer, Navbar } from './components/layout';
 import { ThemeSwitcher } from './components/layout/theme-switcher/theme-switcher';
+import { NgxSonnerToaster } from 'ngx-sonner';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Navbar, Footer, ThemeSwitcher],
+  imports: [RouterOutlet, Navbar, Footer, ThemeSwitcher, NgxSonnerToaster],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
