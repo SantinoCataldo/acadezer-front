@@ -5,6 +5,7 @@ import type { SubjectResponse } from '../../models';
 import { SubjectsService } from '../../services/subjects.service';
 import { Modal } from '../modal/modal';
 import { dangerButton, errorSurface, secondaryButton } from '../../dialog-styles';
+import { toast } from 'ngx-sonner';
 
 /**
  * Confirmación de borrado de materia.
@@ -46,7 +47,10 @@ export class DeleteSubjectDialog {
       .run(() => this.subjects.delete(this.subject().id))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.deleted.emit(),
+        next: () => {
+          toast.success('Materia eliminada');
+          this.deleted.emit();
+        },
         error: () => undefined,
       });
   }
