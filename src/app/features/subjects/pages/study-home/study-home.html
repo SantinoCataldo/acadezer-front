@@ -1,0 +1,71 @@
+<section aria-labelledby="today-heading" class="text-[var(--theme-foreground)]">
+  <header class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="text-sm font-medium capitalize text-[var(--theme-accent-content)]">{{ title }}</p>
+      <h1 id="today-heading" class="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Inicio</h1>
+      <p class="mt-2 text-sm text-[var(--theme-muted)]">Tus cursadas de hoy y el registro de asistencia.</p>
+    </div>
+    <a routerLink="/estudio/materias" class="inline-flex min-h-11 items-center gap-2 rounded-[14px] bg-[var(--theme-surface)] px-4 text-sm font-semibold transition-colors hover:bg-[var(--theme-surface-high)]">
+      <span class="material-symbols-rounded text-lg" aria-hidden="true">menu_book</span>
+      Ver materias
+    </a>
+  </header>
+
+  @if (errorMessage(); as message) {
+    <p role="alert" class="mt-5 rounded-[14px] bg-[var(--md-sys-color-error-container)] p-3 text-sm text-[var(--md-sys-color-on-error-container)]">{{ message }}</p>
+  }
+
+  @switch (state()) {
+    @case ('loading') {
+      <div aria-busy="true" class="mt-7 space-y-3">
+        <p role="status" class="sr-only">Cargando tus cursadas de hoy…</p>
+        @for (item of [1, 2]; track item) { <div class="h-36 animate-pulse rounded-[20px] bg-[var(--theme-surface)]"></div> }
+      </div>
+    }
+    @case ('error') {
+      <div role="alert" class="mt-7 rounded-[20px] bg-[var(--theme-surface)] p-6 text-center">
+        <p class="font-medium">No pudimos cargar tus asistencias.</p>
+        <button type="button" (click)="load()" class="mt-3 min-h-10 cursor-pointer rounded-[12px] px-3 text-sm font-semibold text-[var(--theme-accent-content)] hover:bg-[var(--theme-surface-high)]">Reintentar</button>
+      </div>
+    }
+    @case ('ready') {
+      @if (dailySubjects().length === 0) {
+        <div class="mt-7 rounded-[20px] bg-[var(--theme-surface)] px-5 py-12 text-center">
+          <span class="material-symbols-rounded text-4xl text-[var(--theme-accent-content)]" aria-hidden="true">event_available</span>
+          <h2 class="mt-3 text-lg font-semibold">Hoy no tenés cursadas</h2>
+          <p class="mt-1 text-sm text-[var(--theme-muted)]">Cuando tengas una clase programada, vas a poder registrar la asistencia desde acá.</p>
+        </div>
+      } @else {
+        <div class="mt-7 space-y-4">
+          @for (item of dailySubjects(); track item.subject.id) {
+            <article class="rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5">
+              <header class="flex items-center gap-3">
+                <span aria-hidden="true" class="grid size-11 shrink-0 place-items-center rounded-[14px] bg-[var(--theme-accent-soft)] text-base font-semibold text-[var(--theme-accent-content)]">{{ subjectInitial(item.subject.nombre) }}</span>
+                <div class="min-w-0">
+                  <h2 class="truncate font-semibold">{{ item.subject.nombre }}</h2>
+                  <p class="text-xs text-[var(--theme-muted)]">{{ item.controls.length }} {{ item.controls.length === 1 ? 'control' : 'controles' }} de asistencia</p>
+                </div>
+              </header>
+              <div class="mt-4 space-y-2">
+                @for (control of item.controls; track control.horarioId + '-' + control.numero) {
+                  <section class="rounded-[16px] bg-[var(--theme-surface-high)] p-3 sm:p-4" [attr.aria-label]="'Asistencia de ' + control.horaInicio.slice(0, 5) + ' a ' + control.horaFin.slice(0, 5)">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <p class="text-sm font-semibold">Asistencia</p>
+                      <span [class]="'inline-flex min-h-6 items-center rounded-full px-2.5 text-xs font-semibold ' + (control.estado === 'PENDIENTE' ? 'bg-[var(--theme-surface)] text-[var(--theme-muted)]' : control.estado === 'PRESENTE' ? 'bg-[var(--attendance-present-soft)] text-[var(--attendance-present-ink)]' : control.estado === 'AUSENTE' ? 'bg-[var(--attendance-absent-soft)] text-[var(--attendance-absent-ink)]' : 'bg-[var(--attendance-justified-soft)] text-[var(--attendance-justified-ink)]')">{{ statusLabel(control.estado) }}</span>
+                    </div>
+                    <p class="mt-1 text-xs tabular-nums text-[var(--theme-muted)]">{{ control.horaInicio.slice(0, 5) }}–{{ control.horaFin.slice(0, 5) }} <span aria-hidden="true">·</span> Bloque {{ control.numero }}</p>
+                    <div class="mt-3 grid grid-cols-3 gap-2">
+                      @for (option of statusOptions; track option.status) {
+                        <button type="button" [disabled]="busyControl() !== null" [attr.aria-pressed]="control.estado === option.status" [attr.aria-label]="control.estado === option.status ? option.label + ', volver a pendiente' : option.label" (click)="mark(item.subject, control, option.status)" [class]="statusButtonClass(control.estado, option.status)"><span class="material-symbols-rounded text-base" aria-hidden="true">{{ option.icon }}</span><span class="truncate">{{ option.label }}</span></button>
+                      }
+                    </div>
+                  </section>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    }
+  }
+</section>

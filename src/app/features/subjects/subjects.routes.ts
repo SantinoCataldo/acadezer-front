@@ -12,19 +12,25 @@ export const subjectRoutes: Routes = [
       {
         path: '',
         pathMatch: 'full',
+        loadComponent: () => import('./pages/study-home/study-home').then((m) => m.StudyHome),
+        title: 'Acadezer - Inicio',
+      },
+      {
+        path: 'materias',
         loadComponent: () => import('./pages/subject-list/subject-list').then((m) => m.SubjectList),
-        title: 'Acadezer - Mi espacio',
+        title: 'Acadezer - Materias',
+      },
+      {
+        path: 'calendario',
+        loadComponent: () => import('./pages/study-calendar/study-calendar').then((m) => m.StudyCalendar),
+        title: 'Acadezer - Calendario',
       },
       {
         path: 'materias/:id',
         loadComponent: () => import('./pages/subject-detail/subject-detail').then((m) => m.SubjectDetail),
         title: 'Acadezer - Materia',
       },
-      {
-        path: 'horario',
-        loadComponent: () => import('../almanac/pages/almanac/almanac').then((m) => m.Almanac),
-        title: 'Acadezer - Horario',
-      },
+      { path: 'horario', pathMatch: 'full', redirectTo: 'materias' },
     ],
   },
 ];
