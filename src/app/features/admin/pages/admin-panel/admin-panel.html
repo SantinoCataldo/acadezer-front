@@ -1,0 +1,15 @@
+<main class="min-h-dvh bg-[var(--theme-canvas)] text-[var(--theme-foreground)]">
+  <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
+    <a routerLink="/estudio" class="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-[var(--theme-muted)] hover:text-[var(--theme-foreground)]">
+      <span class="material-symbols-rounded text-lg" aria-hidden="true">arrow_back</span>
+      Volver a Mi espacio
+    </a>
+
+    <header class="mt-6">
+      <h1 class="text-3xl font-semibold tracking-tight">Administración</h1>
+      <p class="mt-2 text-sm text-[var(--theme-muted)]">
+        Hola {{ usuario()?.nombre }}. Desde acá ves el uso de la plataforma y manejás las cuentas.
+      </p>
+    </header>
+  </div>
+</main>
