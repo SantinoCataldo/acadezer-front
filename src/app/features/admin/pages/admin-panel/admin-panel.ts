@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { AdminService } from '@core/services/admin.service';
-import { AdminStatsResponse } from '@core/models';
+import { AdminStatsResponse, UserResponse } from '@core/models';
 
 @Component({
   selector: 'app-admin-panel',
@@ -17,9 +17,28 @@ export class AdminPanel implements OnInit {
   estadisticas = signal<AdminStatsResponse | null>(null);
   cargandoEstadisticas = signal(true);
   errorEstadisticas = signal('');
+  usuarios = signal<UserResponse[]>([]);
+  cargandoUsuarios = signal(true);
+  errorUsuarios = signal('');
 
   ngOnInit() {
     this.traerEstadisticas();
+    this.traerUsuarios();
+  }
+
+  traerUsuarios() {
+    this.cargandoUsuarios.set(true);
+    this.errorUsuarios.set('');
+    this.adminService.getUsers().subscribe({
+      next: (data) => {
+        this.usuarios.set(data);
+        this.cargandoUsuarios.set(false);
+      },
+      error: (e) => {
+        this.cargandoUsuarios.set(false);
+        this.errorUsuarios.set('No se pudieron cargar los usuarios');
+      }
+    })
   }
 
   traerEstadisticas() {

@@ -41,5 +41,53 @@
         </div>
       }
     </section>
+
+    <section class="mt-12" aria-labelledby="titulo-usuarios">
+      <h2 id="titulo-usuarios" class="text-lg font-semibold">Usuarios</h2>
+
+      @if (cargandoUsuarios()) {
+        <p class="mt-4 text-sm text-[var(--theme-muted)]">Cargando usuarios...</p>
+      } @else if (errorUsuarios()) {
+        <div class="mt-4 flex flex-wrap items-center gap-3 rounded-[16px] bg-[var(--md-sys-color-error-container)] px-4 py-3 text-sm text-[var(--md-sys-color-on-error-container)]">
+          <p>{{ errorUsuarios() }}</p>
+          <button type="button" (click)="traerUsuarios()" class="min-h-10 cursor-pointer rounded-[12px] px-3 font-semibold underline underline-offset-4">
+            Reintentar
+          </button>
+        </div>
+      } @else {
+        <div class="mt-4 overflow-x-auto rounded-[20px] bg-[var(--theme-surface)]">
+          <table class="w-full min-w-[560px] text-left text-sm">
+            <thead class="text-xs text-[var(--theme-muted)]">
+              <tr>
+                <th class="px-4 py-3 font-medium sm:px-5">Nombre</th>
+                <th class="px-4 py-3 font-medium sm:px-5">Correo</th>
+                <th class="px-4 py-3 font-medium sm:px-5">Rol</th>
+                <th class="px-4 py-3 font-medium sm:px-5">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (u of usuarios(); track u.id) {
+                <tr class="border-t border-[var(--theme-border)]/40">
+                  <td class="px-4 py-3 font-medium sm:px-5">{{ u.nombre }}</td>
+                  <td class="px-4 py-3 text-[var(--theme-muted)] sm:px-5">{{ u.email }}</td>
+                  <td class="px-4 py-3 sm:px-5">{{ u.role === 'ADMIN' ? 'Administrador' : 'Estudiante' }}</td>
+                  <td class="px-4 py-3 sm:px-5">
+                    @if (u.enabled) {
+                      <span class="rounded-full bg-[var(--theme-accent-soft)] px-2.5 py-1 text-xs font-semibold">Habilitada</span>
+                    } @else {
+                      <span class="rounded-full bg-[var(--md-sys-color-error-container)] px-2.5 py-1 text-xs font-semibold text-[var(--md-sys-color-on-error-container)]">Suspendida</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="4" class="px-4 py-6 text-center text-[var(--theme-muted)] sm:px-5">No hay usuarios cargados.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
   </div>
 </main>
