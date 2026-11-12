@@ -51,6 +51,9 @@ export class StudySpaceComponent {
   readonly calendarActive = () => {
     return (this.currentUrl().split(/[?#]/)[0] ?? '') === '/estudio/calendario';
   };
+  readonly notesActive = () => {
+    return (this.currentUrl().split(/[?#]/)[0] ?? '') === '/estudio/apuntes';
+  };
   readonly tasksActive = () => {
     const path = this.currentUrl().split(/[?#]/)[0] ?? '';
     return path.startsWith('/estudio/tareas');
@@ -78,7 +81,7 @@ export class StudySpaceComponent {
       : style === 'melon' ? 'rounded-[13px]' : 'rounded-[14px]';
     const activeColor = active
       ? style === 'guapa' ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]'
-        : style === 'bonita' ? 'bg-[var(--theme-surface)] text-[var(--theme-foreground)]'
+        : style === 'bonita' || style === 'melon' ? 'bg-[var(--theme-surface)] text-[var(--theme-foreground)]'
           : 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
       : 'text-[var(--theme-muted)] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)]';
     return `flex items-center gap-3 px-3 text-sm font-medium transition-[background-color,color,transform,border-radius] duration-300 hover:scale-[0.99] active:scale-[1.01] motion-reduce:transition-none ${style === 'tasks' ? 'min-h-14 justify-center' : 'min-h-11'} ${shape} ${activeColor}`;

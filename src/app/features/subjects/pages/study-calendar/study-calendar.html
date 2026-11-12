@@ -1,7 +1,7 @@
-<section aria-labelledby="calendar-heading" class="mx-auto max-w-[1480px] text-[var(--theme-foreground)]">
+<section aria-labelledby="calendar-heading" class="w-full text-[var(--theme-foreground)]">
   <header class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <h1 id="calendar-heading" class="text-3xl font-semibold tracking-tight sm:text-4xl">Calendario</h1>
+      <h1 id="calendar-heading" class="text-3xl font-semibold tracking-tight">Calendario</h1>
       <p class="mt-2 text-sm text-[var(--theme-muted)]">{{ subjectSelectionLabel() }}</p>
     </div>
     <div class="flex flex-wrap items-center gap-2">
@@ -37,7 +37,7 @@
         <p role="status" class="sr-only">Cargando calendario y asistencias…</p>
         <div class="grid grid-cols-7 gap-2" aria-hidden="true">
           @for (cell of loadingCalendarCells; track cell) {
-            <div [class]="'animate-pulse rounded-[12px] bg-[var(--theme-surface-high)] motion-reduce:animate-none ' + (cell < 7 ? 'h-8' : 'aspect-square min-h-12 sm:min-h-16')"></div>
+            <div [class]="'animate-pulse rounded-[12px] bg-[var(--theme-surface-high)] motion-reduce:animate-none ' + (cell < 7 ? 'h-8' : 'h-12 sm:h-16')"></div>
           }
         </div>
         <div class="mt-5 flex gap-4" aria-hidden="true">
