@@ -1,4 +1,3 @@
-/* La landing tiene su propia paleta naranja y negra, separada de los colores del tema de la app */
 :host {
   display: block;
   color-scheme: dark;
@@ -30,7 +29,6 @@
 .mono {
   font-family: 'Geist Mono', ui-monospace, monospace;
 }
-
 
 .grano {
   position: fixed;
@@ -132,7 +130,6 @@
   background: var(--accent);
 }
 
-/* ===== Celdas del cuatrimestre ===== */
 .celda {
   aspect-ratio: 1;
   border-radius: 6px;
@@ -158,7 +155,6 @@
   box-shadow: inset 0 0 0 1px var(--line);
 }
 
-/* ===== Apunte: palabras que se encienden ===== */
 .palabra {
   color: var(--line);
   transition: color 0.2s;
