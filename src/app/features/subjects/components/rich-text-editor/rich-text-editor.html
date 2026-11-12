@@ -1,0 +1,43 @@
+<div class="rounded-[18px] bg-[var(--theme-surface)]">
+  <div
+    role="toolbar"
+    aria-label="Formato del texto"
+    aria-controls="apunte-contenido"
+    class="flex flex-wrap items-center gap-0.5 border-b border-[var(--theme-border)] p-1.5"
+  >
+    @for (action of toolbar; track action.label) {
+      <button
+        type="button"
+        [attr.aria-label]="action.label"
+        [attr.title]="action.label"
+        class="flex min-h-9 min-w-9 cursor-pointer items-center justify-center rounded-[9px] text-[var(--theme-muted)] transition-[background-color,color] duration-150 hover:bg-[var(--theme-surface-high)] hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+        (mousedown)="$event.preventDefault()"
+        (click)="apply(action)"
+      >
+        <span class="material-symbols-rounded text-lg" aria-hidden="true">{{ action.icon }}</span>
+      </button>
+    }
+  </div>
+
+  <div
+    #editable
+    id="apunte-contenido"
+    class="note-content min-h-52 w-full px-4 py-3 text-sm leading-relaxed text-[var(--theme-foreground)] outline-none"
+    contenteditable="true"
+    role="textbox"
+    aria-multiline="true"
+    [attr.aria-label]="placeholder()"
+    [attr.aria-invalid]="invalid() || null"
+    [attr.data-placeholder]="placeholder()"
+    [attr.data-focused]="focused() || null"
+    (input)="onInput()"
+    (blur)="onBlur()"
+    (focus)="focused.set(true)"
+  ></div>
+</div>
+
+@if (invalid()) {
+  <p role="alert" class="mt-2 text-sm text-[var(--theme-error)]">
+    {{ errorText() }}
+  </p>
+}

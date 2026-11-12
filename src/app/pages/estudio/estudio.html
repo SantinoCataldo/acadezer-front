@@ -27,8 +27,18 @@
           <span class="material-symbols-rounded text-[20px]" aria-hidden="true">calendar_month</span>
           @if (navigationStyle() !== 'tasks') { <span>Calendario</span> }
         </a>
+        <a
+          routerLink="/estudio/tareas"
+          [attr.aria-current]="tasksActive() ? 'page' : null"
+          [attr.title]="navigationStyle() === 'tasks' ? 'Tareas' : null"
+          [attr.aria-label]="navigationStyle() === 'tasks' ? 'Tareas' : null"
+          [class]="navigationItemClass(tasksActive())"
+        >
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">task_alt</span>
+          @if (navigationStyle() !== 'tasks') { <span>Tareas</span> }
+        </a>
         @for (item of [{ icon: 'description', label: 'Apuntes' }, { icon: 'event_note', label: 'Evaluaciones' }]; track item.label) {
-          <span aria-disabled="true" [attr.title]="item.label + ' · próximamente'" [attr.aria-label]="navigationStyle() === 'tasks' ? item.label + ' próximamente' : null" [class]="'flex items-center gap-3 px-3 text-sm text-[var(--theme-muted)] opacity-70 ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center rounded-full' : 'min-h-11 ' + (navigationStyle() === 'guapa' ? 'rounded-full' : 'rounded-[13px]'))">
+          <span aria-disabled="true" [attr.title]="item.label + ' · próximamente'" [attr.aria-label]="navigationStyle() === 'tasks' ? item.label + ' próximamente' : null" [class]="'flex items-center gap-3 px-3 text-sm text-[var(--theme-muted)] opacity-80 ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center rounded-full' : 'min-h-11 ' + (navigationStyle() === 'guapa' ? 'rounded-full' : 'rounded-[13px]'))">
             <span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ item.icon }}</span>
             @if (navigationStyle() !== 'tasks') { <span>{{ item.label }}</span> }
           </span>
@@ -55,6 +65,7 @@
         <a routerLink="/estudio" [attr.aria-current]="homeActive() ? 'page' : null" aria-label="Inicio" title="Inicio" [class]="'grid size-11 place-items-center rounded-full ' + (homeActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">home</span></a>
         <a routerLink="/estudio/materias" [attr.aria-current]="subjectsActive() ? 'page' : null" aria-label="Materias" title="Materias" [class]="'grid size-11 place-items-center rounded-full ' + (subjectsActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">menu_book</span></a>
         <a routerLink="/estudio/calendario" [attr.aria-current]="calendarActive() ? 'page' : null" aria-label="Calendario" title="Calendario" [class]="'grid size-11 place-items-center rounded-full ' + (calendarActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">calendar_month</span></a>
+        <a routerLink="/estudio/tareas" [attr.aria-current]="tasksActive() ? 'page' : null" aria-label="Tareas" title="Tareas" [class]="'grid size-11 place-items-center rounded-full ' + (tasksActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">task_alt</span></a>
         <button type="button" (click)="openOptions()" aria-label="Opciones de cuenta y apariencia" title="Opciones" class="grid size-11 cursor-pointer place-items-center rounded-full text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-xl" aria-hidden="true">tune</span></button>
       </div>
     </nav>

@@ -60,20 +60,29 @@ describe('SubjectDetail', () => {
     return fixture.nativeElement.querySelector('app-text-field input') as HTMLInputElement;
   }
 
-  it('shows the subject and its four sections', () => {
+  /** La sección Apuntes pide su lista apenas se monta: hay que responderla. */
+  function flushNotes(): void {
+    fixture.detectChanges();
+    requests.expectOne(`${environment.apiUrl}/api/materias/7/apuntes`).flush([]);
+  }
+
+  it('shows the subject and its sections', () => {
     open();
-    requests
-      .expectOne(`${environment.apiUrl}/api/materias/7`)
-      .flush({ id: 7, nombre: 'Física', descripcion: 'Segundo cuatrimestre' });
+    requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush({ id: 7, nombre: 'Física' });
+    flushNotes();
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Física');
-    expect(text).toContain('Segundo cuatrimestre');
+    // La descripción quedó fuera del modelo: el rango de fechas es lo que se ve.
+    expect(text).toContain('Fecha de inicio pendiente');
     expect(text).toContain('Apuntes');
     expect(text).toContain('Pendientes');
     expect(text).toContain('Evaluaciones');
-    expect(text).toContain('Asistencias');
+    // APU-01: la sección Apuntes ya está montada dentro del detalle.
+    expect(text).toContain('Nuevo apunte');
+    // El tablero de asistencia conserva su título.
+    expect(text).toContain('Asistencia');
     requests.verify();
   });
 
@@ -91,7 +100,8 @@ describe('SubjectDetail', () => {
 
   it('edits the subject and shows the data confirmed by the API', () => {
     open();
-    requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush({ id: 7, nombre: 'Física', descripcion: null });
+    requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush({ id: 7, nombre: 'Física' });
+    flushNotes();
     fixture.detectChanges();
 
     buttonWith('Editar').click();
@@ -118,7 +128,8 @@ describe('SubjectDetail', () => {
 
   it('returns to the list after deleting the subject', () => {
     open();
-    requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush({ id: 7, nombre: 'Física', descripcion: null });
+    requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush({ id: 7, nombre: 'Física' });
+    flushNotes();
     fixture.detectChanges();
 
     buttonWith('Eliminar').click();

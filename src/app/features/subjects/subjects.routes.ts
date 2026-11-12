@@ -31,6 +31,21 @@ export const subjectRoutes: Routes = [
         title: 'Acadezer - Materia',
       },
       { path: 'horario', pathMatch: 'full', redirectTo: 'materias' },
+      {
+        path: 'tareas',
+        loadComponent: () => import('../tareas/pages/tareas-list/tareas-list').then((m) => m.TareasList),
+        title: 'Acadezer - Tareas',
+      },
+      {
+        path: 'tareas/nueva/:materiaId',
+        loadComponent: () => import('../tareas/pages/tarea-form/tarea-form').then((m) => m.TareaForm),
+        title: 'Acadezer - Nueva tarea',
+      },
+      {
+        path: 'tareas/editar/:id',
+        loadComponent: () => import('../tareas/pages/tarea-form/tarea-form').then((m) => m.TareaForm),
+        title: 'Acadezer - Editar tarea',
+      },
     ],
   },
 ];

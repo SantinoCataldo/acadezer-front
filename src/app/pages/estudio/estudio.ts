@@ -51,6 +51,10 @@ export class StudySpaceComponent {
   readonly calendarActive = () => {
     return (this.currentUrl().split(/[?#]/)[0] ?? '') === '/estudio/calendario';
   };
+  readonly tasksActive = () => {
+    const path = this.currentUrl().split(/[?#]/)[0] ?? '';
+    return path.startsWith('/estudio/tareas');
+  };
   readonly navigationStyle = signal<NavigationStyle>(initialNavigationStyle());
   readonly optionsOpen = signal(false);
 

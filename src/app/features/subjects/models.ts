@@ -54,3 +54,21 @@ export interface AttendanceSummaryResponse {
 export interface AttendanceControlRequest {
   estado: Exclude<EstadoControlAsistencia, 'PENDIENTE'>;
 }
+
+export const TITULO_APUNTE_MAX = 200;
+
+export const CONTENIDO_APUNTE_MAX = 20000;
+
+export interface NoteRequest {
+  titulo: string;
+  contenido: string;
+}
+
+export interface NoteResponse {
+  id: number;
+  titulo: string;
+  contenido: string;
+  materiaId: number;
+  creadoEn: string;
+  actualizadoEn: string;
+}
