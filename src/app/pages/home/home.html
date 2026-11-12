@@ -1,24 +1,277 @@
-<main class="grid min-h-dvh place-items-center bg-[var(--theme-canvas)] px-6 py-12 text-center text-[var(--theme-foreground)] sm:px-10">
-  <section class="mx-auto w-full max-w-5xl">
-    <h1 class="text-[clamp(2.75rem,8vw,5.5rem)] font-semibold leading-[1.02] tracking-[-0.055em]">
-      Todo lo que estudiás, en un solo lugar.
-    </h1>
-    <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-[var(--theme-muted)] sm:text-lg sm:leading-8">
-      Organizá tus materias, guardá tus apuntes y convertí lo que leés en preguntas para repasar.
-    </p>
-    <nav aria-label="Acceso" class="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-      <a
-        routerLink="/register"
-        class="inline-flex min-h-12 items-center justify-center rounded-[15px] bg-[var(--theme-accent)] px-6 text-sm font-semibold text-[var(--theme-on-accent)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
-      >
-        Crear cuenta
-      </a>
-      <a
-        routerLink="/login"
-        class="inline-flex min-h-12 items-center justify-center rounded-[15px] px-6 text-sm font-semibold text-[var(--theme-foreground)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
-      >
-        Iniciar sesión
-      </a>
-    </nav>
-  </section>
-</main>
+<div class="landing min-h-dvh">
+  <div class="grano" aria-hidden="true"></div>
+
+  <header class="fixed inset-x-0 top-0 z-50">
+    <div class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-8">
+      <a routerLink="/" class="text-lg font-semibold tracking-[-0.04em]">acadezer<span class="text-[var(--accent)]">.</span></a>
+      <div class="flex items-center gap-2 rounded-full bg-[var(--bg)]/70 p-1 backdrop-blur-md">
+        <a routerLink="/login" class="hidden min-h-10 items-center px-4 text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--text)] sm:flex">Iniciar sesión</a>
+        <a routerLink="/register" class="flex min-h-10 items-center rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-[var(--on-accent)] transition-transform duration-150 hover:scale-[1.03] active:scale-[0.97]">Crear cuenta</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+   
+    <section class="relative mx-auto grid min-h-dvh w-full max-w-7xl content-center gap-12 px-4 pt-24 pb-16 sm:px-8 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16">
+      <div>
+        <h1 class="hero-linea text-[clamp(2.8rem,6.2vw,5.2rem)] font-semibold leading-[0.95] tracking-[-0.06em]">
+          <span class="block overflow-hidden pb-2"><span class="block">Vos estudiá.</span></span>
+          <span class="block overflow-hidden pb-2"><span class="block text-[var(--accent)]">Acadezer anota.</span></span>
+        </h1>
+        <p class="hero-sub mt-7 max-w-[38ch] text-lg leading-8 text-[var(--muted)]">Cada presente, cada apunte y cada fecha de entrega, ordenados por materia.</p>
+        <a routerLink="/register" class="hero-sub mt-10 inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--accent)] px-7 text-sm font-semibold text-[var(--on-accent)] transition-transform duration-150 hover:scale-[1.03] active:scale-[0.97]">
+          Crear cuenta <span class="material-symbols-rounded text-lg" aria-hidden="true">arrow_forward</span>
+        </a>
+      </div>
+
+      <div class="hero-card pz-marco">
+        <div #cuadro class="pz-cuadro" role="img" aria-label="Una pizarra de puntos. Un dedo dibuja a mano un tilde, un libro y un reloj; cada dibujo se endereza solo: el tilde marca un presente, en el libro aparecen renglones de apunte y en el reloj gira la aguja hasta la entrega.">
+          <canvas #lienzo width="1080" height="1080"></canvas>
+          <div #dedo class="pz-dedo"></div>
+        </div>
+        <div class="pz-textos" aria-hidden="true">
+          @for (d of dibujos; track d.nombre) {
+            <div #etiqueta class="pz-texto">
+              <small>{{ d.chico }}</small>
+              <b>{{ d.titulo }}</b>
+            </div>
+          }
+          <div class="pz-pasos">
+            @for (d of dibujos; track d.nombre) {
+              <span><i #paso></i></span>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. CADA CONTROL CUENTA: el scroll recorre los controles y el porcentaje se recalcula -->
+    <section class="relative">
+      <div class="pin-cuatri mx-auto flex min-h-dvh w-full max-w-7xl flex-col justify-center px-4 py-24 sm:px-8">
+        <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+          <div>
+            <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Cada control cuenta.</h2>
+            <p class="mt-5 max-w-[38ch] text-base leading-7 text-[var(--muted)]">El porcentaje son tus presentes sobre todos los controles que marcaste. Los que todavía no marcaste no cuentan.</p>
+          </div>
+          <div class="flex items-end justify-between gap-6 lg:justify-end lg:gap-10">
+            <p class="mono text-sm text-[var(--muted)]">{{ controlesVisibles() }} de 17 controles</p>
+            <p class="mono text-[clamp(3.4rem,7vw,5.5rem)] font-medium leading-[0.85] tracking-[-0.06em] text-[var(--accent)]">{{ porcentajeCuatrimestre() }}%</p>
+          </div>
+        </div>
+
+        <div class="mt-12 max-w-5xl overflow-x-auto pb-2">
+          <div class="grid min-w-[560px] grid-cols-[64px_repeat(16,1fr)] gap-1.5 sm:gap-2" aria-label="Asistencia del cuatrimestre: 14 presentes, 2 ausentes y 1 justificada de 17 controles.">
+            <span></span>
+            @for (s of semanas; track s) {
+              <span class="mono text-center text-[10px] text-[var(--muted)]">{{ s + 1 }}</span>
+            }
+            @for (f of filas; track f; let fi = $index) {
+              <span class="mono self-center text-[11px] text-[var(--muted)]">{{ f }}</span>
+              @for (s of semanas; track s) {
+                <span class="celda" [attr.data-estado]="estadoCelda(s, fi)"></span>
+              }
+            }
+          </div>
+        </div>
+        <div class="mono mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[var(--muted)]">
+          <span class="flex items-center gap-2"><span class="size-3 rounded-[3px] bg-[var(--accent)]"></span>Presente</span>
+          <span class="flex items-center gap-2"><span class="size-3 rounded-[3px] shadow-[inset_0_0_0_2px_var(--absent)]"></span>Ausente</span>
+          <span class="flex items-center gap-2"><span class="size-3 rounded-[3px] shadow-[inset_0_0_0_2px_var(--justified)]"></span>Justificada</span>
+          <span class="flex items-center gap-2"><span class="size-3 rounded-[3px] shadow-[inset_0_0_0_1px_var(--line)]"></span>Todavía no</span>
+        </div>
+        <p class="mt-4 text-xs text-[var(--muted)]">Ejemplo de cómo se calcula: 17 controles de Análisis Matemático I. En la app ves los totales y el porcentaje en el detalle de cada materia.</p>
+      </div>
+    </section>
+
+    <!-- 3. TU SEMANA: paneo horizontal en pantallas grandes -->
+    <section class="relative overflow-hidden">
+      <div class="pin-semana flex min-h-dvh flex-col justify-center py-24">
+        <div class="mx-auto w-full max-w-7xl px-4 sm:px-8">
+          <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Tu semana, armada.</h2>
+          <p class="mt-5 max-w-[40ch] text-base leading-7 text-[var(--muted)]">Cargás los horarios una vez y cada clase sabe cuántos controles tiene.</p>
+        </div>
+        <div #pista class="mt-12 flex flex-col gap-3 px-4 sm:px-8 md:w-max md:flex-row md:gap-5">
+          @for (d of dias; track d.dia; let i = $index) {
+            <article [class]="'flex flex-col justify-between rounded-[28px] p-7 md:h-[52vh] md:w-[min(420px,34vw)] ' + (i === hoyIndice ? 'bg-[var(--accent)] text-[var(--on-accent)]' : 'bg-[var(--surface)]')">
+              <p [class]="'mono text-sm ' + (i === hoyIndice ? '' : 'text-[var(--muted)]')">{{ d.dia }}{{ i === hoyIndice ? ', hoy' : '' }}</p>
+              <div class="mt-10 md:mt-0">
+                @for (c of d.clases; track c.materia) {
+                  <p class="text-3xl font-semibold leading-[1.05] tracking-[-0.04em]">{{ c.materia }}</p>
+                  <p [class]="'mono mt-3 text-sm ' + (i === hoyIndice ? 'opacity-75' : 'text-[var(--muted)]')">{{ c.hora }}. {{ c.controles }} {{ c.controles === 1 ? 'control' : 'controles' }}</p>
+                } @empty {
+                  <p [class]="'text-2xl font-semibold tracking-[-0.03em] ' + (i === hoyIndice ? '' : 'text-[var(--muted)]')">Sin cursada</p>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. HOY: la pantalla de Inicio de la app -->
+    <section class="border-t border-[var(--line)] py-28 sm:py-36">
+      <div class="mx-auto grid w-full max-w-7xl gap-12 px-4 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+        <div>
+          <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Llegás a clase y lo marcás.</h2>
+          <p class="mt-5 max-w-[36ch] text-base leading-7 text-[var(--muted)]">En Inicio aparecen tus cursadas de hoy. Un toque por control y listo. Tu porcentaje lo ves en cada materia.</p>
+        </div>
+        <div class="hoy-card rounded-[28px] bg-[var(--surface)] p-6 sm:p-8">
+          <p class="mono text-xs text-[var(--muted)]">{{ fechaHoy() }}</p>
+          <p class="mt-1 text-2xl font-semibold tracking-[-0.03em]">Inicio</p>
+          <div class="mt-5 flex items-center gap-3">
+            <span class="grid size-11 shrink-0 place-items-center rounded-[14px] bg-[var(--accent)] font-semibold text-[var(--on-accent)]" aria-hidden="true">A</span>
+            <div>
+              <p class="text-lg font-semibold tracking-[-0.02em]">Análisis Matemático I</p>
+              <p class="text-sm text-[var(--muted)]">2 controles de asistencia</p>
+            </div>
+          </div>
+          <div class="mt-6 divide-y divide-[var(--line)] border-t border-[var(--line)]">
+            @for (c of controlesHoy(); track c.numero; let i = $index) {
+              <div class="flex items-center justify-between gap-4 py-4">
+                <div>
+                  <p class="mono text-sm">{{ c.hora }}</p>
+                  <p class="text-xs text-[var(--muted)]">Bloque {{ c.numero }}. {{ textoEstado[c.estado] }}</p>
+                </div>
+                <div class="flex gap-2">
+                  @for (o of opciones; track o.estado) {
+                    <button
+                      type="button"
+                      (click)="marcar(i, o.estado)"
+                      [attr.aria-pressed]="c.estado === o.estado"
+                      [attr.aria-label]="o.texto"
+                      [style.background]="c.estado === o.estado ? o.color : null"
+                      [class]="'mono grid size-11 cursor-pointer place-items-center rounded-full border text-sm transition-[background-color,color,border-color,transform] duration-150 active:scale-90 ' +
+                        (c.estado === o.estado ? 'border-transparent text-[var(--on-accent)]' : 'border-[var(--line)] text-[var(--muted)] hover:border-[var(--muted)] hover:text-[var(--text)]')"
+                    >{{ o.letra }}</button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+          <p class="mono mt-4 text-xs text-[var(--muted)]">Tocá P, A o J. Si tocás el marcado, vuelve a pendiente.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. TAREAS: el tablero de tareas -->
+    <section class="border-t border-[var(--line)] py-28 sm:py-36">
+      <div class="mx-auto grid w-full max-w-7xl gap-12 px-4 sm:px-8 lg:grid-cols-[0.8fr_1.2fr]">
+        <div class="lg:sticky lg:top-28 lg:self-start">
+          <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Lo que vence, primero.</h2>
+          <p class="mt-5 max-w-[34ch] text-base leading-7 text-[var(--muted)]">Ordenadas por fecha de entrega, con las vencidas marcadas. Filtrá por una o varias materias; las que terminás pasan a Completadas.</p>
+        </div>
+        <div class="lista-tareas">
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar por materia">
+            @for (m of materias; track m) {
+              <button
+                type="button"
+                (click)="filtrar(m)"
+                [attr.aria-pressed]="seleccionadas().includes(m)"
+                [class]="'min-h-10 cursor-pointer rounded-full px-4 text-sm font-medium transition-colors ' +
+                  (seleccionadas().includes(m) ? 'bg-[var(--accent)] text-[var(--on-accent)]' : 'bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)]')"
+              >{{ m }}</button>
+            }
+            @if (seleccionadas().length > 0) {
+              <button type="button" (click)="seleccionadas.set([])" class="min-h-10 cursor-pointer px-3 text-sm font-medium text-[var(--muted)] underline underline-offset-4 hover:text-[var(--text)]">Limpiar filtros</button>
+            }
+          </div>
+
+          <ul class="mt-5 space-y-3">
+            @for (t of tareasFiltradas(false); track t.titulo) {
+              <li>
+                <label class="flex cursor-pointer items-center gap-5 rounded-[22px] bg-[var(--surface)] p-5 transition-colors hover:bg-[var(--surface-2)] sm:p-6">
+                  <input type="checkbox" class="size-5 shrink-0 cursor-pointer accent-[var(--accent)]" (change)="completar(t)" [attr.aria-label]="'Completar ' + t.titulo">
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-lg font-semibold tracking-[-0.02em]">{{ t.titulo }}</span>
+                    <span class="block text-sm text-[var(--muted)]">{{ t.materia }}</span>
+                  </span>
+                  <span [class]="'shrink-0 text-right text-sm ' + (t.dias < 0 ? 'text-[var(--absent)]' : 'text-[var(--muted)]')">
+                    {{ fechaEn(t.dias) }}
+                    @if (t.dias < 0) { <span class="font-medium">(vencida)</span> }
+                  </span>
+                </label>
+              </li>
+            } @empty {
+              <li class="rounded-[22px] bg-[var(--surface)] p-5 text-sm text-[var(--muted)]">No hay tareas pendientes con estos filtros.</li>
+            }
+          </ul>
+
+          <p class="mono mt-8 text-xs text-[var(--muted)]">COMPLETADAS</p>
+          <ul class="mt-3 space-y-3">
+            @for (t of tareasFiltradas(true); track t.titulo) {
+              <li>
+                <label class="flex cursor-pointer items-center gap-5 rounded-[22px] bg-[var(--surface)] p-5 transition-colors hover:bg-[var(--surface-2)] sm:p-6">
+                  <input type="checkbox" checked class="size-5 shrink-0 cursor-pointer accent-[var(--accent)]" (change)="completar(t)" [attr.aria-label]="'Reabrir ' + t.titulo">
+                  <span class="min-w-0 flex-1">
+                    <span class="block text-lg font-semibold tracking-[-0.02em] text-[var(--muted)] line-through">{{ t.titulo }}</span>
+                    <span class="block text-sm text-[var(--muted)]">{{ t.materia }}</span>
+                  </span>
+                  <span class="shrink-0 text-right text-sm text-[var(--muted)]">{{ fechaEn(t.dias) }}</span>
+                </label>
+              </li>
+            } @empty {
+              <li class="text-sm text-[var(--muted)]">Todavía nada.</li>
+            }
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. APUNTES: el texto se enciende mientras lo leés -->
+    <section class="border-t border-[var(--line)] py-28 sm:py-36">
+      <div class="mx-auto w-full max-w-7xl px-4 sm:px-8">
+        <p class="mono text-xs text-[var(--muted)]">Apuntes. Análisis Matemático I. Unidad 2.</p>
+        <p class="apunte mt-6 max-w-[24ch] text-[clamp(2rem,4.6vw,3.8rem)] font-semibold leading-[1.08] tracking-[-0.045em]">
+          @for (p of palabras; track $index; let i = $index) {
+            <span [class]="'palabra' + (claves.includes(p) ? ' clave' : '') + (i < palabrasEncendidas() ? ' on' : '')">{{ p }} </span>
+          }
+        </p>
+        <div class="mt-10 flex flex-wrap items-center justify-between gap-6">
+          <p class="max-w-[42ch] text-base leading-7 text-[var(--muted)]">Escribí con títulos, negrita y listas, dentro de cada materia. Después lo copiás o lo guardás como PDF.</p>
+          <div class="flex gap-2 text-[var(--muted)]" aria-hidden="true">
+            <span class="grid size-11 place-items-center rounded-full border border-[var(--line)]"><span class="material-symbols-rounded">format_bold</span></span>
+            <span class="grid size-11 place-items-center rounded-full border border-[var(--line)]"><span class="material-symbols-rounded">format_list_bulleted</span></span>
+            <span class="grid size-11 place-items-center rounded-full border border-[var(--line)]"><span class="material-symbols-rounded">content_copy</span></span>
+            <span class="grid size-11 place-items-center rounded-full bg-[var(--accent)] text-[var(--on-accent)]"><span class="material-symbols-rounded">picture_as_pdf</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. PREGUNTAS -->
+    <section class="border-t border-[var(--line)] py-28">
+      <div class="mx-auto grid w-full max-w-7xl gap-x-12 px-4 sm:px-8 md:grid-cols-2">
+        <details class="group border-b border-[var(--line)]">
+          <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Tiene costo?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
+          <p class="pb-6 text-sm leading-6 text-[var(--muted)]">No, es gratis.</p>
+        </details>
+        <details class="group border-b border-[var(--line)]">
+          <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Qué es un control de asistencia?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
+          <p class="pb-6 text-sm leading-6 text-[var(--muted)]">Una clase larga suele tomar asistencia dos veces. Cada vez es un control y se marca por separado.</p>
+        </details>
+        <details class="group border-b border-[var(--line)]">
+          <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Las justificadas cuentan como presentes?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
+          <p class="pb-6 text-sm leading-6 text-[var(--muted)]">No. Se cuentan aparte, así ves cuántas tenés. El porcentaje son tus presentes sobre todos los controles que marcaste.</p>
+        </details>
+        <details class="group border-b border-[var(--line)]">
+          <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Puedo cargar clases que ya pasaron?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
+          <p class="pb-6 text-sm leading-6 text-[var(--muted)]">Sí. Poné la fecha en que empezó la cursada y marcás esas clases desde el Calendario, hasta un año para atrás.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- 8. CIERRE: la banda naranja crece -->
+    <section class="cierre-wrap px-2 pb-2 sm:px-3 sm:pb-3">
+      <div class="cierre mx-auto flex min-h-[70dvh] w-full flex-col justify-between gap-10 rounded-[28px] bg-[var(--accent)] px-6 py-12 text-[var(--on-accent)] sm:px-12 sm:py-16">
+        <h2 class="max-w-[14ch] text-[clamp(2.8rem,8vw,7rem)] font-semibold leading-[0.92] tracking-[-0.06em]">Empezá con tu primera materia.</h2>
+        <div class="flex flex-wrap items-end justify-between gap-6">
+          <a routerLink="/register" class="inline-flex min-h-14 items-center gap-2 rounded-full bg-[var(--bg)] px-8 text-base font-semibold text-[var(--text)] transition-transform duration-150 hover:scale-[1.03] active:scale-[0.97]">
+            Crear cuenta <span class="material-symbols-rounded text-xl" aria-hidden="true">arrow_forward</span>
+          </a>
+          <a routerLink="/login" class="mono text-xs underline-offset-4 hover:underline">Ya tengo cuenta</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

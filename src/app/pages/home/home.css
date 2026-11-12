@@ -1,0 +1,177 @@
+/* La landing tiene su propia paleta naranja y negra, separada de los colores del tema de la app */
+:host {
+  display: block;
+  color-scheme: dark;
+  --bg: #0d0d0e;
+  --surface: #161618;
+  --surface-2: #1d1d20;
+  --line: #2a2a2e;
+  --text: #ededee;
+  --muted: #9b9ba2;
+  --accent: #f26b2a;
+  --on-accent: #0d0d0e;
+  --absent: #ff6b5e;
+  --justified: #f0be46;
+}
+
+.landing {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Geist', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.landing ::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.mono {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+}
+
+
+.grano {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.pz-marco {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+.pz-cuadro {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 36px;
+  overflow: hidden;
+  background: #050506;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.07) inset, 0 60px 120px -40px rgba(0, 0, 0, 0.9);
+}
+
+.pz-cuadro canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.pz-dedo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 11.85%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+}
+
+.pz-textos {
+  position: relative;
+  height: 52px;
+  margin-top: 18px;
+}
+
+.pz-texto {
+  position: absolute;
+  inset: 0 auto auto 4px;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+.pz-texto small {
+  display: block;
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+
+.pz-texto b {
+  display: block;
+  margin-top: 4px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.pz-pasos {
+  position: absolute;
+  right: 4px;
+  top: 6px;
+  display: flex;
+  gap: 6px;
+}
+
+.pz-pasos span {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.pz-pasos span i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+}
+
+/* ===== Celdas del cuatrimestre ===== */
+.celda {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
+.celda[data-estado='PRESENTE'] {
+  background: var(--accent);
+}
+
+.celda[data-estado='AUSENTE'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--absent);
+}
+
+.celda[data-estado='JUSTIFICADA'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--justified);
+}
+
+.celda[data-estado='futuro'] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* ===== Apunte: palabras que se encienden ===== */
+.palabra {
+  color: var(--line);
+  transition: color 0.2s;
+}
+
+.palabra.on {
+  color: var(--text);
+}
+
+.palabra.clave.on {
+  color: var(--accent);
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
