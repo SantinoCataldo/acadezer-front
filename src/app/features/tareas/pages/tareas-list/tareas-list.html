@@ -32,7 +32,13 @@
       <ul class="space-y-3">
         @for (t of tareas(); track t.id) {
           <li class="rounded-[20px] bg-[var(--theme-surface)] px-4 py-3">
-            <h3 class="font-semibold">{{ t.titulo }}</h3>
+            <div class="flex items-center gap-3">
+              <input type="checkbox" [id]="'tarea-' + t.id" [checked]="t.completado" (change)="marcarCompletada(t)"
+                class="size-5 cursor-pointer accent-[var(--theme-accent)]">
+              <label [for]="'tarea-' + t.id" class="cursor-pointer font-semibold" [class.line-through]="t.completado">
+                {{ t.titulo }}
+              </label>
+            </div>
             @if (t.descripcion) {
               <p class="mt-1 text-sm text-[var(--theme-muted)]">{{ t.descripcion }}</p>
             }

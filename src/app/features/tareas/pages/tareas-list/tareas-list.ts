@@ -68,6 +68,18 @@ export class TareasList implements OnInit {
     })
   }
 
+  marcarCompletada(t: Tarea) {
+    this.tareaService.cambiarCompletado(t.id, !t.completado).subscribe({
+      next: () => {
+        this.traerTareas(t.materiaId);
+      },
+      error: (e) => {
+        alert('Error al actualizar la tarea');
+        this.traerTareas(t.materiaId);
+      }
+    })
+  }
+
   eliminar(t: Tarea) {
     if (!confirm('¿Seguro que querés eliminar la tarea "' + t.titulo + '"?')) {
       return;
