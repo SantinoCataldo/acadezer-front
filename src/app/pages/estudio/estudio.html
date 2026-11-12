@@ -5,85 +5,46 @@
       [class]="'sticky top-0 z-40 hidden h-dvh min-h-0 shrink-0 flex-col px-3 py-5 transition-[width,background-color] duration-200 motion-reduce:transition-none lg:flex ' + (navigationStyle() === 'melon' ? 'bg-[var(--theme-canvas)] ' : navigationStyle() === 'guapa' ? 'bg-[var(--theme-surface-high)] ' : navigationStyle() !== 'bonita' ? 'bg-[var(--theme-surface-low)] ' : '') + (navigationStyle() === 'bonita' ? 'border-r border-[var(--theme-border)]' : '')"
       [style.width.px]="navigationStyle() === 'tasks' ? 80 : 256"
     >
-      <a routerLink="/estudio" class="flex h-11 items-center gap-3 rounded-xl px-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]" [class.justify-center]="navigationStyle() === 'tasks'">
-        <span [class]="'grid shrink-0 place-items-center bg-[var(--theme-accent)] text-[var(--theme-on-accent)] ' + (navigationStyle() === 'tasks' ? 'size-14 rounded-full' : 'size-10 rounded-[14px]')">
+      <button type="button" (click)="openOptions()" aria-label="Abrir opciones de cuenta y apariencia" title="Opciones de cuenta y apariencia" class="group flex h-12 cursor-pointer items-center gap-3 rounded-[16px] px-2 text-left transition-[background-color,transform] duration-200 hover:bg-[var(--theme-surface)] active:scale-[0.99] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none" [class.justify-center]="navigationStyle() === 'tasks'">
+        <span [class]="'grid shrink-0 place-items-center bg-[var(--theme-accent)] text-[var(--theme-on-accent)] transition-transform duration-200 group-hover:rotate-[-4deg] ' + (navigationStyle() === 'tasks' ? 'size-14 rounded-full' : 'size-10 rounded-[14px]')">
           <span class="material-symbols-rounded text-[22px] leading-none" aria-hidden="true">menu_book</span>
         </span>
         @if (navigationStyle() !== 'tasks') {
           <span class="text-lg font-semibold tracking-[-0.04em]">acadezer<span class="text-[var(--theme-accent-content)]">.</span></span>
         }
-      </a>
+      </button>
 
       <nav aria-label="Navegación del espacio" [class]="'mt-8 flex flex-col ' + (navigationStyle() === 'tasks' ? 'gap-2.5 ' : 'gap-1 ') + (navigationStyle() === 'melon' ? 'rounded-[20px] bg-[var(--theme-canvas)] p-2' : '')">
-        <a
-          routerLink="/estudio"
-          [attr.aria-current]="subjectsActive() ? 'page' : null"
-          [attr.title]="navigationStyle() === 'tasks' ? 'Materias' : null"
-          [attr.aria-label]="navigationStyle() === 'tasks' ? 'Materias' : null"
-          [class]="'flex items-center gap-3 px-3 text-sm font-medium transition-[background-color,color,transform,border-radius] duration-300 hover:scale-[0.99] active:scale-[1.01] motion-reduce:transition-none ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center ' : 'min-h-11 ') + (navigationStyle() === 'guapa' ? 'rounded-full' : navigationStyle() === 'tasks' ? (subjectsActive() ? 'rounded-[13px]' : 'rounded-full') : navigationStyle() === 'melon' ? 'rounded-[13px]' : 'rounded-[14px]') + ' ' + (subjectsActive() ? (navigationStyle() === 'guapa' ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : navigationStyle() === 'bonita' ? 'bg-[var(--theme-surface)] text-[var(--theme-foreground)]' : 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]') : 'text-[var(--theme-muted)] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)]')"
-        >
+        <a routerLink="/estudio" [attr.aria-current]="homeActive() ? 'page' : null" [attr.title]="navigationStyle() === 'tasks' ? 'Inicio' : null" [attr.aria-label]="navigationStyle() === 'tasks' ? 'Inicio' : null" [class]="navigationItemClass(homeActive())">
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">home</span>
+          @if (navigationStyle() !== 'tasks') { <span>Inicio</span> }
+        </a>
+        <a routerLink="/estudio/materias" [attr.aria-current]="subjectsActive() ? 'page' : null" [attr.title]="navigationStyle() === 'tasks' ? 'Materias' : null" [attr.aria-label]="navigationStyle() === 'tasks' ? 'Materias' : null" [class]="navigationItemClass(subjectsActive())">
           <span class="material-symbols-rounded text-[20px]" aria-hidden="true">menu_book</span>
           @if (navigationStyle() !== 'tasks') { <span>Materias</span> }
         </a>
-        @for (item of [{ icon: 'description', label: 'Apuntes' }, { icon: 'fact_check', label: 'Asistencia' }]; track item.label) {
-          <span aria-disabled="true" [attr.title]="item.label + ' · próximamente'" [attr.aria-label]="navigationStyle() === 'tasks' ? item.label + ' próximamente' : null" [class]="'flex items-center gap-3 px-3 text-sm text-[var(--theme-muted)] opacity-80 ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center rounded-full' : 'min-h-11 ' + (navigationStyle() === 'guapa' ? 'rounded-full' : 'rounded-[13px]'))">
+        <a routerLink="/estudio/calendario" [attr.aria-current]="calendarActive() ? 'page' : null" [attr.title]="navigationStyle() === 'tasks' ? 'Calendario' : null" [attr.aria-label]="navigationStyle() === 'tasks' ? 'Calendario' : null" [class]="navigationItemClass(calendarActive())">
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">calendar_month</span>
+          @if (navigationStyle() !== 'tasks') { <span>Calendario</span> }
+        </a>
+        @for (item of [{ icon: 'description', label: 'Apuntes' }, { icon: 'event_note', label: 'Evaluaciones' }]; track item.label) {
+          <span aria-disabled="true" [attr.title]="item.label + ' · próximamente'" [attr.aria-label]="navigationStyle() === 'tasks' ? item.label + ' próximamente' : null" [class]="'flex items-center gap-3 px-3 text-sm text-[var(--theme-muted)] opacity-70 ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center rounded-full' : 'min-h-11 ' + (navigationStyle() === 'guapa' ? 'rounded-full' : 'rounded-[13px]'))">
             <span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ item.icon }}</span>
             @if (navigationStyle() !== 'tasks') { <span>{{ item.label }}</span> }
           </span>
         }
-        <a
-          routerLink="/estudio/horario"
-          routerLinkActive
-          #scheduleActive="routerLinkActive"
-          ariaCurrentWhenActive="page"
-          [attr.title]="navigationStyle() === 'tasks' ? 'Horario' : null"
-          [attr.aria-label]="navigationStyle() === 'tasks' ? 'Horario' : null"
-          [class]="'flex items-center gap-3 px-3 text-sm font-medium transition-[background-color,color,transform,border-radius] duration-300 hover:scale-[0.99] active:scale-[1.01] motion-reduce:transition-none ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center ' : 'min-h-11 ') + (navigationStyle() === 'guapa' ? 'rounded-full' : navigationStyle() === 'tasks' ? (scheduleActive.isActive ? 'rounded-[13px]' : 'rounded-full') : navigationStyle() === 'melon' ? 'rounded-[13px]' : 'rounded-[14px]') + ' ' + (scheduleActive.isActive ? (navigationStyle() === 'guapa' ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : navigationStyle() === 'bonita' ? 'bg-[var(--theme-surface)] text-[var(--theme-foreground)]' : 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]') : 'text-[var(--theme-muted)] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)]')"
-        >
-          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">calendar_view_week</span>
-          @if (navigationStyle() !== 'tasks') { <span>Horario</span> }
-        </a>
-        <span aria-disabled="true" title="Evaluaciones · próximamente" [class]="'flex items-center gap-3 px-3 text-sm text-[var(--theme-muted)] opacity-80 ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center rounded-full' : 'min-h-11 ' + (navigationStyle() === 'guapa' ? 'rounded-full' : 'rounded-[13px]'))">
-          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">event_note</span>
-          @if (navigationStyle() !== 'tasks') { <span>Evaluaciones</span> }
-        </span>
-        @if (navigationStyle() !== 'tasks') { <span aria-hidden="true" class="my-2 h-px bg-[var(--theme-border)] opacity-40"></span> }
-        <div class="relative">
-          <button type="button" (click)="toggleNavigationSettings()" [attr.aria-expanded]="navigationSettingsOpen()" [attr.title]="navigationStyle() === 'tasks' ? 'Estilos de navegación' : null" [attr.aria-label]="navigationStyle() === 'tasks' ? 'Estilos de navegación' : null" [class]="'flex cursor-pointer items-center gap-3 px-3 text-sm text-[var(--theme-muted)] transition-[background-color,color,transform,border-radius] duration-300 hover:scale-[0.99] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center ' + (navigationSettingsOpen() ? 'rounded-[13px]' : 'rounded-full') : 'min-h-11 rounded-[14px]')">
-            <span class="material-symbols-rounded text-[20px]" aria-hidden="true">tune</span>
-            @if (navigationStyle() !== 'tasks') { <span>Ajustes</span> }
-          </button>
-          @if (navigationSettingsOpen()) {
-            <app-navigation-style-picker class="absolute top-0 left-full z-[70] ml-3 block" [style.width]="navigationStyle() === 'tasks' ? 'min(24rem, calc(100vw - 6rem))' : 'min(24rem, calc(100vw - 18rem))'" [selected]="navigationStyle()" (styleSelected)="setNavigationStyle($event)" (closeRequested)="toggleNavigationSettings()" />
-          }
-        </div>
       </nav>
 
-      <details class="group relative mt-auto" [class.w-14]="navigationStyle() === 'tasks'" [class.w-full]="navigationStyle() !== 'tasks'">
-        <summary [attr.aria-label]="navigationStyle() === 'tasks' ? 'Abrir menú de cuenta' : null" [class]="'flex min-h-14 cursor-pointer list-none items-center gap-3 bg-[var(--theme-surface)] px-3 outline-offset-2 focus-visible:outline-2 focus-visible:outline-[var(--theme-accent-content)] ' + (navigationStyle() === 'tasks' ? 'justify-center rounded-full px-0' : 'rounded-[16px]')">
-          <span class="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)] transition-[border-radius] duration-300 group-open:rounded-[12px]"><span class="material-symbols-rounded text-[20px] leading-none" aria-hidden="true">person</span></span>
+      <button type="button" (click)="openOptions()" aria-label="Opciones de cuenta y apariencia" [class]="'mt-auto flex min-h-14 cursor-pointer items-center gap-3 bg-[var(--theme-surface)] px-3 text-left outline-offset-2 transition-colors hover:bg-[var(--theme-surface-high)] focus-visible:outline-2 focus-visible:outline-[var(--theme-accent-content)] ' + (navigationStyle() === 'tasks' ? 'w-14 justify-center rounded-full px-0' : 'w-full rounded-[16px]')">
+          <span class="material-symbols-rounded shrink-0 text-[20px] text-[var(--theme-accent-content)]" aria-hidden="true">tune</span>
           @if (navigationStyle() !== 'tasks') {
-            <span class="min-w-0 flex-1 truncate text-sm font-medium">{{ currentUser()?.nombre ?? 'Estudiante' }}</span>
-            <span class="material-symbols-rounded text-xl text-[var(--theme-muted)] transition-transform duration-150 group-open:rotate-180" aria-hidden="true">expand_more</span>
+            <span class="min-w-0 flex-1 truncate text-sm font-medium">Opciones</span>
           }
-        </summary>
-        <div class="absolute right-0 bottom-full left-0 z-30 mb-2 rounded-[16px] bg-[var(--theme-surface-high)] p-2">
-          <button type="button" (click)="logout()" class="flex min-h-11 w-full items-center gap-3 rounded-[12px] px-3 text-sm text-[var(--theme-muted)] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-[20px]" aria-hidden="true">logout</span>Cerrar sesión</button>
-        </div>
-      </details>
+      </button>
     </aside>
   }
 
   <div class="min-w-0 flex-1">
-    @if (navigationStyle() !== 'dock') {
-      <header class="flex items-center gap-3 bg-[var(--theme-surface-low)] px-4 py-3 lg:hidden">
-        <a routerLink="/estudio" class="flex items-center gap-2.5 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent-content)]">
-          <span class="grid size-9 place-items-center rounded-[12px] bg-[var(--theme-accent)] text-[var(--theme-on-accent)]"><span class="material-symbols-rounded text-xl leading-none" aria-hidden="true">menu_book</span></span>
-          <span class="font-semibold tracking-[-0.04em]">acadezer<span class="text-[var(--theme-accent-content)]">.</span></span>
-        </a>
-      </header>
-    }
-
     <section [class]="'px-4 py-6 pb-28 sm:px-7 sm:py-8 lg:px-10 lg:py-10 lg:pb-10 ' + (navigationStyle() === 'dock' ? 'lg:pb-28' : '') + (navigationStyle() === 'melon' ? 'lg:m-2 lg:box-border lg:overflow-hidden lg:rounded-[28px] lg:border lg:border-[color-mix(in_srgb,var(--theme-border)_35%,transparent)] lg:bg-[var(--theme-surface-low)] lg:min-h-[calc(100dvh-1rem)]' : '')">
       <router-outlet />
     </section>
@@ -91,26 +52,15 @@
 
     <nav aria-label="Navegación principal" [class]="'fixed inset-x-0 bottom-0 z-40 flex items-center justify-center gap-2 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] ' + (navigationStyle() === 'dock' ? '' : 'lg:hidden')">
       <div class="flex items-center gap-1 rounded-full bg-[var(--theme-surface-low)] p-1.5 shadow-[0_10px_36px_-14px_rgba(0,0,0,0.55)]">
-        <a routerLink="/estudio" [attr.aria-current]="subjectsActive() ? 'page' : null" aria-label="Materias" title="Materias" [class]="'grid size-11 place-items-center rounded-full ' + (subjectsActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">menu_book</span></a>
-        <span aria-disabled="true" aria-label="Apuntes próximamente" title="Apuntes" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)] opacity-80"><span class="material-symbols-rounded text-xl" aria-hidden="true">description</span></span>
-        <span aria-disabled="true" aria-label="Asistencia próximamente" title="Asistencia" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)] opacity-80"><span class="material-symbols-rounded text-xl" aria-hidden="true">fact_check</span></span>
-        <a routerLink="/estudio/horario" routerLinkActive="bg-[var(--theme-accent)] text-[var(--theme-on-accent)]" ariaCurrentWhenActive="page" aria-label="Horario" title="Horario" class="grid size-11 place-items-center rounded-full text-[var(--theme-muted)]"><span class="material-symbols-rounded text-xl" aria-hidden="true">calendar_view_week</span></a>
-        <details class="group relative">
-          <summary aria-label="Menú de cuenta" title="Cuenta" class="grid size-11 cursor-pointer list-none place-items-center rounded-full text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-xl" aria-hidden="true">person</span></summary>
-          <div class="absolute right-0 bottom-full z-30 mb-3 w-48 rounded-[16px] bg-[var(--theme-surface-high)] p-2">
-            <p class="truncate px-3 py-2 text-sm font-medium text-[var(--theme-foreground)]">{{ currentUser()?.nombre ?? 'Estudiante' }}</p>
-            <button type="button" (click)="logout()" class="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-[12px] px-3 text-sm text-[var(--theme-muted)] hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-[20px]" aria-hidden="true">logout</span>Cerrar sesión</button>
-          </div>
-        </details>
+        <a routerLink="/estudio" [attr.aria-current]="homeActive() ? 'page' : null" aria-label="Inicio" title="Inicio" [class]="'grid size-11 place-items-center rounded-full ' + (homeActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">home</span></a>
+        <a routerLink="/estudio/materias" [attr.aria-current]="subjectsActive() ? 'page' : null" aria-label="Materias" title="Materias" [class]="'grid size-11 place-items-center rounded-full ' + (subjectsActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">menu_book</span></a>
+        <a routerLink="/estudio/calendario" [attr.aria-current]="calendarActive() ? 'page' : null" aria-label="Calendario" title="Calendario" [class]="'grid size-11 place-items-center rounded-full ' + (calendarActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">calendar_month</span></a>
+        <button type="button" (click)="openOptions()" aria-label="Opciones de cuenta y apariencia" title="Opciones" class="grid size-11 cursor-pointer place-items-center rounded-full text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-xl" aria-hidden="true">tune</span></button>
       </div>
-      @if (navigationStyle() === 'dock') {
-        <div class="relative hidden lg:block">
-          <button type="button" (click)="toggleNavigationSettings()" aria-label="Cambiar estilo de navegación" [attr.aria-expanded]="navigationSettingsOpen()" class="grid size-12 shrink-0 cursor-pointer place-items-center rounded-full bg-[var(--theme-accent)] text-[var(--theme-on-accent)] transition-[transform,filter] duration-150 hover:scale-[0.99] hover:brightness-105 active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"><span class="material-symbols-rounded text-xl" aria-hidden="true">tune</span></button>
-          @if (navigationSettingsOpen()) {
-            <app-navigation-style-picker class="absolute right-0 bottom-full z-[70] mb-3" [selected]="navigationStyle()" (styleSelected)="setNavigationStyle($event)" (closeRequested)="toggleNavigationSettings()" />
-          }
-        </div>
-      }
     </nav>
   </div>
 </main>
+
+@if (optionsOpen()) {
+  <app-study-options-dialog [navigationStyle]="navigationStyle()" (styleSelected)="setNavigationStyle($event)" (closed)="optionsOpen.set(false)" />
+}

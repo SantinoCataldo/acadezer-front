@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { gsap } from 'gsap';
 import {
   ColorMode,
@@ -23,10 +24,12 @@ const paletteColors = [
 
 @Component({
   selector: 'app-theme-switcher',
+  imports: [NgTemplateOutlet],
   templateUrl: './theme-switcher.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ThemeSwitcher {
+  readonly embedded = input(false);
   readonly preferences = inject(ThemePreferenceService);
   private closing = false;
   readonly seeds: SeedOption[] = paletteColors.map(({ label, color }) => ({

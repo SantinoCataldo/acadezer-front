@@ -41,6 +41,6 @@ export class App {
 
   private shouldShowThemeSwitcher(url: string): boolean {
     const path = url.split(/[?#]/, 1)[0]?.replace(/\/+$/, '') || '/';
-    return path !== '/onboarding';
+    return path !== '/onboarding' && path !== '/estudio' && !path.startsWith('/estudio/');
   }
 }

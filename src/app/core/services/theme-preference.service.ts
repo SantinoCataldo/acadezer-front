@@ -78,23 +78,8 @@ export class ThemePreferenceService {
       this.prefersDark.set(media.matches);
       media.addEventListener('change', (event) => this.prefersDark.set(event.matches));
     }
-    effect(() => {
-      const preference = this.preference();
-      const root = this.document.documentElement;
-      root.dataset['themeVariant'] = preference.variant;
-      root.classList.toggle('dark', this.isDark());
-      this.applyColorScheme(
-        root,
-        preference.seed,
-        preference.variant,
-        this.isDark(),
-      );
-      try {
-        this.document.defaultView?.localStorage.setItem(storageKey, JSON.stringify(preference));
-      } catch {
-        // Preferences remain active for this page if storage is unavailable.
-      }
-    });
+    this.applyPreference(this.preference());
+    effect(() => this.applyPreference(this.preference()));
   }
 
   setSeed(seed: string): void {
@@ -177,5 +162,18 @@ export class ThemePreferenceService {
 
     root.style.setProperty('--theme-accent', tonalAccent);
     root.style.setProperty('--theme-on-accent', readableOnAccent(tonalAccent));
+  }
+
+  private applyPreference(preference: ThemePreference): void {
+    const root = this.document.documentElement;
+    const dark = preference.mode === 'system' ? this.prefersDark() : preference.mode === 'dark';
+    root.dataset['themeVariant'] = preference.variant;
+    root.classList.toggle('dark', dark);
+    this.applyColorScheme(root, preference.seed, preference.variant, dark);
+    try {
+      this.document.defaultView?.localStorage.setItem(storageKey, JSON.stringify(preference));
+    } catch {
+      return;
+    }
   }
 }

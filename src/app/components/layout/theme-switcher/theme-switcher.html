@@ -1,14 +1,6 @@
-<details #themeDisclosure class="fixed bottom-5 right-5 z-50">
-  <summary
-    (click)="handleSummaryClick($event, themeDisclosure)"
-    class="theme-trigger flex size-12 cursor-pointer list-none items-center justify-center rounded-full bg-[var(--theme-accent)] text-[var(--theme-on-accent)] shadow-lg outline-offset-4 focus-visible:outline-2"
-    aria-label="Personalizar colores y tema"
-    title="Personalizar apariencia"
-  >
-    <span class="material-symbols-rounded" aria-hidden="true">palette</span>
-  </summary>
+<ng-template #preferencesPanel>
   <section
-    class="theme-panel absolute bottom-14 right-0 max-h-[calc(100dvh-6rem)] w-[min(18rem,calc(100vw-2rem))] overflow-y-auto overscroll-contain rounded-2xl bg-[var(--theme-surface-high)] p-4 text-[var(--theme-foreground)]"
+    [class]="'theme-panel overflow-y-auto overscroll-contain rounded-[20px] bg-[var(--theme-surface-high)] p-4 text-[var(--theme-foreground)] ' + (embedded() ? 'theme-panel-embedded relative max-h-none w-full' : 'absolute right-0 bottom-14 max-h-[calc(100dvh-6rem)] w-[min(18rem,calc(100vw-2rem))]')"
     aria-label="Preferencias de apariencia"
   >
     <h2 class="text-sm font-semibold">Tema</h2>
@@ -16,7 +8,7 @@
 
     <fieldset class="mt-4">
       <legend class="text-xs font-medium">Paleta</legend>
-      <div class="mt-2 grid w-full grid-cols-4 gap-2">
+      <div [class]="'mt-2 grid w-full grid-cols-4 gap-2 ' + (embedded() ? 'max-w-64' : 'max-w-56')">
         @for (seed of seeds; track seed.color) {
           <button
             type="button"
@@ -24,7 +16,7 @@
             [attr.aria-label]="'Paleta ' + seed.label"
             [attr.aria-pressed]="preferences.variant() === 'tonalSpot' && preferences.seed() === seed.color"
             [style.background]="seed.swatch"
-            class="palette-swatch relative aspect-square w-full min-w-0 cursor-pointer overflow-hidden border border-white/35 shadow-[inset_0_1px_2px_rgba(255,255,255,0.45),0_2px_8px_rgba(0,0,0,0.16)] outline-offset-2 sm:hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.55),0_5px_12px_rgba(0,0,0,0.22)] focus-visible:outline-2 focus-visible:outline-[var(--theme-foreground)] aria-pressed:scale-[1.03] aria-pressed:ring-2 aria-pressed:ring-[var(--theme-foreground)] aria-pressed:ring-offset-2 aria-pressed:ring-offset-[var(--theme-surface-high)]"
+            [class]="'palette-swatch relative min-w-0 cursor-pointer overflow-hidden border border-white/35 shadow-[inset_0_1px_2px_rgba(255,255,255,0.45),0_2px_8px_rgba(0,0,0,0.16)] outline-offset-2 sm:hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.55),0_5px_12px_rgba(0,0,0,0.22)] focus-visible:outline-2 focus-visible:outline-[var(--theme-foreground)] aria-pressed:scale-[1.03] aria-pressed:ring-2 aria-pressed:ring-[var(--theme-foreground)] aria-pressed:ring-offset-2 aria-pressed:ring-offset-[var(--theme-surface-high)] ' + (embedded() ? 'size-14' : 'size-12')"
           >
             @if (preferences.variant() === 'tonalSpot' && preferences.seed() === seed.color) {
               <span class="absolute right-1.5 bottom-1.5 flex size-5 items-center justify-center rounded-full bg-white text-slate-950 shadow-sm" aria-hidden="true">
@@ -38,8 +30,8 @@
           (click)="selectMonochrome()"
           aria-label="Paleta blanco y negro"
           [attr.aria-pressed]="preferences.variant() === 'monochrome'"
-          [style.background]="preferences.isDark() ? 'linear-gradient(145deg, #FFFFFF, #E7E7E9 58%, #C8C8CC)' : 'linear-gradient(145deg, #303034, #000000 58%, #000000)'"
-          class="palette-swatch relative aspect-square w-full min-w-0 cursor-pointer overflow-hidden border border-[var(--theme-border)] shadow-[inset_0_1px_2px_rgba(255,255,255,0.4),0_2px_8px_rgba(0,0,0,0.16)] outline-offset-2 focus-visible:outline-2 focus-visible:outline-[var(--theme-foreground)] aria-pressed:scale-[1.03] aria-pressed:ring-2 aria-pressed:ring-[var(--theme-foreground)] aria-pressed:ring-offset-2 aria-pressed:ring-offset-[var(--theme-surface-high)]"
+          [style.background]="'radial-gradient(circle at 30% 24%, #FFFFFF 0%, #D9D9DD 35%, #77777B 54%, #19171B 72%, #030304 100%)'"
+          [class]="'palette-swatch relative min-w-0 cursor-pointer overflow-hidden border border-white/35 shadow-[inset_0_2px_3px_rgba(255,255,255,0.45),0_4px_10px_rgba(0,0,0,0.16)] outline-offset-2 focus-visible:outline-2 focus-visible:outline-[var(--theme-foreground)] aria-pressed:scale-[1.03] aria-pressed:ring-2 aria-pressed:ring-[var(--theme-foreground)] aria-pressed:ring-offset-2 aria-pressed:ring-offset-[var(--theme-surface-high)] ' + (embedded() ? 'size-14' : 'size-12')"
         >
           @if (preferences.variant() === 'monochrome') {
             <span
@@ -73,4 +65,20 @@
       </div>
     </fieldset>
   </section>
-</details>
+</ng-template>
+
+@if (embedded()) {
+  <ng-container [ngTemplateOutlet]="preferencesPanel" />
+} @else {
+  <details #themeDisclosure class="fixed right-5 bottom-5 z-50">
+    <summary
+      (click)="handleSummaryClick($event, themeDisclosure)"
+      class="theme-trigger flex size-12 cursor-pointer list-none items-center justify-center rounded-full bg-[var(--theme-accent)] text-[var(--theme-on-accent)] shadow-lg outline-offset-4 focus-visible:outline-2"
+      aria-label="Personalizar colores y tema"
+      title="Personalizar apariencia"
+    >
+      <span class="material-symbols-rounded" aria-hidden="true">palette</span>
+    </summary>
+    <ng-container [ngTemplateOutlet]="preferencesPanel" />
+  </details>
+}

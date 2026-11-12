@@ -22,6 +22,7 @@ const NAVIGATION_STYLES: readonly NavigationStyleOption[] = [
 })
 export class NavigationStylePickerComponent {
   readonly styles = NAVIGATION_STYLES;
+  readonly embedded = input(false);
   readonly selected = input.required<NavigationStyle>();
   readonly styleSelected = output<NavigationStyle>();
   readonly closeRequested = output<void>();

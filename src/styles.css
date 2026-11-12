@@ -57,6 +57,18 @@
     --theme-surface-high: var(--md-sys-color-surface-container-high, #e5eae2);
     --theme-surface-raised: var(--md-sys-color-surface-container-lowest, #ffffff);
     --theme-modal-surface: var(--md-sys-color-surface-container-high, #e5eae2);
+    --attendance-present: #16824f;
+    --attendance-present-soft: #e1f3e8;
+    --attendance-present-ink: #14532d;
+    --attendance-present-border: #9acbad;
+    --attendance-absent: #cf4548;
+    --attendance-absent-soft: #fbe7e6;
+    --attendance-absent-ink: #842b2d;
+    --attendance-absent-border: #e6aaa7;
+    --attendance-justified: #b77a08;
+    --attendance-justified-soft: #fbf0d2;
+    --attendance-justified-ink: #674900;
+    --attendance-justified-border: #dfc27a;
   }
 
   :root.dark {
@@ -77,6 +89,18 @@
     --theme-surface-high: var(--md-sys-color-surface-container-high, #262b27);
     --theme-surface-raised: var(--md-sys-color-surface-bright, #353b36);
     --theme-modal-surface: var(--md-sys-color-surface-container-highest, #313631);
+    --attendance-present: #6bd29a;
+    --attendance-present-soft: #183b2b;
+    --attendance-present-ink: #b6f0cf;
+    --attendance-present-border: #397752;
+    --attendance-absent: #ff8585;
+    --attendance-absent-soft: #452326;
+    --attendance-absent-ink: #ffc4c4;
+    --attendance-absent-border: #87474a;
+    --attendance-justified: #f1c75f;
+    --attendance-justified-soft: #403516;
+    --attendance-justified-ink: #ffe49a;
+    --attendance-justified-border: #80692b;
   }
 
   :root:not(.dark)[data-theme-variant='monochrome'] {
@@ -254,7 +278,7 @@ summary.theme-trigger:active {
   transform: scale(1.03);
 }
 
-details[open] .theme-panel {
+details[open] .theme-panel:not(.theme-panel-embedded) {
   animation: theme-panel-enter 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -298,7 +322,7 @@ details[open] .theme-panel {
     animation: none;
   }
 
-  details[open] .theme-panel {
+  details[open] .theme-panel:not(.theme-panel-embedded) {
     animation-duration: 1ms;
   }
 
@@ -315,5 +339,69 @@ details[open] .theme-panel {
   summary.theme-trigger:hover,
   summary.theme-trigger:active {
     transform: none;
+  }
+}
+
+@keyframes calendar-detail-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes calendar-detail-sheet-in {
+  from {
+    opacity: 0;
+    filter: blur(5px);
+    transform: translate3d(0, 1.25rem, 0) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes calendar-detail-backdrop-out {
+  to { opacity: 0; }
+}
+
+@keyframes calendar-detail-sheet-out {
+  to {
+    opacity: 0;
+    filter: blur(4px);
+    transform: translate3d(0, 1rem, 0) scale(0.99);
+  }
+}
+
+.calendar-detail-backdrop {
+  animation: calendar-detail-backdrop-in 180ms ease-out both;
+}
+
+.calendar-detail-backdrop.calendar-detail-backdrop-closing {
+  animation: calendar-detail-backdrop-out 160ms ease-in both;
+}
+
+.calendar-detail-sheet {
+  animation: calendar-detail-sheet-in 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calendar-detail-sheet.calendar-detail-dragging {
+  animation: none;
+  transition: none;
+}
+
+.calendar-detail-sheet.calendar-detail-sheet-closing {
+  animation: calendar-detail-sheet-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-detail-backdrop,
+  .calendar-detail-backdrop.calendar-detail-backdrop-closing,
+  .calendar-detail-sheet,
+  .calendar-detail-sheet.calendar-detail-sheet-closing {
+    animation: none;
+    transition: none;
   }
 }
