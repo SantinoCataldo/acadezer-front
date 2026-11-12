@@ -147,6 +147,11 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* La landing usa enlaces a secciones de la misma página. */
+html {
+  scroll-behavior: smooth;
+}
+
 ::selection {
   background-color: var(--theme-accent);
   color: var(--theme-on-accent);
@@ -309,6 +314,10 @@ details[open] .theme-panel:not(.theme-panel-embedded) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   .auth-step-enter,
   .palette-swatch {
     animation-duration: 1ms;
