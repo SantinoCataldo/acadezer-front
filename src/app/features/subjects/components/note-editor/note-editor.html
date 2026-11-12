@@ -1,0 +1,142 @@
+<article
+  class="flex min-h-0 flex-col overflow-hidden rounded-[20px] border border-[var(--theme-border)] bg-[var(--theme-surface)]"
+>
+  <header
+    class="flex shrink-0 items-center gap-2 border-b border-[var(--theme-border)] px-3 py-2 sm:px-4"
+  >
+    <button
+      type="button"
+      class="lg:hidden {{ iconButtonClass }}"
+      (click)="cancelled.emit()"
+      aria-label="Volver a la lista de apuntes"
+    >
+      <span class="material-symbols-rounded text-xl" aria-hidden="true">arrow_back</span>
+    </button>
+
+    <div class="min-w-0 flex-1">
+      <h3 class="truncate text-sm font-semibold">
+        {{ editing() ? 'Editar apunte' : 'Apunte nuevo' }}
+      </h3>
+      <p class="truncate text-xs text-[var(--theme-muted)]">{{ statusText() }}</p>
+    </div>
+
+    @if (editing()) {
+      <button
+        type="button"
+        [class]="iconButtonClass"
+        [disabled]="deleteAction.disabled()"
+        (click)="requestDelete()"
+        aria-label="Eliminar este apunte"
+      >
+        <span class="material-symbols-rounded text-xl" aria-hidden="true">delete</span>
+      </button>
+    }
+  </header>
+
+  <div class="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+    <label for="apunte-titulo" class="sr-only">Título del apunte</label>
+    <input
+      #tituloInput
+      id="apunte-titulo"
+      type="text"
+      [formControl]="titulo"
+      [maxlength]="tituloMax"
+      placeholder="Título del apunte"
+      autocomplete="off"
+      class="w-full bg-transparent text-2xl font-semibold tracking-tight outline-none placeholder:text-[var(--theme-muted)]"
+    />
+
+    @if (tituloError(); as message) {
+      <p role="alert" class="mt-1 text-sm text-[var(--theme-error)]">{{ message }}</p>
+    }
+
+    <div class="mt-4">
+      <app-rich-text-editor
+        [value]="contenido()"
+        [invalid]="contenidoError() !== null"
+        [errorText]="contenidoError()"
+        placeholder="Escribí el contenido del apunte…"
+        (valueChange)="onContenido($event)"
+      />
+      <p class="mt-2 text-xs text-[var(--theme-muted)]">
+        Hasta {{ contenidoMax }} caracteres. Se guarda el formato: negrita, cursiva, títulos y
+        listas.
+      </p>
+    </div>
+  </div>
+
+  <footer
+    class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-[var(--theme-border)] px-4 py-3 sm:px-5"
+  >
+    @if (saveAction.errorMessage()) {
+      <p role="alert" [class]="errorSurfaceClass">{{ saveAction.errorMessage() }}</p>
+    } @else {
+      <p class="text-xs text-[var(--theme-muted)]">Los cambios se guardan en esta materia.</p>
+    }
+
+    <div class="ml-auto flex gap-2">
+      <button
+        type="button"
+        [class]="secondaryButtonClass"
+        [disabled]="saveAction.pending()"
+        (click)="cancelled.emit()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        [class]="primaryButtonClass"
+        [disabled]="saveAction.disabled()"
+        (click)="submit()"
+      >
+        @if (saveAction.pending()) {
+          <span
+            class="material-symbols-rounded animate-spin text-lg motion-reduce:animate-none"
+            aria-hidden="true"
+            >progress_activity</span
+          >
+          Guardando…
+        } @else if (saveAction.remainingSeconds() > 0) {
+          Esperá {{ saveAction.remainingSeconds() }}
+        } @else {
+          <span class="material-symbols-rounded text-lg" aria-hidden="true">save</span>
+          Guardar
+        }
+      </button>
+    </div>
+  </footer>
+</article>
+
+@if (confirmingDelete()) {
+  <app-modal
+    title="¿Eliminar este apunte?"
+    description="Se borra el contenido y no se puede recuperar."
+    [pending]="deleteAction.pending()"
+    (closed)="closeDeleteConfirmation()"
+  >
+    <div class="space-y-4">
+      @if (deleteAction.errorMessage()) {
+        <p role="alert" [class]="errorSurfaceClass">{{ deleteAction.errorMessage() }}</p>
+      }
+
+      <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          [class]="secondaryButtonClass"
+          [disabled]="deleteAction.pending()"
+          (click)="closeDeleteConfirmation()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          [class]="dangerButtonClass"
+          [disabled]="deleteAction.disabled()"
+          (click)="confirmDelete()"
+        >
+          Eliminar apunte
+        </button>
+      </div>
+    </div>
+  </app-modal>
+}
