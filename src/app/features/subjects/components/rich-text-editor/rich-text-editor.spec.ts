@@ -1,5 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { afterEach } from 'vitest';
 import { RichTextEditor } from './rich-text-editor';
+
+const originalCommandDescriptors = [
+  ['execCommand', Object.getOwnPropertyDescriptor(document, 'execCommand')],
+  ['queryCommandState', Object.getOwnPropertyDescriptor(document, 'queryCommandState')],
+  ['queryCommandValue', Object.getOwnPropertyDescriptor(document, 'queryCommandValue')],
+] as const;
 
 describe('RichTextEditor', () => {
   let fixture: ComponentFixture<RichTextEditor>;
@@ -11,6 +18,14 @@ describe('RichTextEditor', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [RichTextEditor] });
     fixture = TestBed.createComponent(RichTextEditor);
+  });
+
+  afterEach(() => {
+    for (const [property, descriptor] of originalCommandDescriptors) {
+      if (descriptor) Object.defineProperty(document, property, descriptor);
+      else Reflect.deleteProperty(document, property);
+    }
+    window.getSelection()?.removeAllRanges();
   });
 
   it('renders the formatting actions the brief asks for', () => {
@@ -25,13 +40,66 @@ describe('RichTextEditor', () => {
       'Negrita',
       'Cursiva',
       'Subrayado',
-      'Tachado',
       'Lista con viñetas',
       'Lista numerada',
-      'Título',
-      'Subtítulo',
-      'Párrafo',
+      'Título 1',
+      'Título 2',
+      'Alinear a la izquierda',
+      'Centrar',
+      'Alinear a la derecha',
     ]);
+  });
+
+  it('restores the selected text before applying a toolbar command', () => {
+    fixture.detectChanges();
+    editable().innerHTML = '<p>Texto para formato</p>';
+    const text = editable().querySelector('p')?.firstChild;
+    if (!text) throw new Error('Editable text node was not rendered');
+    const range = document.createRange();
+    range.setStart(text, 0);
+    range.setEnd(text, 5);
+    window.getSelection()?.addRange(range);
+    document.dispatchEvent(new Event('selectionchange'));
+
+    const execCommand = vi.fn(() => true);
+    Object.defineProperty(document, 'execCommand', { configurable: true, value: execCommand });
+    const centerButton = fixture.nativeElement.querySelector('[aria-label="Centrar"]') as HTMLButtonElement;
+    centerButton.dispatchEvent(new Event('pointerdown', { bubbles: true, cancelable: true }));
+    window.getSelection()?.removeAllRanges();
+    centerButton.click();
+
+    expect(execCommand).toHaveBeenCalledWith('justifyCenter', false, undefined);
+    expect(window.getSelection()?.toString()).toBe('Texto');
+  });
+
+  it('shows simultaneous active text, list, and heading formats', () => {
+    fixture.detectChanges();
+    Object.defineProperty(document, 'queryCommandState', {
+      configurable: true,
+      value: (command: string) => ['bold', 'italic', 'underline', 'insertOrderedList'].includes(command),
+    });
+    Object.defineProperty(document, 'queryCommandValue', {
+      configurable: true,
+      value: () => '<H2>',
+    });
+    const editableElement = editable();
+    const text = document.createTextNode('Texto');
+    const heading = document.createElement('h2');
+    heading.append(text);
+    editableElement.append(heading);
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    window.getSelection()?.removeAllRanges();
+    window.getSelection()?.addRange(range);
+    document.dispatchEvent(new Event('selectionchange'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[aria-label="Negrita"]').getAttribute('aria-pressed')).toBe('true');
+    expect(fixture.nativeElement.querySelector('[aria-label="Cursiva"]').getAttribute('aria-pressed')).toBe('true');
+    expect(fixture.nativeElement.querySelector('[aria-label="Subrayado"]').getAttribute('aria-pressed')).toBe('true');
+    expect(fixture.nativeElement.querySelector('[aria-label="Lista numerada"]').getAttribute('aria-pressed')).toBe('true');
+    expect(fixture.nativeElement.querySelector('[aria-label="Título 2"]').getAttribute('aria-pressed')).toBe('true');
+    expect(fixture.nativeElement.querySelector('[aria-label="Título 1"]').getAttribute('aria-pressed')).toBe('false');
   });
 
   it('writes the incoming value into the editable surface, sanitizing it', () => {

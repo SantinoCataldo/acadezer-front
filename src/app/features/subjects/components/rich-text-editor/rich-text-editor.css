@@ -1,6 +1,5 @@
-/* APU-02: superficie editable. El preflight de Tailwind quita estilos a los
-   títulos y las listas, así que se restauran acá para que el contenido
-   enriquecido se lea igual dentro y fuera del editor. */
+/* APU-02: superficie editable. Los estilos del contenido dinámico viven en
+   styles.css porque contenteditable no agrega los atributos de encapsulación. */
 .note-content {
   overflow-y: auto;
   max-height: min(60vh, 32rem);
@@ -12,68 +11,4 @@
   content: attr(data-placeholder);
   color: var(--theme-muted);
   pointer-events: none;
-}
-
-.note-content > :first-child {
-  margin-top: 0;
-}
-
-.note-content > :last-child {
-  margin-bottom: 0;
-}
-
-.note-content h1 {
-  margin: 1.25em 0 0.5em;
-  font-size: 1.375rem;
-  font-weight: 700;
-  line-height: 1.25;
-}
-
-.note-content h2 {
-  margin: 1.1em 0 0.45em;
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 1.3;
-}
-
-.note-content p {
-  margin: 0.6em 0;
-}
-
-.note-content ul,
-.note-content ol {
-  margin: 0.6em 0;
-  padding-left: 1.5em;
-}
-
-.note-content ul {
-  list-style: disc;
-}
-
-.note-content ol {
-  list-style: decimal;
-}
-
-.note-content li {
-  margin: 0.25em 0;
-}
-
-.note-content a {
-  color: var(--theme-accent-content);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.note-content code {
-  border-radius: 6px;
-  background-color: var(--theme-surface-high);
-  padding: 0.1em 0.35em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.9em;
-}
-
-/* El editor se muestra sobre fondos claros y oscuros con los mismos tokens. */
-.note-content[aria-invalid='true'] {
-  outline: 1px solid var(--theme-error);
-  outline-offset: -1px;
 }

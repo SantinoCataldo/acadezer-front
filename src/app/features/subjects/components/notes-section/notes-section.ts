@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -62,12 +63,16 @@ function byLastModified(a: NoteResponse, b: NoteResponse): number {
 })
 export class NotesSection {
   readonly materiaId = input.required<number>();
+  readonly workspace = input(false);
+  readonly workspaceTitle = input<string | null>(null);
+  readonly editorOpenChange = output<boolean>();
 
   private readonly notesApi = inject(NotesService);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Materia cuya lista ya se pidió: ver el comentario del constructor. */
   private loadedMateriaId: number | null = null;
+  private requestVersion = 0;
 
   readonly state = signal<SectionState>('loading');
   readonly notes = signal<readonly NoteResponse[]>([]);
@@ -88,11 +93,17 @@ export class NotesSection {
       const materiaId = this.materiaId();
       if (this.loadedMateriaId === materiaId) return;
       this.loadedMateriaId = materiaId;
+      this.notes.set([]);
+      this.editing.set(null);
+      this.view.set('list');
+      this.editorOpenChange.emit(false);
+      this.state.set('loading');
       this.load(materiaId);
     });
   }
 
   load(materiaId = this.materiaId()): void {
+    const requestVersion = ++this.requestVersion;
     if (this.state() !== 'ready') this.state.set('loading');
     this.errorMessage.set(null);
     this.notesApi
@@ -100,6 +111,7 @@ export class NotesSection {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (notes) => {
+          if (requestVersion !== this.requestVersion) return;
           this.notes.set([...notes].sort(byLastModified));
           this.state.set('ready');
           // Si el apunte abierto dejó de existir, se vuelve a la lista.
@@ -110,6 +122,7 @@ export class NotesSection {
           }
         },
         error: (error: unknown) => {
+          if (requestVersion !== this.requestVersion) return;
           this.state.set('error');
           this.errorMessage.set(
             responseErrorMessage(error) ?? 'No pudimos cargar los apuntes. Intentá de nuevo.',
@@ -121,16 +134,19 @@ export class NotesSection {
   openNote(note: NoteResponse): void {
     this.editing.set(note);
     this.view.set('editor');
+    this.editorOpenChange.emit(true);
   }
 
   createNote(): void {
     this.editing.set(null);
     this.view.set('editor');
+    this.editorOpenChange.emit(true);
   }
 
   backToList(): void {
     this.view.set('list');
     this.editing.set(null);
+    this.editorOpenChange.emit(false);
   }
 
   onSaved(saved: NoteResponse): void {
@@ -141,11 +157,13 @@ export class NotesSection {
     );
     this.editing.set(null);
     this.view.set('list');
+    this.editorOpenChange.emit(false);
   }
 
   onDeleted(): void {
     this.editing.set(null);
     this.view.set('list');
+    this.editorOpenChange.emit(false);
     this.load();
   }
 

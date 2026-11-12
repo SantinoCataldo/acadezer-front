@@ -15,7 +15,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { createRequestAction } from '../../../../core/services/request-action';
 import {
-  CONTENIDO_APUNTE_MAX,
   TITULO_APUNTE_MAX,
   type NoteRequest,
   type NoteResponse,
@@ -36,18 +35,6 @@ function notBlank(control: AbstractControl): { blank: true } | null {
   return (control.value as string).trim().length === 0 ? { blank: true } : null;
 }
 
-function timestamp(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('es-AR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
-}
-
 /**
  * APU-03: panel de edición de un apunte.
  *
@@ -66,6 +53,7 @@ export class NoteEditor {
   /** null crea un apunte nuevo. */
   readonly note = input<NoteResponse | null>(null);
   readonly materiaId = input.required<number>();
+  readonly materiaNombre = input<string | null>(null);
 
   readonly saved = output<NoteResponse>();
   readonly deleted = output<void>();
@@ -73,7 +61,7 @@ export class NoteEditor {
 
   private readonly notes = inject(NotesService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly tituloInput = viewChild<ElementRef<HTMLInputElement>>('titulo');
+  private readonly tituloInput = viewChild<ElementRef<HTMLInputElement>>('tituloInput');
 
   readonly titulo = new FormControl('', {
     nonNullable: true,
@@ -82,24 +70,22 @@ export class NoteEditor {
   readonly contenido = signal('');
   readonly contenidoTouched = signal(false);
   readonly confirmingDelete = signal(false);
+  readonly showingInfo = signal(false);
+  readonly exportError = signal<string | null>(null);
+  readonly copiedContent = signal(false);
 
   readonly saveAction = createRequestAction();
   readonly deleteAction = createRequestAction();
 
   readonly editing = computed(() => this.note() !== null);
+  readonly hasContenido = computed(() => hasContent(this.contenido()));
   readonly contenidoError = computed(() =>
     this.contenidoTouched() && !hasContent(this.contenido())
       ? 'El contenido no puede quedar vacío.'
       : null,
   );
-  readonly statusText = computed(() => {
-    const current = this.note();
-    if (!current) return 'Apunte sin guardar';
-    return `Editado el ${timestamp(current.actualizadoEn)}`;
-  });
 
   readonly tituloMax = TITULO_APUNTE_MAX;
-  readonly contenidoMax = CONTENIDO_APUNTE_MAX;
   // Referencias para la plantilla.
   readonly primaryButtonClass = primaryButton;
   readonly secondaryButtonClass = secondaryButton;
@@ -129,7 +115,6 @@ export class NoteEditor {
 
   onContenido(html: string): void {
     this.contenido.set(html);
-    this.contenidoTouched.set(true);
   }
 
   submit(): void {
@@ -179,7 +164,107 @@ export class NoteEditor {
       });
   }
 
-  formatDate(value: string): string {
-    return timestamp(value);
+  downloadPdf(): void {
+    this.exportError.set(null);
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      this.exportError.set('Permití las ventanas emergentes para exportar el apunte.');
+      return;
+    }
+    printWindow.opener = null;
+
+    const title = this.titulo.value.trim() || 'Apunte sin título';
+    const safeTitle = this.escapeHtml(title);
+    const safeContent = this.sanitizeForPrint(this.contenido());
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html>
+      <html lang="es">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>${safeTitle}</title>
+          <style>
+            body { max-width: 760px; margin: 48px auto; padding: 0 28px; color: #171717; font: 16px/1.65 Arial, sans-serif; }
+            h1 { margin: 0 0 28px; font-size: 30px; line-height: 1.2; }
+            img { max-width: 100%; }
+            blockquote { margin: 20px 0; padding-left: 16px; border-left: 3px solid #777; color: #444; }
+            @media print { body { margin: 0 auto; } }
+          </style>
+        </head>
+        <body><main><h1>${safeTitle}</h1>${safeContent}</main></body>
+      </html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    window.setTimeout(() => printWindow.print(), 250);
+  }
+
+  async copyContent(): Promise<void> {
+    this.exportError.set(null);
+    const parsed = new DOMParser().parseFromString(this.contenido(), 'text/html');
+    const text = parsed.body.textContent?.trim() ?? '';
+    if (!text) return;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      this.copiedContent.set(true);
+      window.setTimeout(() => this.copiedContent.set(false), 1400);
+    } catch {
+      this.exportError.set('No se pudo copiar el contenido del apunte.');
+    }
+  }
+
+  metadataDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return new Intl.DateTimeFormat('es-AR', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(date);
+  }
+
+  private sanitizeForPrint(html: string): string {
+    const parsed = new DOMParser().parseFromString(html, 'text/html');
+    const allowed = new Set([
+      'P',
+      'BR',
+      'STRONG',
+      'B',
+      'EM',
+      'I',
+      'U',
+      'S',
+      'UL',
+      'OL',
+      'LI',
+      'H1',
+      'H2',
+      'BLOCKQUOTE',
+    ]);
+    const clean = (node: ParentNode): void => {
+      for (const child of Array.from(node.childNodes)) {
+        if (!(child instanceof HTMLElement)) continue;
+        clean(child);
+        if (!allowed.has(child.tagName)) {
+          child.replaceWith(...Array.from(child.childNodes));
+          continue;
+        }
+        for (const attribute of Array.from(child.attributes)) child.removeAttribute(attribute.name);
+      }
+    };
+    clean(parsed.body);
+    return parsed.body.innerHTML;
+  }
+
+  private escapeHtml(value: string): string {
+    return value.replace(/[&<>"']/g, (character) => {
+      const entities: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;',
+      };
+      return entities[character] ?? character;
+    });
   }
 }

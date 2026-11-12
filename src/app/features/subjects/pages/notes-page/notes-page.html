@@ -1,0 +1,97 @@
+<section class="notes-page-layout w-full text-[var(--theme-foreground)]" aria-labelledby="notes-page-heading">
+  <header class="mb-4 shrink-0">
+    <h1 id="notes-page-heading" class="text-3xl font-semibold tracking-tight">Apuntes</h1>
+  </header>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div aria-busy="true" class="grid min-h-0 flex-1 gap-4 xl:grid-cols-[15rem_minmax(0,1fr)]">
+        <p role="status" class="sr-only">Cargando materias y apuntes…</p>
+        <div class="hidden min-h-64 animate-pulse rounded-[22px] bg-[var(--theme-surface)] xl:block"></div>
+        <div class="min-h-80 animate-pulse rounded-[22px] bg-[var(--theme-surface)]"></div>
+      </div>
+    }
+
+    @case ('error') {
+      <div role="alert" class="rounded-[22px] bg-[var(--theme-surface)] p-6 sm:p-8">
+        <h2 class="text-lg font-semibold">No pudimos cargar tus materias</h2>
+        <p class="mt-2 text-sm text-[var(--theme-muted)]">Revisá tu conexión e intentá de nuevo.</p>
+        <button
+          type="button"
+          class="mt-5 min-h-11 cursor-pointer rounded-[14px] bg-[var(--theme-accent)] px-4 text-sm font-semibold text-[var(--theme-on-accent)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+          (click)="loadSubjects()"
+        >
+          Reintentar
+        </button>
+      </div>
+    }
+
+    @case ('ready') {
+      @if (subjects().length === 0) {
+      <div class="flex min-h-0 flex-1 items-center justify-center rounded-[22px] bg-[var(--theme-surface)] px-6 py-12 text-center sm:px-10">
+          <h2 class="text-lg font-semibold">Todavía no hay materias</h2>
+          <p class="mt-2 text-sm text-[var(--theme-muted)]">Creá una materia para empezar a guardar apuntes.</p>
+          <a
+            routerLink="/estudio/materias"
+            class="mt-5 inline-flex min-h-11 items-center justify-center rounded-[14px] bg-[var(--theme-accent)] px-4 text-sm font-semibold text-[var(--theme-on-accent)] transition-transform duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+          >
+            Ir a materias
+          </a>
+        </div>
+      } @else {
+        <nav aria-label="Agrupar apuntes por materia" class="mb-4 flex gap-2 overflow-x-auto pb-2 xl:hidden">
+          @for (subject of subjects(); track subject.id) {
+            <button
+              type="button"
+              [attr.aria-pressed]="selectedSubjectId() === subject.id"
+              class="min-h-11 shrink-0 cursor-pointer rounded-full px-4 text-sm font-medium text-[var(--theme-muted)] transition-[background-color,color] duration-150 hover:bg-[var(--theme-surface-high)] aria-pressed:bg-[var(--theme-accent-soft)] aria-pressed:text-[var(--theme-accent-content)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+              (click)="selectSubject(subject)"
+            >
+              {{ subject.nombre }}
+            </button>
+          }
+        </nav>
+
+        <div
+          class="notes-page-grid grid min-h-0 flex-1 gap-2 xl:grid-cols-[4.5rem_minmax(0,1fr)]"
+          [class.notes-subjects-pinned]="!noteEditorOpen()"
+        >
+          <nav
+            aria-label="Materias con apuntes"
+            class="notes-subjects-nav hidden min-h-0 min-w-0 flex-col rounded-[22px] bg-[var(--theme-surface)] p-2 xl:flex"
+          >
+            <ul class="notes-subjects-list mt-1 min-w-0 space-y-1 overflow-x-hidden overflow-y-auto">
+              @for (subject of subjects(); track subject.id) {
+                <li>
+                  <button
+                    type="button"
+                    [attr.aria-pressed]="selectedSubjectId() === subject.id"
+                    class="notes-subject-item group min-h-11 w-full cursor-pointer rounded-[14px] text-left text-sm font-medium text-[var(--theme-muted)] hover:bg-[var(--theme-surface-high)] hover:text-[var(--theme-foreground)] aria-pressed:bg-[var(--theme-accent-soft)] aria-pressed:text-[var(--theme-accent-content)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                    [attr.title]="subject.nombre"
+                    [attr.aria-label]="'Apuntes de ' + subject.nombre"
+                    (click)="selectSubject(subject)"
+                  >
+                    <span class="notes-subject-initial grid size-8 shrink-0 place-items-center rounded-[11px] bg-[var(--theme-surface-high)] text-xs font-semibold text-[var(--theme-foreground)] transition-[transform,border-radius,background-color,color] duration-200 group-aria-pressed:bg-[var(--theme-accent)] group-aria-pressed:text-[var(--theme-on-accent)] motion-reduce:transition-none">{{ subject.nombre.slice(0, 1).toLocaleUpperCase() }}</span>
+                    <span class="notes-subject-name min-w-0 truncate">{{ subject.nombre }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          </nav>
+
+          <div class="notes-workspace-column min-h-0 min-w-0">
+            @if (selectedSubject(); as subject) {
+              <app-notes-section
+                class="notes-workspace-component"
+                [materiaId]="subject.id"
+                [workspace]="true"
+                [workspaceTitle]="subject.nombre"
+                (editorOpenChange)="onNoteEditorOpenChange($event)"
+              />
+            }
+          </div>
+        </div>
+      }
+    }
+  }
+</section>

@@ -1,96 +1,97 @@
 <section
-  class="rounded-[24px] bg-[var(--theme-surface)] p-3 sm:p-7"
-  aria-labelledby="notes-heading"
+  [class]="workspace() ? 'notes-workspace' : 'rounded-[24px] bg-[var(--theme-surface)] p-3 sm:p-7'"
+  [attr.aria-labelledby]="workspace() ? null : 'notes-heading'"
+  [attr.aria-label]="workspace() ? 'Apuntes de ' + workspaceTitle() : null"
   [attr.data-view]="view()"
 >
-  <header class="flex flex-wrap items-start justify-between gap-4">
-    <div class="min-w-0">
-      <h2 id="notes-heading" class="text-xl font-semibold tracking-tight">Apuntes</h2>
-      <p class="mt-1 text-sm text-[var(--theme-muted)]">
-        @if (count() === 0) {
-          Todavía no escribiste apuntes para esta materia.
-        } @else {
-          {{ count() }} {{ count() === 1 ? 'apunte' : 'apuntes' }} · se muestra arriba el último
-          editado.
-        }
-      </p>
-    </div>
+  @if (!workspace()) {
+    <header class="flex flex-wrap items-center justify-between gap-3">
+      <div class="min-w-0">
+        <h2 id="notes-heading" class="text-xl font-semibold tracking-tight">Apuntes</h2>
+        <p class="mt-1 text-sm text-[var(--theme-muted)]">
+          @if (count() === 0) {
+            Todavía no escribiste apuntes para esta materia.
+          } @else {
+            {{ count() }} {{ count() === 1 ? 'apunte' : 'apuntes' }} · se muestra arriba el último
+            editado.
+          }
+        </p>
+      </div>
 
-    <button type="button" [class]="primaryButtonClass" (click)="createNote()">
-      <span class="material-symbols-rounded text-lg" aria-hidden="true">add</span>
-      Nuevo apunte
-    </button>
-  </header>
+      <button type="button" [class]="primaryButtonClass" (click)="createNote()">
+        <span class="material-symbols-rounded text-lg" aria-hidden="true">add</span>
+        Nuevo apunte
+      </button>
+    </header>
+  }
 
-  <div class="notes-panes mt-5">
+  <div class="notes-panes" [class.notes-panes-workspace]="workspace()">
     <div class="notes-pane notes-pane-list">
-      @switch (state()) {
-        @case ('loading') {
-          <div aria-busy="true" class="space-y-3">
-            <p role="status" class="sr-only">Cargando apuntes…</p>
-            @for (placeholder of [1, 2, 3]; track placeholder) {
-              <div class="h-20 animate-pulse rounded-[18px] bg-[var(--theme-surface-high)]"></div>
-            }
-          </div>
-        }
+      <div class="notes-list-content" [class.notes-list-content-workspace]="workspace()">
+        @switch (state()) {
+          @case ('loading') {
+            <div aria-busy="true" class="space-y-3">
+              <p role="status" class="sr-only">Cargando apuntes…</p>
+              @for (placeholder of [1, 2, 3]; track placeholder) {
+                <div class="h-14 animate-pulse rounded-[16px] bg-[var(--theme-surface-high)]"></div>
+              }
+            </div>
+          }
 
-        @case ('error') {
-          <div role="alert" class="rounded-[18px] bg-[var(--theme-surface-high)] p-4">
-            <p class="text-sm">{{ errorMessage() }}</p>
-            <button type="button" [class]="secondaryButtonClass" (click)="load()">
-              Reintentar
-            </button>
-          </div>
-        }
-
-        @case ('ready') {
-          @if (notes().length === 0) {
-            <div class="rounded-[18px] bg-[var(--theme-surface-high)] p-6 text-center">
-              <span
-                class="material-symbols-rounded text-3xl text-[var(--theme-muted)]"
-                aria-hidden="true"
-                >edit_note</span
-              >
-              <h3 class="mt-3 text-sm font-semibold">Este apunte se guarda en esta materia</h3>
-              <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--theme-muted)]">
-                Escribí tus resúmenes, fórmulas y recordatorios con formato. Se guardan en tu cuenta
-                y podés editarlos cuando quieras.
-              </p>
-              <button
-                type="button"
-                class="mx-auto mt-4 {{ primaryButtonClass }}"
-                (click)="createNote()"
-              >
-                <span class="material-symbols-rounded text-lg" aria-hidden="true">add</span>
-                Escribir el primer apunte
+          @case ('error') {
+            <div role="alert" class="rounded-[18px] bg-[var(--theme-surface-high)] p-4">
+              <p class="text-sm">{{ errorMessage() }}</p>
+              <button type="button" [class]="secondaryButtonClass" (click)="load()">
+                Reintentar
               </button>
             </div>
-          } @else {
-            <ul class="space-y-2.5">
-              @for (note of notes(); track note.id) {
-                <li>
-                  <button
-                    type="button"
-                    class="w-full cursor-pointer rounded-[18px] bg-[var(--theme-surface-high)] p-4 text-left transition-[background-color,transform] duration-150 hover:scale-[0.995] hover:bg-[var(--theme-surface-raised)] active:scale-[1.005] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
-                    [attr.aria-current]="editing()?.id === note.id ? 'true' : null"
-                    (click)="openNote(note)"
-                  >
-                    <h3 class="truncate text-sm font-semibold">{{ note.titulo }}</h3>
-                    <p class="mt-1 line-clamp-2 text-xs leading-relaxed text-[var(--theme-muted)]">
-                      {{ excerpt(note) }}
-                    </p>
-                    <p class="mt-2 text-xs text-[var(--theme-muted)]">
-                      <span class="material-symbols-rounded align-middle text-sm" aria-hidden="true"
-                        >schedule</span
-                      >
-                      Modificado {{ lastModified(note) }}
-                    </p>
-                  </button>
-                </li>
+          }
+
+          @case ('ready') {
+            @if (notes().length === 0) {
+              @if (workspace()) {
+                <p class="sr-only">Todavía no hay apuntes en esta materia.</p>
+              } @else {
+                <p class="rounded-[14px] px-3 py-4 text-sm text-[var(--theme-muted)]">Todavía no hay apuntes en esta materia.</p>
               }
-            </ul>
+            } @else {
+              <ul class="space-y-1.5">
+                @for (note of notes(); track note.id) {
+                  <li>
+                    <button
+                      type="button"
+                      [class]="workspace() ? 'notes-list-item' : 'w-full cursor-pointer rounded-[18px] bg-[var(--theme-surface-high)] p-4 text-left transition-[background-color,transform] duration-150 hover:scale-[0.995] hover:bg-[var(--theme-surface-raised)] active:scale-[1.005] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none'"
+                      [attr.aria-current]="editing()?.id === note.id ? 'true' : null"
+                      (click)="openNote(note)"
+                    >
+                      <span class="material-symbols-rounded text-lg" aria-hidden="true">subject</span>
+                      <span class="min-w-0 flex-1">
+                        <span class="block truncate text-sm font-medium">{{ note.titulo }}</span>
+                        @if (!workspace()) {
+                          <span class="mt-1 line-clamp-2 block text-xs leading-relaxed text-[var(--theme-muted)]">
+                            {{ excerpt(note) }}
+                          </span>
+                          <span class="mt-2 block text-xs text-[var(--theme-muted)]">
+                            Modificado {{ lastModified(note) }}
+                          </span>
+                        }
+                      </span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
           }
         }
+      </div>
+
+      @if (workspace()) {
+        <footer class="notes-list-actions">
+          <button type="button" class="notes-list-create" (click)="createNote()">
+            <span class="material-symbols-rounded text-xl" aria-hidden="true">edit_square</span>
+            Crear apunte
+          </button>
+        </footer>
       }
     </div>
 
@@ -99,22 +100,44 @@
         <app-note-editor
           [note]="editing()"
           [materiaId]="materiaId()"
+          [materiaNombre]="workspaceTitle()"
           (saved)="onSaved($event)"
           (deleted)="onDeleted()"
           (cancelled)="backToList()"
         />
       } @else {
         <div
-          class="flex min-h-40 items-center justify-center rounded-[20px] border border-dashed border-[var(--theme-border)] p-6 text-center"
+          class="flex min-h-40 flex-1 items-center justify-center rounded-[20px] border border-[var(--theme-border)] bg-[var(--theme-canvas)] p-6 text-center xl:min-h-0"
         >
           <div>
             <span
-              class="material-symbols-rounded text-3xl text-[var(--theme-muted)]"
+              class="mx-auto grid size-24 place-items-center rounded-full bg-[var(--theme-surface-high)] text-[var(--theme-accent-content)]"
               aria-hidden="true"
-              >description</span
             >
-            <p class="mt-3 text-sm leading-relaxed text-[var(--theme-muted)]">
-              Elegí un apunte de la lista para leerlo o editarlo.
+              <svg
+                class="size-10"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M3.5 7.25V6.5A1.5 1.5 0 0 1 5 5h4.1l2 2H19a1.5 1.5 0 0 1 1.5 1.5v1"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M3.5 9.5h16.1a1.4 1.4 0 0 1 1.32 1.86l-1.9 5.4a1.9 1.9 0 0 1-1.8 1.24H5a1.5 1.5 0 0 1-1.5-1.5V9.5Z"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <p class="mt-4 text-base font-semibold text-[var(--theme-foreground)]">
+              Seleccioná un apunte para empezar a editarlo.
             </p>
           </div>
         </div>

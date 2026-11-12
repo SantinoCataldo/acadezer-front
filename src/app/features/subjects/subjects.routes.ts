@@ -26,6 +26,11 @@ export const subjectRoutes: Routes = [
         title: 'Acadezer - Calendario',
       },
       {
+        path: 'apuntes',
+        loadComponent: () => import('./pages/notes-page/notes-page').then((m) => m.NotesPage),
+        title: 'Acadezer - Apuntes',
+      },
+      {
         path: 'materias/:id',
         loadComponent: () => import('./pages/subject-detail/subject-detail').then((m) => m.SubjectDetail),
         title: 'Acadezer - Materia',

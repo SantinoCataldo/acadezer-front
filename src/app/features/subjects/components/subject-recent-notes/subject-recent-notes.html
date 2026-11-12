@@ -1,0 +1,55 @@
+<section class="rounded-[22px] bg-[var(--theme-surface)] p-4 sm:p-6" aria-labelledby="recent-notes-heading">
+  <header class="flex items-center justify-between gap-4">
+    <div class="min-w-0">
+      <h2 id="recent-notes-heading" class="text-lg font-semibold">Apuntes recientes</h2>
+      <p class="mt-1 text-sm text-[var(--theme-muted)]">Títulos y fecha de edición.</p>
+    </div>
+    <a
+      [routerLink]="['/estudio/apuntes']"
+      [queryParams]="{ materiaId: materiaId() }"
+      class="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-[13px] px-3 text-sm font-medium text-[var(--theme-accent-content)] transition-[background-color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+    >
+      Ver todos
+      <span class="material-symbols-rounded text-lg" aria-hidden="true">arrow_forward</span>
+    </a>
+  </header>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div aria-busy="true" class="mt-4 space-y-2">
+        <p role="status" class="sr-only">Cargando apuntes recientes…</p>
+        @for (placeholder of [1, 2]; track placeholder) {
+          <div class="h-14 animate-pulse rounded-[14px] bg-[var(--theme-surface-high)]"></div>
+        }
+      </div>
+    }
+    @case ('error') {
+      <div role="alert" class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[14px] bg-[var(--theme-surface-high)] px-4 py-3">
+        <p class="text-sm">No pudimos cargar los apuntes.</p>
+        <button
+          type="button"
+          class="min-h-11 cursor-pointer rounded-[12px] px-3 text-sm font-medium text-[var(--theme-accent-content)] transition-colors hover:bg-[var(--theme-surface-raised)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+          (click)="load()"
+        >
+          Reintentar
+        </button>
+      </div>
+    }
+    @case ('ready') {
+      @if (notes().length === 0) {
+        <p class="mt-4 rounded-[14px] bg-[var(--theme-surface-high)] px-4 py-5 text-sm text-[var(--theme-muted)]">
+          Todavía no hay apuntes en esta materia.
+        </p>
+      } @else {
+        <ul class="mt-4 divide-y divide-[var(--theme-border)]/40">
+          @for (note of notes(); track note.id) {
+            <li class="flex min-h-14 items-center justify-between gap-4 py-3 first:pt-1 last:pb-1">
+              <h3 class="min-w-0 truncate text-sm font-medium">{{ note.titulo }}</h3>
+              <time class="shrink-0 text-xs text-[var(--theme-muted)]">{{ editedAt(note.actualizadoEn) }}</time>
+            </li>
+          }
+        </ul>
+      }
+    }
+  }
+</section>

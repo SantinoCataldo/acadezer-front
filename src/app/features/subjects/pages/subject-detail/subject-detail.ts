@@ -6,7 +6,7 @@ import type { AttendanceControlResponse, EstadoControlAsistencia, SubjectRespons
 import { SubjectsService } from '../../services/subjects.service';
 import { DeleteSubjectDialog } from '../../components/delete-subject-dialog/delete-subject-dialog';
 import { SubjectFormDialog } from '../../components/subject-form-dialog/subject-form-dialog';
-import { NotesSection } from '../../components/notes-section/notes-section';
+import { SubjectRecentNotes } from '../../components/subject-recent-notes/subject-recent-notes';
 import { dangerButton, primaryButton, secondaryButton } from '../../dialog-styles';
 
 type DetailState = 'loading' | 'error' | 'ready';
@@ -30,11 +30,11 @@ interface DetailSection {
  *
  * MAT-03: muestra la cursada, permite registrar asistencia y conserva el
  * historial asociado a la materia.
- * APU-01: incluye temporalmente los apuntes dentro del detalle de la materia.
+  * APU-01: muestra un acceso de solo lectura a los apuntes recientes de la materia.
  */
 @Component({
   selector: 'app-subject-detail',
-  imports: [RouterLink, NotesSection, SubjectFormDialog, DeleteSubjectDialog],
+  imports: [RouterLink, SubjectRecentNotes, SubjectFormDialog, DeleteSubjectDialog],
   templateUrl: './subject-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
