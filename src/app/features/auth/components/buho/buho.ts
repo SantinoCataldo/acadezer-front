@@ -2,7 +2,6 @@ import { Component, ElementRef, OnDestroy, OnInit, input, viewChild } from '@ang
 
 export type EstadoBuho = 'normal' | 'escribiendo' | 'tapado' | 'error' | 'feliz';
 
-// Tamaño del dibujo (el canvas se escala con la densidad de la pantalla)
 const ANCHO = 200;
 const ALTO = 200;
 
@@ -12,10 +11,10 @@ const ALTO = 200;
     aria-label="Un búho con birrete que te acompaña mientras completás el formulario"></canvas>`,
 })
 export class Buho implements OnInit, OnDestroy {
-  // Qué está haciendo, hacia dónde mira al escribir (0 a 1) y si espía la contraseña
   estado = input<EstadoBuho>('normal');
   mirada = input(0);
   espiando = input(false);
+  conRama = input(false);
 
   lienzo = viewChild.required<ElementRef<HTMLCanvasElement>>('lienzo');
 
@@ -27,14 +26,12 @@ export class Buho implements OnInit, OnDestroy {
   private mouseX = -1;
   private mouseY = -1;
 
-  // Colores: se arman a partir del color de acento del tema
   private c = {
     cuerpo: '#565b8c', oscuro: '#3c4062', claro: '#7a7fb0', cara: '#e4e5f3', panza: '#c9cbe6',
     pluma: '#9a9dc8', ojo: '#ffffff', iris: '#ffb020', pupila: '#121214', pico: '#2a2420',
     patas: '#ffb020', birrete: '#1f1f24', birreteBase: '#34343c', borla: '#ffb020', sombra: 'rgba(0,0,0,0.18)',
   };
 
-  // Valores que se animan de a poco
   private tapa = 0;
   private espia = 0;
   private feliz = 0;
@@ -72,7 +69,6 @@ export class Buho implements OnInit, OnDestroy {
     this.mouseY = e.clientY;
   };
 
-  // Arma la paleta del búho con el color de acento del tema (se relee cada tanto por si lo cambiás)
   private leerColores() {
     const estilos = getComputedStyle(document.documentElement);
     const acento = this.aRgb(estilos.getPropertyValue('--theme-accent'));
@@ -118,11 +114,10 @@ export class Buho implements OnInit, OnDestroy {
     this.feliz = this.acercar(this.feliz, estado === 'feliz' ? 1 : 0, 7, dt);
     this.error = this.acercar(this.error, estado === 'error' ? 1 : 0, 5, dt);
 
-    // Hacia dónde miran los ojos
     let x = 0;
     let y = 0;
     if (estado === 'escribiendo') {
-      x = -0.8 + this.mirada() * 1.6; // sigue lo que vas escribiendo
+      x = -0.8 + this.mirada() * 1.6;
       y = 0.9;
     } else if (estado === 'error') {
       y = 0.7;
@@ -136,11 +131,9 @@ export class Buho implements OnInit, OnDestroy {
     this.pupilaX = this.acercar(this.pupilaX, x, 10, dt);
     this.pupilaY = this.acercar(this.pupilaY, y, 10, dt);
 
-    // La cabeza acompaña la mirada y niega cuando hay un error
     const negar = this.reducido ? 0 : Math.sin(this.tiempo * 14) * 0.12 * this.error;
     this.giroCabeza = this.acercar(this.giroCabeza, this.pupilaX * 0.08 + negar, 8, dt);
 
-    // Parpadeo cada algunos segundos
     this.proximoParpadeo -= dt;
     if (this.proximoParpadeo <= 0 && this.feliz < 0.3) {
       this.parpadeo = 1;
@@ -148,7 +141,6 @@ export class Buho implements OnInit, OnDestroy {
     }
     this.parpadeo = Math.max(0, this.parpadeo - dt * 6);
 
-    // Saltitos cuando está feliz: sube, cae y se aplasta un poco
     if (!this.reducido) {
       if (this.feliz > 0.5 && this.salto <= 0 && this.velSalto <= 0) this.velSalto = 260;
       this.velSalto -= 1100 * dt;
@@ -168,12 +160,11 @@ export class Buho implements OnInit, OnDestroy {
     ctx.clearRect(0, 0, ANCHO, ALTO);
     const respira = this.reducido ? 0 : Math.sin(this.tiempo * 2.2) * 0.015;
 
-    // Sombra suave debajo de la rama
-    ctx.fillStyle = this.c.sombra;
-    this.elipse(100, 194, 52, 4);
-
-    // Rama / perch firme donde se apoya el búho
-    this.rama();
+    if (this.conRama()) {
+      ctx.fillStyle = this.c.sombra;
+      this.elipse(100, 194, 52, 4);
+      this.rama();
+    }
 
     ctx.save();
     // Se apoya firme en las patas (salto solo si festeja éxito)
@@ -200,7 +191,6 @@ export class Buho implements OnInit, OnDestroy {
     ctx.restore();
   }
 
-  // Rama de madera con acabado cálido y hojas para que el búho esté apoyado y no flote
   private rama() {
     const ctx = this.ctx!;
     ctx.save();
@@ -225,14 +215,12 @@ export class Buho implements OnInit, OnDestroy {
     ctx.closePath();
     ctx.fill();
 
-    // Detalle de nudo / veta de madera
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.arc(62, 187, 2.5, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Hojitas verdes frescas brotando a la izquierda
     ctx.fillStyle = '#4ade80';
     ctx.beginPath();
     ctx.ellipse(32, 181, 6, 3, -0.4, 0, Math.PI * 2);
@@ -257,7 +245,6 @@ export class Buho implements OnInit, OnDestroy {
     ctx.closePath();
     ctx.fill();
 
-    // Pecho claro con plumitas en V
     ctx.fillStyle = this.c.panza;
     ctx.beginPath();
     ctx.moveTo(78, 118);
@@ -284,7 +271,6 @@ export class Buho implements OnInit, OnDestroy {
     g.addColorStop(1, this.c.cuerpo);
     ctx.fillStyle = g;
     ctx.beginPath();
-    // De oreja a oreja pasando por los costados de la cara
     ctx.moveTo(100, 50);
     ctx.quadraticCurveTo(116, 44, 138, 26);
     ctx.quadraticCurveTo(146, 50, 150, 78);
@@ -294,7 +280,6 @@ export class Buho implements OnInit, OnDestroy {
     ctx.quadraticCurveTo(84, 44, 100, 50);
     ctx.fill();
 
-    // Cara en forma de corazón
     ctx.fillStyle = this.c.cara;
     ctx.beginPath();
     ctx.moveTo(100, 66);
@@ -309,7 +294,6 @@ export class Buho implements OnInit, OnDestroy {
     const ctx = this.ctx!;
     for (const [x, y] of [[80, 86], [120, 86]]) {
       if (this.feliz > 0.5) {
-        // Ojos felices: arcos ^
         ctx.strokeStyle = this.c.pupila;
         ctx.lineWidth = 4.5;
         ctx.lineCap = 'round';
@@ -318,7 +302,7 @@ export class Buho implements OnInit, OnDestroy {
         ctx.stroke();
         continue;
       }
-      const abierto = 1 - Math.sin(this.parpadeo * Math.PI); // cierra y abre suave
+      const abierto = 1 - Math.sin(this.parpadeo * Math.PI);
       ctx.fillStyle = this.c.oscuro;
       this.elipse(x, y, 17, 17);
       ctx.save();
@@ -372,7 +356,6 @@ export class Buho implements OnInit, OnDestroy {
     ctx.save();
     ctx.translate(100, 40);
     ctx.rotate(-0.08);
-    // Base que se apoya en la cabeza
     ctx.fillStyle = this.c.birreteBase;
     ctx.beginPath();
     ctx.moveTo(-20, 0);
@@ -381,7 +364,6 @@ export class Buho implements OnInit, OnDestroy {
     ctx.quadraticCurveTo(0, 16, -18, 12);
     ctx.closePath();
     ctx.fill();
-    // Tabla de arriba
     ctx.fillStyle = this.c.birrete;
     ctx.beginPath();
     ctx.moveTo(0, -16);
@@ -413,13 +395,18 @@ export class Buho implements OnInit, OnDestroy {
   private patas() {
     const ctx = this.ctx!;
     ctx.strokeStyle = this.c.patas;
-    ctx.lineWidth = 3.2;
+    ctx.lineWidth = 3.6;
     ctx.lineCap = 'round';
     for (const x of [88, 112]) {
       for (const dedo of [-1, 0, 1]) {
         ctx.beginPath();
-        ctx.moveTo(x, 176);
-        ctx.lineTo(x + dedo * 5, 184);
+        ctx.moveTo(x, 174);
+        if (this.conRama()) {
+          ctx.lineTo(x + dedo * 5, 184);
+        } else {
+          // Garras que se curvan abrazando el borde superior de la tarjeta
+          ctx.quadraticCurveTo(x + dedo * 4, 181, x + dedo * 6, 187);
+        }
         ctx.stroke();
       }
     }
