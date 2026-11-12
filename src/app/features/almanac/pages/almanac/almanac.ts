@@ -1,13 +1,10 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { DiaSemana, SubjectResponse } from '../../../subjects/models';
-import { SubjectsService } from '../../../subjects/services/subjects.service';
-
-type PageState = 'loading' | 'error' | 'ready';
 
 interface ScheduleEntry {
   scheduleId: number;
+  subjectId: number;
   subjectName: string;
   start: string;
   end: string;
@@ -52,11 +49,7 @@ function timeToMinutes(value: string): number {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Almanac {
-  private readonly subjectsService = inject(SubjectsService);
-  private readonly destroyRef = inject(DestroyRef);
-
-  readonly subjects = signal<readonly SubjectResponse[]>([]);
-  readonly state = signal<PageState>('loading');
+  readonly subjects = input.required<readonly SubjectResponse[]>();
   readonly showWeekends = signal(false);
 
   readonly weeklyColumns = computed<readonly WeeklyColumn[]>(() =>
@@ -69,6 +62,7 @@ export class Almanac {
             const end = formatTime(schedule.horaFin);
             return {
               scheduleId: schedule.id,
+              subjectId: subject.id,
               subjectName: subject.nombre,
               start,
               end,
@@ -87,9 +81,10 @@ export class Almanac {
   );
 
   readonly visibleWeeklyColumns = computed(() =>
-    this.weeklyColumns().filter((day) =>
-      (day.id !== 'SABADO' && day.id !== 'DOMINGO') || this.showWeekends(),
-    ),
+    this.weeklyColumns().filter((day) => {
+      const weekend = day.id === 'SABADO' || day.id === 'DOMINGO';
+      return !weekend || this.showWeekends() || day.entries.length > 0;
+    }),
   );
 
   readonly hasSchedule = computed(() => this.weeklyColumns().some((day) => day.entries.length > 0));
@@ -102,27 +97,4 @@ export class Almanac {
     this.showWeekends.update((visible) => !visible);
   }
 
-  constructor() {
-    this.load();
-  }
-
-  load(): void {
-    this.state.set('loading');
-    this.subjectsService
-      .list()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (subjects) => {
-          this.subjects.set(subjects);
-          this.showWeekends.set(subjects.some((subject) =>
-            subject.horarios.some((schedule) => schedule.diaSemana === 'SABADO' || schedule.diaSemana === 'DOMINGO'),
-          ));
-          this.state.set('ready');
-        },
-        error: () => {
-          this.subjects.set([]);
-          this.state.set('error');
-        },
-      });
-  }
 }
