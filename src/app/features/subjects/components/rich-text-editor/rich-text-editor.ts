@@ -64,6 +64,7 @@ export class RichTextEditor {
   protected readonly toolbar = TOOLBAR;
   protected readonly focused = signal(false);
   protected readonly activeActions = signal<ReadonlySet<string>>(new Set());
+  private readonly activeBlock = signal<string | null>(null);
   private readonly editable = viewChild.required<ElementRef<HTMLElement>>('editable');
   private readonly sanitizer = inject(DomSanitizer);
   private lastEmitted = '';
@@ -87,8 +88,13 @@ export class RichTextEditor {
     this.restoreSelection(element);
     if (action.command && typeof document.execCommand === 'function') {
       let cmdValue = action.value;
-      if (action.command === 'formatBlock' && action.value && action.clearValue && this.queryCurrentBlock(action.value)) {
-        cmdValue = action.clearValue;
+      if (action.command === 'formatBlock' && action.value) {
+        // El bloque activo se lee del último estado conocido con la selección
+        // dentro del editable: así el segundo click sobre el mismo título lo saca
+        // en lugar de volver a aplicarlo.
+        const bloqueActivo =
+          this.activeBlock() === action.value.toUpperCase() || this.queryCurrentBlock(action.value);
+        cmdValue = bloqueActivo ? (action.clearValue ?? 'p') : action.value;
       }
       document.execCommand(action.command, false, cmdValue);
     }
@@ -221,13 +227,27 @@ export class RichTextEditor {
 
   private refreshActiveActions(): void {
     const active = new Set<string>();
+    const block = this.currentBlock();
+    this.activeBlock.set(block);
     for (const action of TOOLBAR) {
       if (action.stateCommand && this.queryCommandState(action.stateCommand)) active.add(action.label);
-      if (action.command === 'formatBlock' && action.value && this.queryCurrentBlock(action.value)) {
+      if (action.command === 'formatBlock' && action.value && block === action.value.toUpperCase()) {
         active.add(action.label);
       }
     }
     this.activeActions.set(active);
+  }
+
+  private currentBlock(): string | null {
+    try {
+      if (typeof document.queryCommandValue !== 'function') return null;
+      const raw = document.queryCommandValue('formatBlock');
+      if (!raw) return null;
+      const tag = raw.replace(/[<>]/g, '').trim().toUpperCase();
+      return tag.length > 0 ? tag : null;
+    } catch {
+      return null;
+    }
   }
 
     protected isBlockActive(blockTag: string): boolean {

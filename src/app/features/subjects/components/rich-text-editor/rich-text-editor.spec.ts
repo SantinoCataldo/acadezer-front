@@ -72,6 +72,82 @@ describe('RichTextEditor', () => {
     expect(window.getSelection()?.toString()).toBe('Texto');
   });
 
+  it('keeps the toolbar clicks from stealing the focus of the editable', () => {
+    fixture.detectChanges();
+    const editableElement = editable();
+    editableElement.innerHTML = '<p>Texto</p>';
+    editableElement.focus();
+
+    const boton = fixture.nativeElement.querySelector('[aria-label="Negrita"]') as HTMLButtonElement;
+    const mousedown = new MouseEvent('mousedown', { bubbles: true, cancelable: true });
+    boton.dispatchEvent(mousedown);
+
+    expect(mousedown.defaultPrevented).toBe(true);
+    expect(document.activeElement).toBe(editableElement);
+  });
+
+  it('applies bold, italic and underline one after the other without dropping the others', () => {
+    fixture.detectChanges();
+    editable().innerHTML = '<p>Texto</p>';
+    const texto = editable().querySelector('p')?.firstChild;
+    if (!texto) throw new Error('Editable text node was not rendered');
+    const range = document.createRange();
+    range.setStart(texto, 0);
+    range.setEnd(texto, 5);
+    window.getSelection()?.addRange(range);
+
+    const execCommand = vi.fn((...args: unknown[]) => {
+      void args;
+      return true;
+    });
+    Object.defineProperty(document, 'execCommand', { configurable: true, value: execCommand });
+
+    for (const etiqueta of ['Negrita', 'Cursiva', 'Subrayado']) {
+      const boton = fixture.nativeElement.querySelector(`[aria-label="${etiqueta}"]`) as HTMLButtonElement;
+      boton.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+      boton.click();
+    }
+
+    expect(execCommand.mock.calls.map((call) => call[0])).toEqual(['bold', 'italic', 'underline']);
+    expect(window.getSelection()?.toString()).toBe('Texto');
+  });
+
+  it('removes the heading when the same title button is clicked again', () => {
+    fixture.detectChanges();
+    editable().innerHTML = '<p>Texto</p>';
+    const texto = editable().querySelector('p')?.firstChild;
+    if (!texto) throw new Error('Editable text node was not rendered');
+    const range = document.createRange();
+    range.selectNodeContents(texto);
+    window.getSelection()?.addRange(range);
+
+    let block = '<p>';
+    Object.defineProperty(document, 'queryCommandValue', { configurable: true, value: () => block });
+    document.dispatchEvent(new Event('selectionchange'));
+
+    const execCommand = vi.fn(() => true);
+    Object.defineProperty(document, 'execCommand', { configurable: true, value: execCommand });
+    const boton = fixture.nativeElement.querySelector('[aria-label="Título 1"]') as HTMLButtonElement;
+
+    boton.click();
+    expect(execCommand).toHaveBeenLastCalledWith('formatBlock', false, 'H1');
+    fixture.detectChanges();
+
+    block = '<h1>';
+    document.dispatchEvent(new Event('selectionchange'));
+    fixture.detectChanges();
+    expect(boton.getAttribute('aria-pressed')).toBe('true');
+
+    boton.click();
+    expect(execCommand).toHaveBeenLastCalledWith('formatBlock', false, 'p');
+    fixture.detectChanges();
+
+    block = '<p>';
+    document.dispatchEvent(new Event('selectionchange'));
+    fixture.detectChanges();
+    expect(boton.getAttribute('aria-pressed')).toBe('false');
+  });
+
   it('shows simultaneous active text, list, and heading formats', () => {
     fixture.detectChanges();
     Object.defineProperty(document, 'queryCommandState', {
