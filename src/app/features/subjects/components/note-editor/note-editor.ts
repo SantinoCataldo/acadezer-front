@@ -117,8 +117,6 @@ readonly plainTextLength = computed(() => {
       return currentTitulo.length > 0 || hasContent(currentContenido);
     }
 
-    // Para una nota existente, si el usuario no interactuó con los campos,
-    // se asegura que no esté sucia al abrir.
     if (!this.titulo.dirty && !this.contentDirty()) {
       return false;
     }

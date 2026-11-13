@@ -17,13 +17,9 @@ import { toast } from 'ngx-sonner';
 interface ToolbarAction {
   icon: string;
   label: string;
-  /** Comando de `document.execCommand`; null cuando se resuelve a mano. */
   command: string | null;
-  /** Argumento del comando. */
   value?: string;
-  /** Comando que permite consultar si el formato está activo. */
   stateCommand?: string;
-  /** Para formatBlock: valor que desactiva el bloque (ej. 'p' para H1/H2). */
   clearValue?: string;
 }
 
@@ -52,14 +48,6 @@ const TOOLBAR: readonly ToolbarAction[] = [
   { icon: 'format_align_right', label: 'Alinear a la derecha', command: 'justifyRight', stateCommand: 'justifyRight' },
 ];
 
-/**
- * APU-02: editor de contenido enriquecido sobre `contenteditable`.
- *
- * No se agregan dependencias: el backend guarda el HTML tal cual y el requisito
- * incluye estilos de texto, títulos, listas y alineación. Cada edición viaja al padre
- * como HTML y `execCommand` conserva el deshacer nativo del navegador. El HTML
- * se sanea al cargarse para no inyectar etiquetas desde el contenido guardado.
- */
 @Component({
   selector: 'app-rich-text-editor',
   templateUrl: './rich-text-editor.html',
@@ -83,9 +71,7 @@ export class RichTextEditor {
   private userEditedLocally = false;
 
   constructor() {
-    // El valor entra desde el padre (abrir un apunte o resetear el formulario);
-    // no se reescribe mientras el usuario escribe, para no mover el cursor.
-    effect(() => {
+        effect(() => {
       const next = this.value();
       const element = this.editable()?.nativeElement;
       if (!element || next === this.lastEmitted) return;
@@ -100,23 +86,20 @@ export class RichTextEditor {
     element.focus();
     this.restoreSelection(element);
     if (action.command && typeof document.execCommand === 'function') {
-      // Para formatBlock (H1/H2), si ya está activo, aplicamos clearValue (p) para desactivar
-      let cmdValue = action.value;
+            let cmdValue = action.value;
       if (action.command === 'formatBlock' && action.value && action.clearValue && this.queryCurrentBlock(action.value)) {
         cmdValue = action.clearValue;
       }
       document.execCommand(action.command, false, cmdValue);
     }
-    // No capturamos selección aquí - el onInput/onSelectionChange lo hará
-    this.refreshActiveActions();
+        this.refreshActiveActions();
     this.userEditedLocally = true;
     this.emit(element.innerHTML);
   }
 
-  /** Usar mousedown para capturar selección ANTES de que el botón quite el foco */
-  protected onToolbarMousedown(event: MouseEvent): void {
+    protected onToolbarMousedown(event: MouseEvent): void {
     this.captureSelection(this.editable().nativeElement);
-    event.preventDefault(); // Evita que el mousedown quite el foco del contenteditable
+    event.preventDefault();
   }
 
   protected preserveSelection(event: PointerEvent): void {
@@ -241,8 +224,7 @@ export class RichTextEditor {
     this.activeActions.set(active);
   }
 
-  /** Verifica si un formato de bloque (H1/H2) está activo en la selección actual. */
-  protected isBlockActive(blockTag: string): boolean {
+    protected isBlockActive(blockTag: string): boolean {
     return this.queryCurrentBlock(blockTag);
   }
 

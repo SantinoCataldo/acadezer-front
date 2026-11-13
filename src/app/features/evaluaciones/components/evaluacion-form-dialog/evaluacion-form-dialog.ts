@@ -25,6 +25,7 @@ import {
   ESTADOS_EVALUACION,
   type TipoEvaluacion,
   type EstadoEvaluacion,
+  computeTipoEstado,
 } from '../../models';
 import { EvaluacionService } from '../../evaluacion.service';
 import { Modal } from '../../../subjects/components/modal/modal';
@@ -65,6 +66,11 @@ export class EvaluacionFormDialog {
   readonly nombreMax = EVALUACION_NOMBRE_MAX_LENGTH;
   readonly notaMax = EVALUACION_CALIFICACION_MAX;
   readonly notaLength = EVALUACION_CALIFICACION_MAX_LENGTH;
+
+  readonly primaryButtonClass = primaryButton;
+  readonly secondaryButtonClass = secondaryButton;
+  readonly errorSurfaceClass = errorSurface;
+
   readonly tipos = TIPOS_EVALUACION;
   readonly estados = ESTADOS_EVALUACION;
   readonly opcionesTipo: readonly SelectOption<TipoEvaluacion>[] = TIPOS_EVALUACION.map((t) => ({
@@ -75,10 +81,6 @@ export class EvaluacionFormDialog {
     value: e.valor,
     label: e.etiqueta,
   }));
-
-  readonly primaryButtonClass = primaryButton;
-  readonly secondaryButtonClass = secondaryButton;
-  readonly errorSurfaceClass = errorSurface;
 
   readonly opcionesMateria = computed<readonly SelectOption<number>[]>(() => {
     const list = this.materias();
@@ -97,8 +99,6 @@ export class EvaluacionFormDialog {
     estado: new FormControl<EstadoEvaluacion>('PENDIENTE', { nonNullable: true }),
     nota: new FormControl('', { nonNullable: true }),
   });
-
-  readonly pideNota = computed(() => this.form.controls.estado.value !== 'PENDIENTE');
 
   private readonly notaValue = toSignal(this.form.controls.nota.valueChanges, {
     initialValue: this.form.controls.nota.value,
@@ -133,6 +133,17 @@ export class EvaluacionFormDialog {
         nota: current.calificacion === null ? '' : String(current.calificacion),
       });
       this.form.markAsPristine();
+    });
+
+    this.form.controls.nota.valueChanges.subscribe((notaRaw) => {
+      const valor = parseNota(notaRaw);
+      if (valor === null || Number.isNaN(valor)) {
+        this.form.controls.estado.setValue('PENDIENTE');
+      } else {
+        this.form.controls.estado.setValue(
+          valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO',
+        );
+      }
     });
 
     this.form.controls.estado.valueChanges.subscribe((estado) => {
@@ -173,16 +184,6 @@ export class EvaluacionFormDialog {
       return `La nota va de 0 a ${this.notaMax}, con hasta dos decimales.`;
     }
     return null;
-  }
-
-  onNotaInput(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    if (!target) return;
-    const valor = parseNota(target.value);
-    if (valor === null || Number.isNaN(valor)) return;
-    this.form.controls.estado.setValue(
-      valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO',
-    );
   }
 
   close(): void {

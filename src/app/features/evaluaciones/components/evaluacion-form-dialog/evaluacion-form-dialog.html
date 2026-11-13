@@ -44,9 +44,9 @@
 
     <div class="grid gap-4 sm:grid-cols-2">
       <div>
-        <label for="evaluacion-tipo" class="mb-1.5 block text-xs text-[var(--theme-muted)]"
-          >Tipo</label
-        >
+        <label for="evaluacion-tipo" class="mb-1.5 block text-xs font-medium text-[var(--theme-muted)]">
+          Tipo
+        </label>
         <app-select
           id="evaluacion-tipo"
           [options]="opcionesTipo"
@@ -55,9 +55,9 @@
       </div>
 
       <div>
-        <label for="evaluacion-estado" class="mb-1.5 block text-xs text-[var(--theme-muted)]"
-          >Estado</label
-        >
+        <label for="evaluacion-estado" class="mb-1.5 block text-xs font-medium text-[var(--theme-muted)]">
+          Estado
+        </label>
         <app-select
           id="evaluacion-estado"
           [options]="opcionesEstado"
@@ -69,13 +69,11 @@
     <div>
       <app-text-field
         id="evaluacion-nota"
-        label="Nota (0 a 10)"
-        [required]="pideNota()"
+        label="Nota (0 a 10, opcional)"
         [errorText]="notaError()"
         [maxLength]="notaLength"
         inputMode="decimal"
-        supportingText="Podés usar coma decimal. Dejalo vacío si todavía no la rendiste."
-        (input)="onNotaInput($event)"
+        supportingText="Dejalo vacío si aún no la rendiste. ≥6 = Aprobado, <6 = Desaprobado."
       />
     </div>
 
