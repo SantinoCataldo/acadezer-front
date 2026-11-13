@@ -140,9 +140,11 @@ export class EvaluacionFormDialog {
       if (valor === null || Number.isNaN(valor)) {
         this.form.controls.estado.setValue('PENDIENTE');
       } else {
-        this.form.controls.estado.setValue(
-          valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO',
-        );
+        const expectedEstado = valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO';
+        const currentEstado = this.form.controls.estado.value;
+        if (currentEstado !== 'PENDIENTE' && currentEstado !== expectedEstado) {
+          this.form.controls.estado.setValue(expectedEstado, { emitEvent: false });
+        }
       }
     });
 
@@ -210,13 +212,14 @@ export class EvaluacionFormDialog {
     if (!targetMateriaId) return;
 
     const nota = parseNota(this.form.controls.nota.value);
-    const { tipo, estado } = computeTipoEstado(nota === null || Number.isNaN(nota) ? null : nota);
+    const notaNum = nota === null || Number.isNaN(nota) ? null : nota;
+    const estado = notaNum === null ? 'PENDIENTE' : (notaNum >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO');
     const request: EvaluacionRequest = {
       nombre: this.form.controls.nombre.value.trim(),
       fecha: this.form.controls.fecha.value,
-      tipo,
+      tipo: this.form.controls.tipo.value,
       estado,
-      calificacion: nota === null || Number.isNaN(nota) ? null : nota,
+      calificacion: notaNum,
     };
 
     const current = this.evaluacion();

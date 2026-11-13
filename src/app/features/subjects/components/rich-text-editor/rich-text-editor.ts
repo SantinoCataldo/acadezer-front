@@ -86,20 +86,26 @@ export class RichTextEditor {
     element.focus();
     this.restoreSelection(element);
     if (action.command && typeof document.execCommand === 'function') {
-            let cmdValue = action.value;
+      let cmdValue = action.value;
       if (action.command === 'formatBlock' && action.value && action.clearValue && this.queryCurrentBlock(action.value)) {
         cmdValue = action.clearValue;
       }
       document.execCommand(action.command, false, cmdValue);
     }
-        this.refreshActiveActions();
+    this.refreshActiveActions();
     this.userEditedLocally = true;
     this.emit(element.innerHTML);
   }
 
-    protected onToolbarMousedown(event: MouseEvent): void {
-    this.captureSelection(this.editable().nativeElement);
+  protected onToolbarMousedown(event: MouseEvent): void {
     event.preventDefault();
+    this.captureSelection(this.editable().nativeElement);
+  }
+
+  protected onToolbarMouseup(event: MouseEvent): void {
+    const element = this.editable().nativeElement;
+    element.focus();
+    this.restoreSelection(element);
   }
 
   protected preserveSelection(event: PointerEvent): void {
