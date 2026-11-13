@@ -2,9 +2,12 @@
   <div class="grano" aria-hidden="true"></div>
 
   <header class="fixed inset-x-0 top-0 z-50">
-    <div class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-8">
-      <a routerLink="/" class="text-lg font-semibold tracking-[-0.04em]">acadezer<span class="text-[var(--accent)]">.</span></a>
-      <div class="flex items-center gap-2 rounded-full bg-[var(--bg)]/70 p-1 backdrop-blur-md">
+    <div class="mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-4 sm:px-8">
+      <a routerLink="/" class="flex min-h-12 items-center gap-2.5 rounded-full border border-[var(--line)] bg-[var(--surface)]/60 py-1 pr-5 pl-1 text-lg font-semibold tracking-[-0.04em] shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+        <span class="grid size-10 place-items-center rounded-full bg-[var(--accent)] text-[var(--on-accent)]"><span class="material-symbols-rounded text-[20px]" aria-hidden="true">menu_book</span></span>
+        <span>acadezer<span class="text-[var(--accent)]">.</span></span>
+      </a>
+      <div class="flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)]/60 p-1 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.5)] backdrop-blur-xl">
         <a routerLink="/login" class="hidden min-h-10 items-center px-4 text-sm font-medium text-[var(--muted)] transition-colors hover:text-[var(--text)] sm:flex">Iniciar sesión</a>
         <a routerLink="/register" class="flex min-h-10 items-center rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-[var(--on-accent)] transition-transform duration-150 hover:scale-[1.03] active:scale-[0.97]">Crear cuenta</a>
       </div>
@@ -12,14 +15,14 @@
   </header>
 
   <main>
-   
-    <section class="relative mx-auto grid min-h-dvh w-full max-w-7xl content-center gap-12 px-4 pt-24 pb-16 sm:px-8 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16">
+
+    <section id="inicio" class="relative mx-auto grid min-h-dvh w-full max-w-7xl content-center gap-12 px-4 pt-24 pb-16 sm:px-8 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16">
       <div>
         <h1 class="hero-linea text-[clamp(2.8rem,6.2vw,5.2rem)] font-semibold leading-[0.95] tracking-[-0.06em]">
           <span class="block overflow-hidden pb-2"><span class="block">Vos estudiá.</span></span>
           <span class="block overflow-hidden pb-2"><span class="block text-[var(--accent)]">Acadezer anota.</span></span>
         </h1>
-        <p class="hero-sub mt-7 max-w-[38ch] text-lg leading-8 text-[var(--muted)]">Cada presente, cada apunte y cada fecha de entrega, ordenados por materia.</p>
+        <p class="hero-sub mt-7 max-w-[38ch] text-lg leading-8 text-[var(--muted)]">Materias, asistencia, tareas, apuntes y notas. Todo ordenado por materia, en un solo lugar.</p>
         <a routerLink="/register" class="hero-sub mt-10 inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--accent)] px-7 text-sm font-semibold text-[var(--on-accent)] transition-transform duration-150 hover:scale-[1.03] active:scale-[0.97]">
           Crear cuenta <span class="material-symbols-rounded text-lg" aria-hidden="true">arrow_forward</span>
         </a>
@@ -46,48 +49,11 @@
       </div>
     </section>
 
-    <section class="relative">
-      <div class="pin-cuatri mx-auto flex min-h-dvh w-full max-w-7xl flex-col justify-center px-4 py-24 sm:px-8">
-        <div class="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-          <div>
-            <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Cada control cuenta.</h2>
-            <p class="mt-5 max-w-[38ch] text-base leading-7 text-[var(--muted)]">El porcentaje son tus presentes sobre todos los controles que marcaste. Los que todavía no marcaste no cuentan.</p>
-          </div>
-          <div class="flex items-end justify-between gap-6 lg:justify-end lg:gap-10">
-            <p class="mono text-sm text-[var(--muted)]">{{ controlesVisibles() }} de 17 controles</p>
-            <p class="mono text-[clamp(3.4rem,7vw,5.5rem)] font-medium leading-[0.85] tracking-[-0.06em] text-[var(--accent)]">{{ porcentajeCuatrimestre() }}%</p>
-          </div>
-        </div>
-
-        <div class="mt-12 max-w-5xl overflow-x-auto pb-2">
-          <div class="grid min-w-[560px] grid-cols-[64px_repeat(16,1fr)] gap-1.5 sm:gap-2" aria-label="Asistencia del cuatrimestre: 14 presentes, 2 ausentes y 1 justificada de 17 controles.">
-            <span></span>
-            @for (s of semanas; track s) {
-              <span class="mono text-center text-[10px] text-[var(--muted)]">{{ s + 1 }}</span>
-            }
-            @for (f of filas; track f; let fi = $index) {
-              <span class="mono self-center text-[11px] text-[var(--muted)]">{{ f }}</span>
-              @for (s of semanas; track s) {
-                <span class="celda" [attr.data-estado]="estadoCelda(s, fi)"></span>
-              }
-            }
-          </div>
-        </div>
-        <div class="mono mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[var(--muted)]">
-          <span class="flex items-center gap-2"><span class="size-3 rounded-[3px] bg-[var(--accent)]"></span>Presente</span>
-          <span class="flex items-center gap-2"><span class="size-3 rounded-[3px] shadow-[inset_0_0_0_2px_var(--absent)]"></span>Ausente</span>
-          <span class="flex items-center gap-2"><span class="size-3 rounded-[3px] shadow-[inset_0_0_0_2px_var(--justified)]"></span>Justificada</span>
-          <span class="flex items-center gap-2"><span class="size-3 rounded-[3px] shadow-[inset_0_0_0_1px_var(--line)]"></span>Todavía no</span>
-        </div>
-        <p class="mt-4 text-xs text-[var(--muted)]">Ejemplo de cómo se calcula: 17 controles de Análisis Matemático I. En la app ves los totales y el porcentaje en el detalle de cada materia.</p>
-      </div>
-    </section>
-
-    <section class="relative overflow-hidden">
+    <section id="materias" class="relative overflow-hidden">
       <div class="pin-semana flex min-h-dvh flex-col justify-center py-24">
         <div class="mx-auto w-full max-w-7xl px-4 sm:px-8">
           <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Tu semana, armada.</h2>
-          <p class="mt-5 max-w-[40ch] text-base leading-7 text-[var(--muted)]">Cargás los horarios una vez y cada clase sabe cuántos controles tiene.</p>
+          <p class="mt-5 max-w-[44ch] text-base leading-7 text-[var(--muted)]">Creás cada materia con su fecha de inicio y sus horarios. Cada clase sabe cuántos controles de asistencia tiene.</p>
         </div>
         <div #pista class="mt-12 flex flex-col gap-3 px-4 sm:px-8 md:w-max md:flex-row md:gap-5">
           @for (d of dias; track d.dia; let i = $index) {
@@ -107,11 +73,11 @@
       </div>
     </section>
 
-    <section class="border-t border-[var(--line)] py-28 sm:py-36">
+    <section id="asistencia" class="flex min-h-dvh items-center border-t border-[var(--line)] py-24">
       <div class="mx-auto grid w-full max-w-7xl gap-12 px-4 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
         <div>
           <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Llegás a clase y lo marcás.</h2>
-          <p class="mt-5 max-w-[36ch] text-base leading-7 text-[var(--muted)]">En Inicio aparecen tus cursadas de hoy. Un toque por control y listo. Tu porcentaje lo ves en cada materia.</p>
+          <p class="mt-5 max-w-[36ch] text-base leading-7 text-[var(--muted)]">En Inicio aparecen tus cursadas de hoy. Un toque por control y listo. Lo que no marcás queda pendiente, no cuenta como falta.</p>
         </div>
         <div class="hoy-card rounded-[28px] bg-[var(--surface)] p-6 sm:p-8">
           <p class="mono text-xs text-[var(--muted)]">{{ fechaHoy() }}</p>
@@ -151,7 +117,85 @@
       </div>
     </section>
 
-    <section class="border-t border-[var(--line)] py-28 sm:py-36">
+    <section id="calendario" class="relative border-t border-[var(--line)]">
+      <div class="pin-calendario mx-auto flex min-h-dvh w-full max-w-7xl flex-col justify-center px-4 py-24 sm:px-8">
+        <div class="grid gap-10 lg:grid-cols-[0.7fr_1.3fr] lg:items-center">
+          <div>
+            <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">El mes, de un vistazo.</h2>
+            <p class="mt-5 max-w-[38ch] text-base leading-7 text-[var(--muted)]">Cada día se pinta con lo que marcaste. También ves las tareas y evaluaciones de ese día, y podés cargar clases que ya pasaron.</p>
+            <div class="mt-8 flex items-end gap-4">
+              <p class="mono text-[clamp(3.4rem,7vw,5.5rem)] font-medium leading-[0.85] tracking-[-0.06em] text-[var(--accent)]">{{ resumenCalendario().porcentaje }}%</p>
+              <p class="mono pb-1 text-xs leading-5 text-[var(--muted)]">de asistencia<br>{{ resumenCalendario().marcados }} controles marcados</p>
+            </div>
+            <div class="mt-6 grid max-w-sm grid-cols-3 gap-2 text-sm">
+              <p class="rounded-[14px] bg-[var(--attendance-present-soft)] px-3 py-2 text-[var(--attendance-present-ink)]"><b class="block text-lg">{{ resumenCalendario().presentes }}</b>Presentes</p>
+              <p class="rounded-[14px] bg-[var(--attendance-absent-soft)] px-3 py-2 text-[var(--attendance-absent-ink)]"><b class="block text-lg">{{ resumenCalendario().ausentes }}</b>Ausentes</p>
+              <p class="rounded-[14px] bg-[var(--attendance-justified-soft)] px-3 py-2 text-[var(--attendance-justified-ink)]"><b class="block text-lg">{{ resumenCalendario().justificadas }}</b>Justificadas</p>
+            </div>
+          </div>
+
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-end justify-between gap-3">
+              <p class="text-2xl font-semibold tracking-tight">Calendario</p>
+              <div class="flex items-center gap-1 rounded-full bg-[var(--surface)] p-1" aria-hidden="true">
+                <span class="grid size-9 place-items-center rounded-full text-[var(--muted)]"><span class="material-symbols-rounded">chevron_left</span></span>
+                <span class="min-w-32 text-center text-sm font-semibold">{{ mesCalendario }}</span>
+                <span class="grid size-9 place-items-center rounded-full text-[var(--muted)]"><span class="material-symbols-rounded">chevron_right</span></span>
+              </div>
+            </div>
+            <div class="mt-4 flex gap-2 overflow-x-auto pb-1" aria-hidden="true">
+              @for (m of materias; track m) {
+                <span class="inline-flex min-h-9 shrink-0 items-center gap-2 rounded-full bg-[var(--accent)]/15 px-3.5 text-xs font-semibold"><span class="size-2 rounded-full bg-[var(--accent)]"></span>{{ m }}</span>
+              }
+            </div>
+
+            <div class="mt-4 grid grid-cols-5 gap-1.5 sm:gap-2" aria-label="Calendario de ejemplo con la asistencia de tres materias">
+              @for (d of diasSemana; track d) {
+                <span class="flex h-7 items-center justify-center text-[10px] font-semibold tracking-wide text-[var(--muted)] sm:text-xs">{{ d }}</span>
+              }
+              @for (dia of calendario; track dia.numero; let i = $index) {
+                <div
+                  [style.background]="fondoDia(dia, i)"
+                  [class]="'flex min-h-14 flex-col items-start justify-between rounded-[12px] p-1.5 text-xs tabular-nums transition-[background] duration-300 sm:min-h-20 sm:rounded-[15px] sm:p-2.5 sm:text-sm ' + (i === hoyCalendario ? 'ring-2 ring-inset ring-[var(--accent)] font-semibold' : '')"
+                >
+                  <div class="flex w-full items-center justify-between">
+                    <span [class]="i <= hoyCalendario ? '' : 'text-[var(--muted)]'">{{ dia.numero }}</span>
+                    <span class="flex items-center gap-1">
+                      @if (dia.evaluacion) {
+                        <span class="flex size-4 items-center justify-center rounded-full bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-[11px]">assignment</span></span>
+                      }
+                      @if (dia.tarea) {
+                        <span class="flex size-4 items-center justify-center rounded-full bg-amber-500/20 text-amber-500"><span class="material-symbols-rounded text-[11px]">task_alt</span></span>
+                      }
+                    </span>
+                  </div>
+                  <span class="flex min-h-4 w-full items-center justify-center gap-1" aria-hidden="true">
+                    @for (e of estadosDia(dia, i); track $index) {
+                      @if (e === 'PENDIENTE') {
+                        <span class="size-1.5 rounded-full bg-[var(--muted)]/45"></span>
+                      } @else {
+                        <span [class]="'material-symbols-rounded text-[13px] leading-none ' + tinta[e]">{{ icono[e] }}</span>
+                      }
+                    }
+                  </span>
+                </div>
+              }
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-[var(--muted)]">
+              <span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-[var(--attendance-present-border)]"></span>Presente</span>
+              <span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-[var(--attendance-absent-border)]"></span>Ausente</span>
+              <span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-[var(--attendance-justified-border)]"></span>Justificada</span>
+              <span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-[var(--muted)]/35"></span>Pendiente</span>
+              <span class="inline-flex items-center gap-1.5"><span class="flex size-3.5 items-center justify-center rounded-full bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-[10px]">assignment</span></span>Evaluación</span>
+              <span class="inline-flex items-center gap-1.5"><span class="flex size-3.5 items-center justify-center rounded-full bg-amber-500/20 text-amber-500"><span class="material-symbols-rounded text-[10px]">task_alt</span></span>Tarea</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tareas" class="flex min-h-dvh items-center border-t border-[var(--line)] py-24">
       <div class="mx-auto grid w-full max-w-7xl gap-12 px-4 sm:px-8 lg:grid-cols-[0.8fr_1.2fr]">
         <div class="lg:sticky lg:top-28 lg:self-start">
           <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Lo que vence, primero.</h2>
@@ -214,48 +258,151 @@
       </div>
     </section>
 
-    <section class="border-t border-[var(--line)] py-28 sm:py-36">
+    <section id="apuntes" class="flex min-h-dvh items-center border-t border-[var(--line)] py-24">
       <div class="mx-auto w-full max-w-7xl px-4 sm:px-8">
-        <p class="mono text-xs text-[var(--muted)]">Apuntes. Análisis Matemático I. Unidad 2.</p>
+        <p class="mono text-xs text-[var(--muted)]">Análisis Matemático I. Unidad 2.</p>
         <p class="apunte mt-6 max-w-[24ch] text-[clamp(2rem,4.6vw,3.8rem)] font-semibold leading-[1.08] tracking-[-0.045em]">
           @for (p of palabras; track $index; let i = $index) {
             <span [class]="'palabra' + (claves.includes(p) ? ' clave' : '') + (i < palabrasEncendidas() ? ' on' : '')">{{ p }} </span>
           }
         </p>
-        <div class="mt-10 flex flex-wrap items-center justify-between gap-6">
-          <p class="max-w-[42ch] text-base leading-7 text-[var(--muted)]">Escribí con títulos, negrita y listas, dentro de cada materia. Después lo copiás o lo guardás como PDF.</p>
-          <div class="flex gap-2 text-[var(--muted)]" aria-hidden="true">
-            <span class="grid size-11 place-items-center rounded-full border border-[var(--line)]"><span class="material-symbols-rounded">format_bold</span></span>
-            <span class="grid size-11 place-items-center rounded-full border border-[var(--line)]"><span class="material-symbols-rounded">format_list_bulleted</span></span>
-            <span class="grid size-11 place-items-center rounded-full border border-[var(--line)]"><span class="material-symbols-rounded">content_copy</span></span>
-            <span class="grid size-11 place-items-center rounded-full bg-[var(--accent)] text-[var(--on-accent)]"><span class="material-symbols-rounded">picture_as_pdf</span></span>
+        <div class="mt-10 grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-start">
+          <div>
+            <p class="max-w-[42ch] text-base leading-7 text-[var(--muted)]">Escribí con títulos, negrita y listas, dentro de cada materia. Después lo copiás o lo guardás como PDF.</p>
+            <div class="mt-5 flex gap-2 text-[var(--muted)]" aria-hidden="true">
+              <span class="grid size-11 place-items-center rounded-full border border-[var(--line)]"><span class="material-symbols-rounded">format_bold</span></span>
+              <span class="grid size-11 place-items-center rounded-full border border-[var(--line)]"><span class="material-symbols-rounded">format_list_bulleted</span></span>
+              <span class="grid size-11 place-items-center rounded-full border border-[var(--line)]"><span class="material-symbols-rounded">content_copy</span></span>
+              <span class="grid size-11 place-items-center rounded-full bg-[var(--accent)] text-[var(--on-accent)]"><span class="material-symbols-rounded">picture_as_pdf</span></span>
+            </div>
+          </div>
+          <div class="rounded-[28px] bg-[var(--surface)] p-5 sm:p-6">
+            <p class="flex items-center gap-2 text-sm font-semibold"><span class="material-symbols-rounded text-[var(--accent)]" aria-hidden="true">auto_awesome</span>Practicar con IA</p>
+            <p class="mt-1 text-xs text-[var(--muted)]">A partir de tu apunte, la IA arma cinco preguntas con su respuesta.</p>
+            <div class="mt-4 space-y-2">
+              @for (p of preguntas; track p.pregunta; let i = $index) {
+                <button type="button" (click)="abrirPregunta(i)" [attr.aria-expanded]="preguntaAbierta() === i" class="block w-full cursor-pointer rounded-[16px] bg-[var(--bg)] p-4 text-left transition-colors hover:bg-[var(--surface-2)]">
+                  <span class="flex items-start justify-between gap-3 text-sm font-medium">{{ i + 1 }}. {{ p.pregunta }}<span class="material-symbols-rounded text-[var(--muted)]" aria-hidden="true">{{ preguntaAbierta() === i ? 'expand_less' : 'expand_more' }}</span></span>
+                  @if (preguntaAbierta() === i) {
+                    <span class="mt-2 block text-sm leading-6 text-[var(--muted)]">{{ p.respuesta }}</span>
+                  }
+                </button>
+              }
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="border-t border-[var(--line)] py-28">
-      <div class="mx-auto grid w-full max-w-7xl gap-x-12 px-4 sm:px-8 md:grid-cols-2">
-        <details class="group border-b border-[var(--line)]">
-          <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Tiene costo?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
-          <p class="pb-6 text-sm leading-6 text-[var(--muted)]">No, es gratis.</p>
-        </details>
-        <details class="group border-b border-[var(--line)]">
-          <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Qué es un control de asistencia?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
-          <p class="pb-6 text-sm leading-6 text-[var(--muted)]">Una clase larga suele tomar asistencia dos veces. Cada vez es un control y se marca por separado.</p>
-        </details>
-        <details class="group border-b border-[var(--line)]">
-          <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Las justificadas cuentan como presentes?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
-          <p class="pb-6 text-sm leading-6 text-[var(--muted)]">No. Se cuentan aparte, así ves cuántas tenés. El porcentaje son tus presentes sobre todos los controles que marcaste.</p>
-        </details>
-        <details class="group border-b border-[var(--line)]">
-          <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Puedo cargar clases que ya pasaron?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
-          <p class="pb-6 text-sm leading-6 text-[var(--muted)]">Sí. Poné la fecha en que empezó la cursada y marcás esas clases desde el Calendario, hasta un año para atrás.</p>
-        </details>
+    <section id="evaluaciones" class="flex min-h-dvh items-center border-t border-[var(--line)] py-24">
+      <div class="mx-auto grid w-full max-w-7xl gap-12 px-4 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+        <div>
+          <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Tu promedio, al día.</h2>
+          <p class="mt-5 max-w-[38ch] text-base leading-7 text-[var(--muted)]">Cargás cada evaluación con su fecha. Cuando ponés la nota, Acadezer calcula el promedio de la materia.</p>
+          <ul class="mt-6 space-y-2 text-sm text-[var(--muted)]">
+            <li class="flex gap-2"><span class="material-symbols-rounded text-lg text-[var(--accent)]" aria-hidden="true">check</span>Con 6 aprobás una evaluación.</li>
+            <li class="flex gap-2"><span class="material-symbols-rounded text-lg text-[var(--accent)]" aria-hidden="true">check</span>Promedio de 8 o más, con todo aprobado: promocionás.</li>
+          </ul>
+        </div>
+        <div class="rounded-[28px] bg-[var(--surface)] p-6 sm:p-8">
+          <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p class="text-lg font-semibold tracking-[-0.02em]">Análisis Matemático I</p>
+              <p class="mt-1 text-sm text-[var(--muted)]">{{ detalleEvaluaciones() }}</p>
+            </div>
+            <div class="text-right">
+              <p class="mono text-4xl font-medium tracking-[-0.04em]">{{ resumenEvaluaciones().promedio ?? '-' }}</p>
+              <span [class]="'mt-1 inline-block rounded-full px-3 py-1 text-xs font-semibold ' + colorEstado[resumenEvaluaciones().estado]">{{ etiquetaEstado[resumenEvaluaciones().estado] }}</span>
+            </div>
+          </div>
+          <div class="mt-6 divide-y divide-[var(--line)] border-t border-[var(--line)]">
+            @for (e of evaluaciones(); track e.id) {
+              <div class="flex flex-wrap items-center justify-between gap-3 py-4">
+                <div>
+                  <p class="font-medium">{{ e.nombre }}</p>
+                  <p class="text-xs text-[var(--muted)]">{{ fechaCorta(e.fecha) }}</p>
+                </div>
+                @if (e.id === 3) {
+                  <div class="flex gap-1.5" role="group" aria-label="Nota del Parcial 2">
+                    @for (n of notasDePrueba; track $index) {
+                      <button
+                        type="button"
+                        (click)="ponerNota(n)"
+                        [attr.aria-pressed]="e.calificacion === n"
+                        [class]="'mono min-h-9 min-w-11 cursor-pointer rounded-full px-3 text-sm transition-colors ' + (e.calificacion === n ? 'bg-[var(--accent)] text-[var(--on-accent)]' : 'border border-[var(--line)] text-[var(--muted)] hover:text-[var(--text)]')"
+                      >{{ n === null ? 'Sin nota' : n }}</button>
+                    }
+                  </div>
+                } @else {
+                  <span class="mono rounded-full bg-[var(--surface-2)] px-3 py-1 text-sm">{{ e.calificacion }}</span>
+                }
+              </div>
+            }
+          </div>
+          <p class="mono mt-4 text-xs text-[var(--muted)]">Probá cambiar la nota del Parcial 2.</p>
+        </div>
       </div>
     </section>
 
-    <section class="cierre-wrap px-2 pb-2 sm:px-3 sm:pb-3">
+    <section id="personalizacion" class="flex min-h-dvh items-center border-t border-[var(--line)] py-24">
+      <div class="mx-auto grid w-full max-w-7xl gap-12 px-4 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+        <div>
+          <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Tu color, en toda la app.</h2>
+          <p class="mt-5 max-w-[38ch] text-base leading-7 text-[var(--muted)]">Elegís un color y la app arma toda la paleta a partir de él: botones, calendario y esta misma página. En modo claro, oscuro o igual que tu sistema.</p>
+          <p class="mono mt-5 text-xs text-[var(--muted)]">Probalo acá. Se guarda y se aplica en toda la app.</p>
+        </div>
+        <div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-start">
+          <app-theme-switcher [embedded]="true" />
+          <div class="rounded-[20px] bg-[var(--surface)] p-5" aria-hidden="true">
+            <p class="mono text-xs text-[var(--muted)]">Vista previa</p>
+            <div class="mt-4 flex items-center gap-3">
+              <span class="grid size-11 shrink-0 place-items-center rounded-[14px] bg-[var(--accent)] font-semibold text-[var(--on-accent)]">S</span>
+              <div>
+                <p class="font-semibold">Sistemas y Organizaciones</p>
+                <p class="text-xs text-[var(--muted)]">Miércoles, 19:00 a 22:00</p>
+              </div>
+            </div>
+            <div class="mt-5 h-2 overflow-hidden rounded-full bg-[var(--surface-2)]"><span class="block h-full w-[81%] rounded-full bg-[var(--accent)]"></span></div>
+            <p class="mt-2 text-xs text-[var(--muted)]">81% de asistencia</p>
+            <div class="mt-5 flex flex-wrap gap-2">
+              <span class="rounded-full bg-[var(--accent)]/15 px-3 py-1 text-xs font-semibold">Promocionado</span>
+              <span class="rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-500">TP para el lunes</span>
+            </div>
+            <span class="mt-5 flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--accent)] text-sm font-semibold text-[var(--on-accent)]"><span class="material-symbols-rounded text-lg">add</span>Nueva materia</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="preguntas" class="flex min-h-dvh items-center border-t border-[var(--line)] py-24">
+      <div class="mx-auto w-full max-w-7xl px-4 sm:px-8">
+        <h2 class="text-[clamp(2.4rem,5vw,4rem)] font-semibold leading-[1] tracking-[-0.05em]">Lo que suelen preguntar.</h2>
+        <div class="mt-10 grid gap-x-12 md:grid-cols-2">
+          <details class="group border-b border-[var(--line)]">
+            <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Tiene costo?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
+            <p class="pb-6 text-sm leading-6 text-[var(--muted)]">No, es gratis.</p>
+          </details>
+          <details class="group border-b border-[var(--line)]">
+            <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Qué es un control de asistencia?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
+            <p class="pb-6 text-sm leading-6 text-[var(--muted)]">Una clase larga suele tomar asistencia dos veces. Cada vez es un control y se marca por separado.</p>
+          </details>
+          <details class="group border-b border-[var(--line)]">
+            <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Las justificadas cuentan como presentes?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
+            <p class="pb-6 text-sm leading-6 text-[var(--muted)]">No. Se cuentan aparte, así ves cuántas tenés. El porcentaje son tus presentes sobre todos los controles que marcaste.</p>
+          </details>
+          <details class="group border-b border-[var(--line)]">
+            <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿Puedo cargar clases que ya pasaron?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
+            <p class="pb-6 text-sm leading-6 text-[var(--muted)]">Sí. Poné la fecha en que empezó la cursada y marcás esas clases desde el Calendario, hasta un año para atrás.</p>
+          </details>
+          <details class="group border-b border-[var(--line)]">
+            <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 font-medium">¿De dónde salen las preguntas de práctica?<span class="material-symbols-rounded text-[var(--accent)] transition-transform group-open:rotate-45" aria-hidden="true">add</span></summary>
+            <p class="pb-6 text-sm leading-6 text-[var(--muted)]">Las arma una IA con el texto de tu apunte. Para eso el apunte tiene que tener al menos 80 caracteres.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section id="cierre" class="cierre-wrap px-2 pb-2 sm:px-3 sm:pb-3">
       <div class="cierre mx-auto flex min-h-[70dvh] w-full flex-col justify-between gap-10 rounded-[28px] bg-[var(--accent)] px-6 py-12 text-[var(--on-accent)] sm:px-12 sm:py-16">
         <h2 class="max-w-[14ch] text-[clamp(2.8rem,8vw,7rem)] font-semibold leading-[0.92] tracking-[-0.06em]">Empezá con tu primera materia.</h2>
         <div class="flex flex-wrap items-end justify-between gap-6">
@@ -267,4 +414,5 @@
       </div>
     </section>
   </main>
+
 </div>

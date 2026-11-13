@@ -129,31 +129,6 @@
   background: var(--accent);
 }
 
-.celda {
-  aspect-ratio: 1;
-  border-radius: 6px;
-  background: var(--surface-2);
-}
-
-.celda[data-estado='PRESENTE'] {
-  background: var(--accent);
-}
-
-.celda[data-estado='AUSENTE'] {
-  background: transparent;
-  box-shadow: inset 0 0 0 2px var(--absent);
-}
-
-.celda[data-estado='JUSTIFICADA'] {
-  background: transparent;
-  box-shadow: inset 0 0 0 2px var(--justified);
-}
-
-.celda[data-estado='futuro'] {
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
 .palabra {
   color: var(--line);
   transition: color 0.2s;

@@ -1,8 +1,11 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, inject, signal, viewChild, viewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, computed, inject, signal, viewChild, viewChildren } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
+import { ThemeSwitcher } from '@components/layout/theme-switcher/theme-switcher';
+import type { EvaluacionResponse } from '@features/evaluaciones/models';
+import { ETIQUETA_ESTADO_CURSADA, calcularPromedio, detalleEstadoCursada, type EstadoCursada } from '@features/evaluaciones/promedio';
 
 type Punto = [number, number];
 type EstadoControl = 'PRESENTE' | 'AUSENTE' | 'JUSTIFICADA' | 'PENDIENTE';
@@ -22,6 +25,36 @@ interface Tarea {
   materia: string;
   dias: number;
   hecha: boolean;
+}
+
+interface DiaCalendario {
+  numero: number;
+  controles: EstadoControl[];
+  tarea: boolean;
+  evaluacion: boolean;
+}
+
+// cuántos controles tiene cada día de lunes a viernes (como en "Tu semana")
+const CONTROLES_POR_DIA = [2, 1, 1, 2, 0];
+// lo que se fue marcando, en orden, hasta hoy
+const MARCAS: EstadoControl[] = ['PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'AUSENTE', 'PRESENTE', 'PRESENTE',
+  'JUSTIFICADA', 'PRESENTE', 'PRESENTE', 'AUSENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE'];
+const HOY_CALENDARIO = 12;
+
+function armarCalendario(): DiaCalendario[] {
+  const dias: DiaCalendario[] = [];
+  let k = 0;
+  for (let semana = 0; semana < 4; semana++) {
+    for (let d = 0; d < 5; d++) {
+      const i = dias.length;
+      const controles: EstadoControl[] = [];
+      for (let c = 0; c < CONTROLES_POR_DIA[d]; c++) {
+        controles.push(i <= HOY_CALENDARIO ? MARCAS[k++] : 'PENDIENTE');
+      }
+      dias.push({ numero: 2 + semana * 7 + d, controles, tarea: i === 8 || i === 15, evaluacion: i === 10 || i === 17 });
+    }
+  }
+  return dias;
 }
 
 const TAM = 540;
@@ -100,7 +133,7 @@ const DIBUJOS: Dibujo[] = [
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink],
+  imports: [RouterLink, ThemeSwitcher],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -118,11 +151,40 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   hoy = new Date();
   reducir = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  historial: EstadoControl[] = ['PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'AUSENTE', 'PRESENTE', 'PRESENTE',
-    'JUSTIFICADA', 'PRESENTE', 'PRESENTE', 'AUSENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE'];
-  filas = ['Lun 1', 'Lun 2', 'Jue 1', 'Jue 2'];
-  semanas = Array.from({ length: 16 }, (_, i) => i);
-  controlesVisibles = signal(0);
+  diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie'];
+  calendario = armarCalendario();
+  hoyCalendario = HOY_CALENDARIO;
+  mesCalendario = this.hoy.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+  diasVisibles = signal(0);
+  suave: Record<EstadoControl, string> = {
+    PRESENTE: 'var(--attendance-present-soft)',
+    AUSENTE: 'var(--attendance-absent-soft)',
+    JUSTIFICADA: 'var(--attendance-justified-soft)',
+    PENDIENTE: 'var(--surface-2)',
+  };
+  icono: Record<EstadoControl, string> = { PRESENTE: 'check_circle', AUSENTE: 'cancel', JUSTIFICADA: 'verified', PENDIENTE: '' };
+  tinta: Record<EstadoControl, string> = {
+    PRESENTE: 'text-[var(--attendance-present-ink)]',
+    AUSENTE: 'text-[var(--attendance-absent-ink)]',
+    JUSTIFICADA: 'text-[var(--attendance-justified-ink)]',
+    PENDIENTE: '',
+  };
+  resumenCalendario = computed(() => {
+    const marcados: EstadoControl[] = [];
+    this.calendario.forEach((dia, i) => {
+      this.estadosDia(dia, i).forEach((e) => {
+        if (e !== 'PENDIENTE') marcados.push(e);
+      });
+    });
+    const presentes = marcados.filter((e) => e === 'PRESENTE').length;
+    return {
+      marcados: marcados.length,
+      presentes,
+      ausentes: marcados.filter((e) => e === 'AUSENTE').length,
+      justificadas: marcados.filter((e) => e === 'JUSTIFICADA').length,
+      porcentaje: marcados.length === 0 ? 0 : Math.round((presentes / marcados.length) * 100),
+    };
+  });
 
   dias = [
     { dia: 'Lunes', clases: [{ materia: 'Análisis Matemático I', hora: '18:00 a 22:00', controles: 2 }] },
@@ -158,6 +220,28 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   claves = ['derivada', 'cambia', 'cadena', 'compuestas.'];
   palabrasEncendidas = signal(0);
 
+  preguntas = [
+    { pregunta: '¿Qué mide la derivada de una función?', respuesta: 'Cuánto cambia la función cuando cambia x, en un punto.' },
+    { pregunta: '¿Para qué sirve la regla de la cadena?', respuesta: 'Para derivar funciones compuestas, como sen(x²).' },
+  ];
+  preguntaAbierta = signal<number | null>(0);
+
+  evaluaciones = signal<EvaluacionResponse[]>([
+    { id: 1, nombre: 'Parcial 1', fecha: '2026-09-22', calificacion: 8, materiaId: 1 },
+    { id: 2, nombre: 'TP integrador', fecha: '2026-10-20', calificacion: 9, materiaId: 1 },
+    { id: 3, nombre: 'Parcial 2', fecha: '2026-11-24', calificacion: null, materiaId: 1 },
+  ]);
+  notasDePrueba: (number | null)[] = [null, 4, 7, 9.5];
+  resumenEvaluaciones = computed(() => calcularPromedio(this.evaluaciones()));
+  detalleEvaluaciones = computed(() => detalleEstadoCursada(this.resumenEvaluaciones()));
+  etiquetaEstado = ETIQUETA_ESTADO_CURSADA;
+  colorEstado: Record<EstadoCursada, string> = {
+    PROMOCIONADO: 'bg-[var(--accent)] text-[var(--on-accent)]',
+    REGULAR: 'bg-[var(--attendance-justified-soft)] text-[var(--attendance-justified-ink)]',
+    DESAPROBADO: 'bg-[var(--attendance-absent-soft)] text-[var(--attendance-absent-ink)]',
+    PENDIENTE: 'bg-[var(--surface-2)] text-[var(--muted)]',
+  };
+
   private frame = 0;
   private heroVisible = true;
   private observer: IntersectionObserver | null = null;
@@ -186,7 +270,7 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this.prepararHero();
     if (this.reducir) {
-      this.controlesVisibles.set(this.historial.length);
+      this.diasVisibles.set(HOY_CALENDARIO + 1);
       this.palabrasEncendidas.set(this.palabras.length);
       return;
     }
@@ -429,23 +513,34 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       gsap.from('.hero-sub', { opacity: 0, y: 16, duration: 0.9, ease: 'expo.out', delay: 0.35, stagger: 0.08 });
       gsap.from('.hero-card', { opacity: 0, y: 40, duration: 1.2, ease: 'expo.out', delay: 0.3 });
 
-      const progreso = { n: 0 };
-      gsap.to(progreso, {
-        n: this.historial.length,
-        ease: 'none',
-        scrollTrigger: { trigger: '.pin-cuatri', start: 'top top', end: '+=1400', pin: true, scrub: 0.6, refreshPriority: 3 },
-        onUpdate: () => this.controlesVisibles.set(Math.round(progreso.n)),
-      });
-
       const pista = this.pista().nativeElement;
       gsap.matchMedia().add('(min-width: 768px)', () => {
         const distancia = () => pista.scrollWidth - window.innerWidth;
         gsap.to(pista, {
           x: () => -distancia(),
           ease: 'none',
-          scrollTrigger: { trigger: '.pin-semana', start: 'top top', end: () => '+=' + distancia(), pin: true, scrub: 1, invalidateOnRefresh: true, refreshPriority: 2 },
+          scrollTrigger: { trigger: '.pin-semana', start: 'top top', end: () => '+=' + distancia(), pin: true, scrub: 1, invalidateOnRefresh: true, refreshPriority: 3 },
         });
       });
+
+      // el calendario se va pintando día por día mientras scrolleás.
+      // En pantallas grandes queda fijo; en el celular no entra entero, así que se pinta mientras pasa.
+      const pintarCalendario = (scrollTrigger: ScrollTrigger.Vars) => {
+        const progreso = { n: 0 };
+        return gsap.to(progreso, {
+          n: HOY_CALENDARIO + 1,
+          ease: 'none',
+          scrollTrigger,
+          onUpdate: () => this.diasVisibles.set(Math.round(progreso.n)),
+        });
+      };
+      gsap.matchMedia()
+        .add('(min-width: 1024px)', () => {
+          pintarCalendario({ trigger: '.pin-calendario', start: 'top top', end: '+=1200', pin: true, scrub: 0.6, refreshPriority: 2 });
+        })
+        .add('(max-width: 1023px)', () => {
+          pintarCalendario({ trigger: '.pin-calendario', start: 'top 60%', end: 'bottom 80%', scrub: 0.6 });
+        });
 
       gsap.from('.hoy-card', { opacity: 0, y: 40, duration: 0.9, ease: 'expo.out', scrollTrigger: { trigger: '.hoy-card', start: 'top 85%' } });
       gsap.from('.lista-tareas', { opacity: 0, y: 30, duration: 0.8, ease: 'expo.out', scrollTrigger: { trigger: '.lista-tareas', start: 'top 85%' } });
@@ -468,17 +563,34 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     return this.hoy.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
   }
 
-  estadoCelda(semana: number, fila: number) {
-    const k = semana * 4 + fila;
-    if (k >= this.historial.length) return 'futuro';
-    return k < this.controlesVisibles() ? this.historial[k] : 'apagado';
+  // los días que todavía no se "pintaron" con el scroll se ven pendientes
+  estadosDia(dia: DiaCalendario, i: number): EstadoControl[] {
+    if (i < this.diasVisibles()) return dia.controles;
+    return dia.controles.map(() => 'PENDIENTE');
   }
 
-  porcentajeCuatrimestre() {
-    const n = this.controlesVisibles();
-    if (n === 0) return 0;
-    const presentes = this.historial.slice(0, n).filter((e) => e === 'PRESENTE').length;
-    return Math.round((presentes / n) * 100);
+  // mismo criterio que el calendario de la app: un color si todo es igual, si no se parte en diagonal
+  fondoDia(dia: DiaCalendario, i: number) {
+    const estados = this.estadosDia(dia, i);
+    const marcados = estados.filter((e) => e !== 'PENDIENTE');
+    if (marcados.length === 0) return estados.length > 0 ? 'var(--surface-2)' : 'var(--surface)';
+    if (marcados.length === estados.length && marcados.every((e) => e === marcados[0])) return this.suave[marcados[0]];
+    const partes = estados.map((e, k) =>
+      this.suave[e] + ' ' + (k * 100) / estados.length + '% ' + ((k + 1) * 100) / estados.length + '%'
+    );
+    return 'linear-gradient(135deg, ' + partes.join(', ') + ')';
+  }
+
+  abrirPregunta(i: number) {
+    this.preguntaAbierta.set(this.preguntaAbierta() === i ? null : i);
+  }
+
+  ponerNota(nota: number | null) {
+    this.evaluaciones.set(this.evaluaciones().map((e) => (e.id === 3 ? { ...e, calificacion: nota } : e)));
+  }
+
+  fechaCorta(fecha: string) {
+    return new Date(fecha + 'T00:00:00').toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
   }
 
   marcar(i: number, estado: EstadoControl) {
