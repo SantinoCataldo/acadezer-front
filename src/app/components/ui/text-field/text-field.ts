@@ -27,6 +27,7 @@ export class TextField implements ControlValueAccessor {
   readonly id = input.required<string>();
   readonly label = input.required<string>();
   readonly type = input<TextFieldType>('text');
+  readonly inputMode = input<'decimal' | 'numeric' | null>(null);
   readonly autocomplete = input('off');
   readonly placeholder = input('');
   readonly supportingText = input('');
