@@ -23,6 +23,8 @@ interface ToolbarAction {
   value?: string;
   /** Comando que permite consultar si el formato está activo. */
   stateCommand?: string;
+  /** Para formatBlock: valor que desactiva el bloque (ej. 'p' para H1/H2). */
+  clearValue?: string;
 }
 
 const TOOLBAR: readonly ToolbarAction[] = [
@@ -43,8 +45,8 @@ const TOOLBAR: readonly ToolbarAction[] = [
     command: 'insertOrderedList',
     stateCommand: 'insertOrderedList',
   },
-  { icon: 'format_h1', label: 'Título 1', command: 'formatBlock', value: 'H1' },
-  { icon: 'format_h2', label: 'Título 2', command: 'formatBlock', value: 'H2' },
+  { icon: 'format_h1', label: 'Título 1', command: 'formatBlock', value: 'H1', clearValue: 'p', stateCommand: 'formatBlock' },
+  { icon: 'format_h2', label: 'Título 2', command: 'formatBlock', value: 'H2', clearValue: 'p', stateCommand: 'formatBlock' },
   { icon: 'format_align_left', label: 'Alinear a la izquierda', command: 'justifyLeft', stateCommand: 'justifyLeft' },
   { icon: 'format_align_center', label: 'Centrar', command: 'justifyCenter', stateCommand: 'justifyCenter' },
   { icon: 'format_align_right', label: 'Alinear a la derecha', command: 'justifyRight', stateCommand: 'justifyRight' },
@@ -98,7 +100,12 @@ export class RichTextEditor {
     element.focus();
     this.restoreSelection(element);
     if (action.command && typeof document.execCommand === 'function') {
-      document.execCommand(action.command, false, action.value);
+      // Para formatBlock (H1/H2), si ya está activo, aplicamos clearValue (p) para desactivar
+      let cmdValue = action.value;
+      if (action.command === 'formatBlock' && action.value && action.clearValue && this.queryCurrentBlock(action.value)) {
+        cmdValue = action.clearValue;
+      }
+      document.execCommand(action.command, false, cmdValue);
     }
     this.captureSelection(element);
     this.refreshActiveActions();
@@ -226,6 +233,11 @@ export class RichTextEditor {
       }
     }
     this.activeActions.set(active);
+  }
+
+  /** Verifica si un formato de bloque (H1/H2) está activo en la selección actual. */
+  protected isBlockActive(blockTag: string): boolean {
+    return this.queryCurrentBlock(blockTag);
   }
 
   private queryCommandState(command: string): boolean {

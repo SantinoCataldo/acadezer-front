@@ -178,7 +178,10 @@ export class EvaluacionFormDialog {
       .run(() => send)
       .subscribe({
         next: (saved) => this.saved.emit(saved),
-        error: () => undefined,
+        error: (err) => {
+          // Log the actual error for debugging
+          console.error('Error guardando evaluación:', err);
+        },
       });
   }
 }

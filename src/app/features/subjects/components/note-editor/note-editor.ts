@@ -23,7 +23,7 @@ import {
   type NoteResponse,
 } from '../../models';
 import { NotesService } from '../../services/notes.service';
-import { hasContent } from '../../note-text';
+import { hasContent, validateContentForBackend } from '../../note-text';
 import { RichTextEditor } from '../rich-text-editor/rich-text-editor';
 import { Modal } from '../modal/modal';
 import {
@@ -99,15 +99,14 @@ export class NoteEditor {
 
   readonly editing = computed(() => this.note() !== null);
   readonly hasContenido = computed(() => hasContent(this.contenido()));
-  readonly plainTextLength = computed(() => {
+readonly plainTextLength = computed(() => {
     const parsed = new DOMParser().parseFromString(this.contenido(), 'text/html');
     return parsed.body.textContent?.trim().length ?? 0;
   });
-  readonly contenidoError = computed(() =>
-    this.contenidoTouched() && !hasContent(this.contenido())
-      ? 'El contenido no puede quedar vacío.'
-      : null,
-  );
+  readonly contenidoError = computed(() => {
+    if (!this.contenidoTouched()) return null;
+    return validateContentForBackend(this.contenido());
+  });
 
   readonly isDirty = computed(() => {
     const current = this.note();
@@ -183,7 +182,8 @@ export class NoteEditor {
   submit(): void {
     if (this.saveAction.disabled()) return;
     this.contenidoTouched.set(true);
-    if (this.titulo.invalid || !hasContent(this.contenido())) {
+    const contenidoErr = validateContentForBackend(this.contenido());
+    if (this.titulo.invalid || contenidoErr) {
       this.titulo.markAsTouched();
       return;
     }
@@ -213,14 +213,16 @@ export class NoteEditor {
       .run(() => send)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (saved) => {
+next: (saved) => {
           this.contentDirty.set(false);
           this.titulo.markAsPristine();
           clearPracticeCache(saved.id);
           toast.success(current ? 'Apunte actualizado' : 'Apunte guardado');
           this.saved.emit(saved);
         },
-        error: () => undefined,
+        error: (err) => {
+          console.error('Error guardando apunte:', err);
+        },
       });
   }
 

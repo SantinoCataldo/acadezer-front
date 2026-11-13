@@ -38,3 +38,9 @@ export function noteExcerpt(html: string, max = 140): string {
 export function hasContent(html: string): boolean {
   return notePlainText(html).length > 0;
 }
+
+/** Valida que el contenido pase la validación @NotBlank del backend (tiene texto real). */
+export function validateContentForBackend(html: string): string | null {
+  if (!hasContent(html)) return 'El contenido no puede quedar vacío.';
+  return null;
+}
