@@ -157,11 +157,25 @@ export class ThemePreferenceService {
     if (variant === 'monochrome') {
       root.style.removeProperty('--theme-accent');
       root.style.removeProperty('--theme-on-accent');
+      this.updateFavicon(dark ? '#F5F3F6' : '#141316');
       return;
     }
 
     root.style.setProperty('--theme-accent', tonalAccent);
     root.style.setProperty('--theme-on-accent', readableOnAccent(tonalAccent));
+    this.updateFavicon(tonalAccent);
+  }
+
+  private updateFavicon(accent: string): void {
+    const icon = this.document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (!icon) return;
+
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+      <rect width="32" height="32" rx="8" fill="${accent}"/>
+      <path d="M16 10.5C13.4 8.9 10.3 8.4 6 9.5v14c4.3-1.1 7.4-.6 10 1 2.6-1.6 5.7-2.1 10-1v-14c-4.3-1.1-7.4-.6-10 1Zm0 0v14" fill="none" stroke="${readableOnAccent(accent)}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>`;
+    icon.type = 'image/svg+xml';
+    icon.href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
   }
 
   private applyPreference(preference: ThemePreference): void {
