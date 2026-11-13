@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  HostListener,
   computed,
   inject,
   signal,
@@ -66,7 +67,9 @@ export class Evaluaciones implements AfterViewInit {
 
   readonly filtroEstado = signal<FiltroEstado>('todas');
   readonly filtroMateriaId = signal<number>(0);
+  readonly esMobile = signal(typeof window !== 'undefined' ? window.innerWidth < 640 : false);
   readonly vista = signal<'lista' | 'grilla'>('lista');
+  readonly vistaEfectiva = computed<'lista' | 'grilla'>(() => (this.esMobile() ? 'grilla' : this.vista()));
   readonly editandoNotaId = signal<number | null>(null);
 
   readonly showFormDialog = signal(false);
@@ -269,8 +272,15 @@ export class Evaluaciones implements AfterViewInit {
     requestAnimationFrame(() => this.animarTransicion());
   }
 
+  @HostListener('window:resize')
+  onResize(): void {
+    if (typeof window !== 'undefined') {
+      this.esMobile.set(window.innerWidth < 640);
+    }
+  }
+
   cambiarVista(nuevaVista: 'lista' | 'grilla'): void {
-    if (this.vista() === nuevaVista) return;
+    if (this.esMobile() || this.vista() === nuevaVista) return;
     this.vista.set(nuevaVista);
     requestAnimationFrame(() => this.animarTransicion());
   }

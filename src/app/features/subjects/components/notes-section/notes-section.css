@@ -147,6 +147,32 @@
   display: none;
 }
 
+@keyframes notePaneFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+.notes-pane-editor > app-note-editor,
+.notes-pane-editor > div {
+  animation: notePaneFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+[data-view='editor'] .notes-pane-editor {
+  animation: notePaneFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+[data-view='list'] .notes-pane-list {
+  animation: notePaneFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @media (min-width: 1280px) {
   .notes-panes {
     grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);

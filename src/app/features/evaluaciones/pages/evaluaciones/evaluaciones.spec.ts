@@ -274,11 +274,12 @@ describe('Evaluaciones', () => {
     requests.verify();
   });
 
-  it('allows quick inline grade assignment for pending evaluations', () => {
+  it('shows pending evaluation with Sin nota and allows updating', () => {
     open();
     flushAll({ 1: [parcial] });
 
-    expect(fixture.nativeElement.textContent).toContain('Pendiente · Cargar nota');
+    expect(fixture.nativeElement.textContent).toContain('Sin nota');
+    expect(fixture.nativeElement.textContent).toContain('Pendiente');
 
     fixture.componentInstance.iniciarEdicionNotaRapida(11);
     fixture.detectChanges();
