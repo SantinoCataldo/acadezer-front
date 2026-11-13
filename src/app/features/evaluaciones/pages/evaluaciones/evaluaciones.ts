@@ -17,9 +17,8 @@ import { SubjectsService } from '../../../subjects/services/subjects.service';
 import { DeleteEvaluacionDialog } from '../../components/delete-evaluacion-dialog/delete-evaluacion-dialog';
 import { EvaluacionFormDialog } from '../../components/evaluacion-form-dialog/evaluacion-form-dialog';
 import { EvaluacionService } from '../../evaluacion.service';
-import type { EvaluacionResponse, EvaluacionRequest } from '../../models';
+import type { EvaluacionResponse } from '../../models';
 import { calcularPromedio } from '../../promedio';
-import { getEstadoEvaluacion } from '../../models';
 import { primaryButton, secondaryButton } from '../../../subjects/dialog-styles';
 import { SelectOption } from '@components/ui/select/select';
 
@@ -325,16 +324,12 @@ export class Evaluaciones implements AfterViewInit {
     const num = Number(text);
     if (Number.isNaN(num) || num < 0 || num > 10) return;
 
-    const request: EvaluacionRequest = {
-      nombre: evaluacion.nombre,
-      fecha: evaluacion.fecha,
-      tipo: evaluacion.tipo ?? 'PARCIAL_1',
-      estado: getEstadoEvaluacion(num),
-      calificacion: Number(num.toFixed(2)),
-    };
-
     this.evaluaciones
-      .update(evaluacion.id, request)
+      .update(evaluacion.id, {
+        nombre: evaluacion.nombre,
+        fecha: evaluacion.fecha,
+        calificacion: Number(num.toFixed(2)),
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (saved) => {

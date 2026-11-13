@@ -20,11 +20,6 @@ import {
   EVALUACION_CALIFICACION_MAX,
   EVALUACION_CALIFICACION_MAX_LENGTH,
   EVALUACION_NOMBRE_MAX_LENGTH,
-  NOTA_APROBADA_MIN,
-  TIPOS_EVALUACION,
-  ESTADOS_EVALUACION,
-  type TipoEvaluacion,
-  type EstadoEvaluacion,
 } from '../../models';
 import { EvaluacionService } from '../../evaluacion.service';
 import { Modal } from '../../../subjects/components/modal/modal';
@@ -70,17 +65,6 @@ export class EvaluacionFormDialog {
   readonly secondaryButtonClass = secondaryButton;
   readonly errorSurfaceClass = errorSurface;
 
-  readonly tipos = TIPOS_EVALUACION;
-  readonly estados = ESTADOS_EVALUACION;
-  readonly opcionesTipo: readonly SelectOption<TipoEvaluacion>[] = TIPOS_EVALUACION.map((t) => ({
-    value: t.valor,
-    label: t.etiqueta,
-  }));
-  readonly opcionesEstado: readonly SelectOption<EstadoEvaluacion>[] = ESTADOS_EVALUACION.map((e) => ({
-    value: e.valor,
-    label: e.etiqueta,
-  }));
-
   readonly opcionesMateria = computed<readonly SelectOption<number>[]>(() => {
     const list = this.materias();
     if (list.length > 0) {
@@ -94,8 +78,6 @@ export class EvaluacionFormDialog {
     materiaId: new FormControl<number | null>(null),
     nombre: new FormControl('', { nonNullable: true }),
     fecha: new FormControl(currentDateValue(), { nonNullable: true }),
-    tipo: new FormControl<TipoEvaluacion>('PARCIAL_1', { nonNullable: true }),
-    estado: new FormControl<EstadoEvaluacion>('PENDIENTE', { nonNullable: true }),
     nota: new FormControl('', { nonNullable: true }),
   });
 
@@ -105,7 +87,6 @@ export class EvaluacionFormDialog {
   readonly notaComoNumero = computed(() => parseNota(this.notaValue()));
 
   private prefillDone = false;
-  private sincronizandoEstado = false;
 
   constructor() {
     effect(() => {
@@ -128,46 +109,10 @@ export class EvaluacionFormDialog {
         materiaId: current.materiaId,
         nombre: current.nombre,
         fecha: current.fecha,
-        tipo: current.tipo ?? 'PARCIAL_1',
         nota: current.calificacion === null ? '' : String(current.calificacion),
       });
       this.form.markAsPristine();
     });
-
-    // El estado se deriva siempre de la nota: >= 6 aprueba, < 6 desaprueba y
-    // sin nota queda pendiente. La guarda evita el bucle entre los dos controles
-    // porque valueChanges de formularios reactivos es sincrónico.
-    this.form.controls.nota.valueChanges.subscribe((notaRaw) => {
-      this.applyEstado(this.estadoSegunNota(notaRaw));
-    });
-
-    this.form.controls.estado.valueChanges.subscribe((estado) => {
-      if (this.sincronizandoEstado) return;
-      // Pendiente elegido a mano borra la nota; cualquier otro estado se corrige
-      // contra la nota cargada para no prometer algo que no se va a guardar.
-      this.applyEstado(estado === 'PENDIENTE' ? 'PENDIENTE' : this.estadoSegunNota(this.form.controls.nota.value));
-    });
-  }
-
-  private estadoSegunNota(notaRaw: string): EstadoEvaluacion {
-    const valor = parseNota(notaRaw);
-    if (valor === null || Number.isNaN(valor)) return 'PENDIENTE';
-    return valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO';
-  }
-
-  private applyEstado(next: EstadoEvaluacion): void {
-    if (this.sincronizandoEstado) return;
-    this.sincronizandoEstado = true;
-    try {
-      if (this.form.controls.estado.value !== next) {
-        this.form.controls.estado.setValue(next);
-      }
-      if (next === 'PENDIENTE' && this.form.controls.nota.value.length > 0) {
-        this.form.controls.nota.setValue('');
-      }
-    } finally {
-      this.sincronizandoEstado = false;
-    }
   }
 
   nombreMateriaActual(): string {
@@ -218,13 +163,10 @@ export class EvaluacionFormDialog {
     if (!targetMateriaId) return;
 
     const nota = parseNota(this.form.controls.nota.value);
-    const notaNum = nota === null || Number.isNaN(nota) ? null : nota;
     const request: EvaluacionRequest = {
       nombre: this.form.controls.nombre.value.trim(),
       fecha: this.form.controls.fecha.value,
-      tipo: this.form.controls.tipo.value,
-      estado: this.estadoSegunNota(this.form.controls.nota.value),
-      calificacion: notaNum,
+      calificacion: nota === null || Number.isNaN(nota) ? null : nota,
     };
 
     const current = this.evaluacion();

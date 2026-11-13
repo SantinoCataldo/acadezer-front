@@ -30,8 +30,6 @@ describe('Evaluaciones', () => {
     materiaId: 1,
     nombre: 'Primer parcial',
     fecha: fecha(6),
-    tipo: 'PARCIAL_1',
-    estado: 'PENDIENTE',
     calificacion: null,
   };
 
@@ -40,8 +38,6 @@ describe('Evaluaciones', () => {
     materiaId: 1,
     nombre: 'Final',
     fecha: fecha(-9),
-    tipo: 'FINAL',
-    estado: 'APROBADO',
     calificacion: 8,
   };
 
@@ -50,8 +46,6 @@ describe('Evaluaciones', () => {
     materiaId: 2,
     nombre: 'Recuperatorio',
     fecha: fecha(-2),
-    tipo: 'RECUPERATORIO',
-    estado: 'DESAPROBADO',
     calificacion: 4,
   };
 
@@ -296,8 +290,6 @@ describe('Evaluaciones', () => {
     expect(updateReq.request.body).toEqual({
       nombre: 'Primer parcial',
       fecha: parcial.fecha,
-      tipo: parcial.tipo,
-      estado: 'APROBADO',
       calificacion: 7.5,
     });
     updateReq.flush({ ...parcial, calificacion: 7.5 });

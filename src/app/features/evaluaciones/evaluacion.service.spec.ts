@@ -24,8 +24,6 @@ describe('EvaluacionService', () => {
   const evaluacion: EvaluacionRequest = {
     nombre: 'Primer parcial',
     fecha: '2026-11-10',
-    tipo: 'PARCIAL_1',
-    estado: 'APROBADO',
     calificacion: 7.25,
   };
 
