@@ -44,10 +44,3 @@ export interface EvaluacionRequest {
   estado: EstadoEvaluacion;
   calificacion?: number | null;
 }
-
-export function computeTipoEstado(calificacion: number | null): { tipo: TipoEvaluacion; estado: EstadoEvaluacion } {
-  if (calificacion === null || calificacion === undefined) {
-    return { tipo: 'PARCIAL_1', estado: 'PENDIENTE' };
-  }
-  return { tipo: 'PARCIAL_1', estado: calificacion >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO' };
-}

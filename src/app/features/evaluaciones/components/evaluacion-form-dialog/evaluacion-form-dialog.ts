@@ -25,7 +25,6 @@ import {
   ESTADOS_EVALUACION,
   type TipoEvaluacion,
   type EstadoEvaluacion,
-  computeTipoEstado,
 } from '../../models';
 import { EvaluacionService } from '../../evaluacion.service';
 import { Modal } from '../../../subjects/components/modal/modal';
@@ -106,6 +105,7 @@ export class EvaluacionFormDialog {
   readonly notaComoNumero = computed(() => parseNota(this.notaValue()));
 
   private prefillDone = false;
+  private sincronizandoEstado = false;
 
   constructor() {
     effect(() => {
@@ -129,39 +129,45 @@ export class EvaluacionFormDialog {
         nombre: current.nombre,
         fecha: current.fecha,
         tipo: current.tipo ?? 'PARCIAL_1',
-        estado: current.estado ?? 'PENDIENTE',
         nota: current.calificacion === null ? '' : String(current.calificacion),
       });
       this.form.markAsPristine();
     });
 
+    // El estado se deriva siempre de la nota: >= 6 aprueba, < 6 desaprueba y
+    // sin nota queda pendiente. La guarda evita el bucle entre los dos controles
+    // porque valueChanges de formularios reactivos es sincrónico.
     this.form.controls.nota.valueChanges.subscribe((notaRaw) => {
-      const valor = parseNota(notaRaw);
-      if (valor === null || Number.isNaN(valor)) {
-        this.form.controls.estado.setValue('PENDIENTE');
-      } else {
-        const expectedEstado = valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO';
-        const currentEstado = this.form.controls.estado.value;
-        if (currentEstado !== 'PENDIENTE' && currentEstado !== expectedEstado) {
-          this.form.controls.estado.setValue(expectedEstado, { emitEvent: false });
-        }
-      }
+      this.applyEstado(this.estadoSegunNota(notaRaw));
     });
 
     this.form.controls.estado.valueChanges.subscribe((estado) => {
-      if (estado === 'PENDIENTE') {
-        this.form.controls.nota.setValue('');
-      } else {
-        const notaRaw = this.form.controls.nota.value;
-        const valor = parseNota(notaRaw);
-        if (valor !== null && !Number.isNaN(valor)) {
-          const expectedEstado = valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO';
-          if (estado !== expectedEstado) {
-            this.form.controls.estado.setValue(expectedEstado, { emitEvent: false });
-          }
-        }
-      }
+      if (this.sincronizandoEstado) return;
+      // Pendiente elegido a mano borra la nota; cualquier otro estado se corrige
+      // contra la nota cargada para no prometer algo que no se va a guardar.
+      this.applyEstado(estado === 'PENDIENTE' ? 'PENDIENTE' : this.estadoSegunNota(this.form.controls.nota.value));
     });
+  }
+
+  private estadoSegunNota(notaRaw: string): EstadoEvaluacion {
+    const valor = parseNota(notaRaw);
+    if (valor === null || Number.isNaN(valor)) return 'PENDIENTE';
+    return valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO';
+  }
+
+  private applyEstado(next: EstadoEvaluacion): void {
+    if (this.sincronizandoEstado) return;
+    this.sincronizandoEstado = true;
+    try {
+      if (this.form.controls.estado.value !== next) {
+        this.form.controls.estado.setValue(next);
+      }
+      if (next === 'PENDIENTE' && this.form.controls.nota.value.length > 0) {
+        this.form.controls.nota.setValue('');
+      }
+    } finally {
+      this.sincronizandoEstado = false;
+    }
   }
 
   nombreMateriaActual(): string {
@@ -213,12 +219,11 @@ export class EvaluacionFormDialog {
 
     const nota = parseNota(this.form.controls.nota.value);
     const notaNum = nota === null || Number.isNaN(nota) ? null : nota;
-    const estado = notaNum === null ? 'PENDIENTE' : (notaNum >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO');
     const request: EvaluacionRequest = {
       nombre: this.form.controls.nombre.value.trim(),
       fecha: this.form.controls.fecha.value,
       tipo: this.form.controls.tipo.value,
-      estado,
+      estado: this.estadoSegunNota(this.form.controls.nota.value),
       calificacion: notaNum,
     };
 

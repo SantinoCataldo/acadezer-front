@@ -19,7 +19,7 @@ import { EvaluacionFormDialog } from '../../components/evaluacion-form-dialog/ev
 import { EvaluacionService } from '../../evaluacion.service';
 import type { EvaluacionResponse, EvaluacionRequest } from '../../models';
 import { calcularPromedio } from '../../promedio';
-import { computeTipoEstado } from '../../models';
+import { getEstadoEvaluacion } from '../../models';
 import { primaryButton, secondaryButton } from '../../../subjects/dialog-styles';
 import { SelectOption } from '@components/ui/select/select';
 
@@ -325,12 +325,11 @@ export class Evaluaciones implements AfterViewInit {
     const num = Number(text);
     if (Number.isNaN(num) || num < 0 || num > 10) return;
 
-    const { tipo, estado } = computeTipoEstado(num);
     const request: EvaluacionRequest = {
       nombre: evaluacion.nombre,
       fecha: evaluacion.fecha,
-      tipo,
-      estado,
+      tipo: evaluacion.tipo ?? 'PARCIAL_1',
+      estado: getEstadoEvaluacion(num),
       calificacion: Number(num.toFixed(2)),
     };
 

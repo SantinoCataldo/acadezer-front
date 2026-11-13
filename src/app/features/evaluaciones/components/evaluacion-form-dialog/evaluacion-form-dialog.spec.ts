@@ -22,6 +22,8 @@ describe('EvaluacionFormDialog', () => {
     materiaId: 3,
     nombre: 'Primer parcial',
     fecha: '2026-10-02',
+    tipo: 'PARCIAL_1',
+    estado: 'APROBADO',
     calificacion: 7,
   };
 
@@ -66,6 +68,21 @@ describe('EvaluacionFormDialog', () => {
 
   function notaInput(): HTMLInputElement {
     return fixture.nativeElement.querySelector('#evaluacion-nota input') as HTMLInputElement;
+  }
+
+  function estadoTrigger(): HTMLButtonElement {
+    return fixture.nativeElement.querySelector('#evaluacion-estado button') as HTMLButtonElement;
+  }
+
+  function estadoTexto(): string {
+    return estadoTrigger().querySelector('span')?.textContent?.trim() ?? '';
+  }
+
+  function escribirNota(valor: string): void {
+    const nota = notaInput();
+    nota.value = valor;
+    nota.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
   }
 
   function pickFecha(iso: string): void {
@@ -122,7 +139,44 @@ describe('EvaluacionFormDialog', () => {
     expect(fixture.componentInstance.form.controls.nombre.value).toBe('Primer parcial');
     expect(fixture.componentInstance.form.controls.fecha.value).toBe('2026-10-02');
     expect(fixture.componentInstance.form.controls.nota.value).toBe('7');
+    expect(fixture.componentInstance.form.controls.estado.value).toBe('APROBADO');
+    expect(estadoTexto()).toBe('Aprobado');
     expect(fixture.nativeElement.textContent).toContain('Editar evaluación');
+  });
+
+  it('moves the estado to Aprobado as soon as the nota reaches the approval mark', () => {
+    open();
+    expect(estadoTexto()).toBe('Pendiente');
+
+    escribirNota('9');
+    expect(fixture.componentInstance.form.controls.estado.value).toBe('APROBADO');
+    expect(estadoTexto()).toBe('Aprobado');
+
+    escribirNota('3');
+    expect(fixture.componentInstance.form.controls.estado.value).toBe('DESAPROBADO');
+    expect(estadoTexto()).toBe('Desaprobado');
+
+    escribirNota('');
+    expect(fixture.componentInstance.form.controls.estado.value).toBe('PENDIENTE');
+    expect(estadoTexto()).toBe('Pendiente');
+  });
+
+  it('borra la nota cuando se elige Pendiente a mano', () => {
+    open();
+    escribirNota('9');
+    expect(fixture.componentInstance.form.controls.estado.value).toBe('APROBADO');
+
+    estadoTrigger().click();
+    fixture.detectChanges();
+    const opcion = Array.from(
+      fixture.nativeElement.querySelectorAll('[role="option"]') as NodeListOf<HTMLButtonElement>,
+    ).find((button) => button.textContent?.includes('Pendiente'));
+    opcion?.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.form.controls.estado.value).toBe('PENDIENTE');
+    expect(fixture.componentInstance.form.controls.nota.value).toBe('');
+    expect(estadoTexto()).toBe('Pendiente');
   });
 
   it('sends the nota as calificacion number', () => {
@@ -141,6 +195,8 @@ describe('EvaluacionFormDialog', () => {
     expect(request.request.body).toEqual({
       nombre: 'Primer parcial',
       fecha: '2026-10-02',
+      tipo: 'PARCIAL_1',
+      estado: 'APROBADO',
       calificacion: 8.5,
     });
     request.flush(guardada);
@@ -165,6 +221,8 @@ describe('EvaluacionFormDialog', () => {
     expect(request.request.body).toEqual({
       nombre: 'Primer parcial',
       fecha: '2026-10-02',
+      tipo: 'PARCIAL_1',
+      estado: 'APROBADO',
       calificacion: 7.25,
     });
     requests.verify();
@@ -179,6 +237,8 @@ describe('EvaluacionFormDialog', () => {
     expect(request.request.body).toEqual({
       nombre: 'Primer parcial',
       fecha: '2026-10-02',
+      tipo: 'PARCIAL_1',
+      estado: 'PENDIENTE',
       calificacion: null,
     });
     requests.verify();
@@ -224,6 +284,8 @@ describe('EvaluacionFormDialog', () => {
     expect(request.request.body).toEqual({
       nombre: 'Primer parcial',
       fecha: '2026-10-02',
+      tipo: 'PARCIAL_1',
+      estado: 'APROBADO',
       calificacion: 7,
     });
     request.flush(guardada);
