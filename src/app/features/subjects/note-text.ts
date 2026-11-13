@@ -1,14 +1,14 @@
 const ENTITIES: Record<string, string> = {
-  '&': '&',
-  '<': '<',
-  '>': '>',
-  '"': '"',
-  "'": "'",
-  '&nbsp;': ' ',
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  '#39': "'",
+  nbsp: ' ',
 };
 
 function decodeEntities(value: string): string {
-  return value.replace(/&(amp|lt|gt|quot|#39|nbsp);/g, (entity) => ENTITIES[entity] ?? entity);
+  return value.replace(/&([a-z]+|#\d+);/gi, (entity, nombre: string) => ENTITIES[nombre] ?? entity);
 }
 
 export function notePlainText(html: string): string {
@@ -21,7 +21,10 @@ export function notePlainText(html: string): string {
 export function noteExcerpt(html: string, max = 140): string {
   const text = notePlainText(html);
   if (text.length <= max) return text;
-  return `${text.slice(0, max).trimEnd()}...`;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(' ');
+  const head = (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd();
+  return `${head}…`;
 }
 
 export function hasContent(html: string): boolean {
@@ -29,6 +32,6 @@ export function hasContent(html: string): boolean {
 }
 
 export function validateContentForBackend(html: string): string | null {
-  if (!hasContent(html)) return 'El contenido no puede quedar vacio.';
+  if (!hasContent(html)) return 'El contenido no puede quedar vacío.';
   return null;
 }

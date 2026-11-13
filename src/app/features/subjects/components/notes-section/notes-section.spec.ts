@@ -66,7 +66,7 @@ describe('NotesSection', () => {
     fixture.detectChanges();
 
     const titles = Array.from(
-      fixture.nativeElement.querySelectorAll('h3') as NodeListOf<HTMLElement>,
+      fixture.nativeElement.querySelectorAll('li button span.truncate') as NodeListOf<HTMLElement>,
     ).map((heading) => heading.textContent?.trim());
     expect(titles[0]).toBe('Nuevo');
     expect(titles[1]).toBe('Viejo');
@@ -81,7 +81,8 @@ describe('NotesSection', () => {
     flushList([]);
 
     expect(text()).toContain('Todavía no escribiste apuntes para esta materia.');
-    expect(text()).toContain('Escribir el primer apunte');
+    expect(text()).toContain('Todavía no hay apuntes en esta materia.');
+    expect(text()).toContain('Nuevo apunte');
   });
 
   it('shows the loading state before the answer arrives', () => {
@@ -123,7 +124,7 @@ describe('NotesSection', () => {
     expect(fixture.nativeElement.querySelector('[contenteditable="true"]').innerHTML).toBe(
       '<p>Tipos</p>',
     );
-    expect(text()).toContain('Editar apunte');
+    expect(fixture.nativeElement.querySelector('app-note-editor')).not.toBeNull();
   });
 
   it('creates a note for that subject and shows it in the list', () => {
@@ -147,12 +148,16 @@ describe('NotesSection', () => {
       titulo: 'Parcial',
       contenido: '<p>Fecha del parcial</p>',
     });
-    create.flush(note(5, 'Parcial'));
+    create.flush(note(5, 'Parcial', '<p>Fecha del parcial</p>'));
     fixture.detectChanges();
 
     expect(text()).toContain('Parcial');
-    // Vuelve a la lista: el editor deja de estar abierto.
-    expect(fixture.nativeElement.querySelector('#apunte-titulo')).toBeNull();
+    // El editor sigue abierto con el apunte recién guardado.
+    const tituloGuardado = fixture.nativeElement.querySelector('#apunte-titulo') as HTMLInputElement;
+    expect(tituloGuardado.value).toBe('Parcial');
+    expect(fixture.nativeElement.querySelector('[contenteditable="true"]').innerHTML).toBe(
+      '<p>Fecha del parcial</p>',
+    );
   });
 
   it('edits a note and persists the change', () => {

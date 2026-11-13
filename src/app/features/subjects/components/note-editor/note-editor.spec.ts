@@ -68,8 +68,14 @@ describe('NoteEditor', () => {
       'Variables',
     );
     expect(content().innerHTML).toBe('<p>Tipos</p>');
-    expect(fixture.nativeElement.textContent).toContain('Editar apunte');
-    expect(fixture.nativeElement.textContent).toContain('Editado el');
+
+    (
+      fixture.nativeElement.querySelector('[aria-label="Ver información del apunte"]') as HTMLButtonElement
+    ).click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Fecha de creación');
+    expect(fixture.nativeElement.textContent).toContain('#3');
     requests.verify();
   });
 
@@ -80,7 +86,9 @@ describe('NoteEditor', () => {
       '',
     );
     expect(content().innerHTML).toBe('');
-    expect(fixture.nativeElement.textContent).toContain('Apunte sin guardar');
+    expect(fixture.nativeElement.querySelector('[contenteditable="true"]').getAttribute('data-placeholder')).toBe(
+      'Escribí el contenido del apunte…',
+    );
     expect(
       fixture.nativeElement.querySelector('button[aria-label="Eliminar este apunte"]'),
     ).toBeNull();
