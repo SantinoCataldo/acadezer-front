@@ -33,20 +33,31 @@
               }}
             </p>
           </div>
-          <span
-            class="rounded-full px-3 py-1 text-xs font-semibold"
-            [class]="
-              item.resumen.estado === 'PROMOCIONADO'
-                ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
-                : item.resumen.estado === 'REGULAR'
-                  ? 'bg-[var(--theme-surface-high)] text-[var(--theme-foreground)]'
-                  : item.resumen.estado === 'DESAPROBADO'
-                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                    : 'bg-[var(--theme-surface-high)] text-[var(--theme-muted)]'
-            "
-          >
-            {{ etiquetaEstado(item.resumen.estado) }}
-          </span>
+          <div class="flex items-center gap-3">
+            <span
+              class="rounded-full px-3 py-1 text-xs font-semibold"
+              [class]="
+                item.resumen.estado === 'PROMOCIONADO'
+                  ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
+                  : item.resumen.estado === 'REGULAR'
+                    ? 'bg-[var(--theme-surface-high)] text-[var(--theme-foreground)]'
+                    : item.resumen.estado === 'DESAPROBADO'
+                      ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                      : 'bg-[var(--theme-surface-high)] text-[var(--theme-muted)]'
+              "
+            >
+              {{ etiquetaEstado(item.resumen.estado) }}
+            </span>
+            <button
+              type="button"
+              class="flex min-h-10 cursor-pointer items-center gap-1.5 rounded-full bg-[var(--theme-surface-high)] px-3.5 text-xs font-semibold text-[var(--theme-foreground)] transition-colors hover:bg-[var(--theme-accent-soft)] hover:text-[var(--theme-accent-content)] active:scale-95"
+              (click)="openCreateDialog(item.subject)"
+              [attr.aria-label]="'Agregar evaluación a ' + item.subject.nombre"
+            >
+              <span class="material-symbols-rounded text-base" aria-hidden="true">add</span>
+              Evaluación
+            </button>
+          </div>
         </article>
       }
     </div>
@@ -145,7 +156,7 @@
                           }}</span>
                         </div>
                         <p class="text-xs text-[var(--theme-muted)]">
-                          {{ etiquetaTipo(evaluacion.tipo) }} · {{ fechaCorta(evaluacion.fecha) }}
+                          {{ fechaCorta(evaluacion.fecha) }}
                         </p>
                       </div>
 
@@ -156,14 +167,20 @@
                         <span
                           class="rounded-full px-3 py-1 text-xs font-semibold"
                           [class]="
-                            evaluacion.estado === 'APROBADO'
-                              ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
-                              : evaluacion.estado === 'DESAPROBADO'
-                                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                                : 'bg-[var(--theme-surface-high)] text-[var(--theme-muted)]'
+                            evaluacion.calificacion === null
+                              ? 'bg-[var(--theme-surface-high)] text-[var(--theme-muted)]'
+                              : evaluacion.calificacion >= 6
+                                ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
+                                : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
                           "
                         >
-                          {{ etiquetaEstadoEvaluacion(evaluacion.estado) }}
+                          {{
+                            evaluacion.calificacion === null
+                              ? 'Pendiente'
+                              : evaluacion.calificacion >= 6
+                                ? 'Aprobado'
+                                : 'Desaprobado'
+                          }}
                         </span>
                         <button
                           type="button"
@@ -197,9 +214,10 @@
     }
   </div>
 
-  @if (formMateria(); as materia) {
+  @if (showFormDialog()) {
     <app-evaluacion-form-dialog
-      [materia]="materia"
+      [materia]="formMateria()"
+      [materias]="subjects()"
       [evaluacion]="editing()"
       (saved)="onSaved($event)"
       (cancelled)="onDialogCancelled()"

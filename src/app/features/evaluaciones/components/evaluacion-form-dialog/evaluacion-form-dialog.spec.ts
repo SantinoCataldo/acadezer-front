@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { FormsModule } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { environment } from '../../../../../environments/environment';
 import { DatePicker } from '../../../../components/ui/date-picker/date-picker';
@@ -13,29 +12,51 @@ describe('EvaluacionFormDialog', () => {
   let fixture: ComponentFixture<EvaluacionFormDialog>;
 
   const materia = { id: 3, nombre: 'Biología' };
+  const materias = [
+    { id: 3, nombre: 'Biología' },
+    { id: 4, nombre: 'Matemática' },
+  ];
 
   const guardada: EvaluacionResponse = {
     id: 44,
     materiaId: 3,
     nombre: 'Primer parcial',
     fecha: '2026-10-02',
-    tipo: 'PARCIAL_1',
-    estado: 'APROBADO',
     calificacion: 7,
   };
 
+  beforeEach(() => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockImplementation((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })),
+    );
+
+    TestBed.configureTestingModule({
+      imports: [EvaluacionFormDialog],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    requests = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(EvaluacionFormDialog);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    TestBed.resetTestingModule();
+  });
+
   function open(evaluacion: EvaluacionResponse | null = null): void {
     fixture.componentRef.setInput('materia', materia);
+    fixture.componentRef.setInput('materias', materias);
     fixture.componentRef.setInput('evaluacion', evaluacion);
-    fixture.detectChanges();
-  }
-
-  function select(id: string, value: string): void {
-    if (id === 'evaluacion-tipo') {
-      fixture.componentInstance.form.controls.tipo.setValue(value as any);
-    } else if (id === 'evaluacion-estado') {
-      fixture.componentInstance.form.controls.estado.setValue(value as any);
-    }
     fixture.detectChanges();
   }
 
@@ -48,8 +69,7 @@ describe('EvaluacionFormDialog', () => {
   }
 
   function pickFecha(iso: string): void {
-    const picker = fixture.debugElement.query(By.directive(DatePicker))
-      .componentInstance as DatePicker;
+    const picker = fixture.debugElement.query(By.directive(DatePicker)).componentInstance as DatePicker;
 
     (fixture.nativeElement.querySelector('#evaluacion-fecha button') as HTMLButtonElement).click();
     fixture.detectChanges();
@@ -58,86 +78,60 @@ describe('EvaluacionFormDialog', () => {
     for (let step = 0; step < 24; step++) {
       const shown = picker.currentMonth();
       if (shown.year === year && shown.month === month) break;
-      (fixture.nativeElement.querySelector('button[aria-label="Mes anterior"]') as HTMLButtonElement).click();
+      if (shown.year < year || (shown.year === year && shown.month < month)) {
+        picker.nextMonth(new MouseEvent('click'));
+      } else {
+        picker.prevMonth(new MouseEvent('click'));
+      }
       fixture.detectChanges();
     }
 
-    const day = Number(iso.slice(8));
-    const cell = Array.from(
-      fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>,
-    ).find((button) => button.textContent?.trim() === String(day)) as HTMLButtonElement;
-    cell.click();
+    const celda = Array.from(
+      fixture.nativeElement.querySelectorAll('.grid button') as NodeListOf<HTMLButtonElement>,
+    ).find((boton) => boton.getAttribute('data-date') === iso);
+    celda?.click();
     fixture.detectChanges();
   }
 
   function submit(): void {
-    (fixture.nativeElement.querySelector('button[type="submit"]') as HTMLButtonElement).click();
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    form.dispatchEvent(new Event('submit'));
     fixture.detectChanges();
   }
 
   function fillBase(): void {
-    const nombre = nombreInput();
-    nombre.value = ' Primer parcial ';
-    nombre.dispatchEvent(new Event('input'));
-
-    pickFecha('2026-10-02');
+    const input = nombreInput();
+    input.value = 'Primer parcial';
+    input.dispatchEvent(new Event('input'));
+    fixture.componentInstance.form.controls.fecha.setValue('2026-10-02');
     fixture.detectChanges();
   }
 
-  beforeEach(() => {
-    vi.stubGlobal('matchMedia', (query: string): MediaQueryList => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }));
-    TestBed.configureTestingModule({
-      imports: [EvaluacionFormDialog, FormsModule],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
-    });
-    requests = TestBed.inject(HttpTestingController);
-    fixture = TestBed.createComponent(EvaluacionFormDialog);
-  });
-
-  afterEach(() => {
-    TestBed.resetTestingModule();
-    vi.unstubAllGlobals();
-  });
-
-  it('starts empty and asks for the pending evaluation, without nota', () => {
+  it('starts empty and asks for evaluation details without mandatory nota', () => {
     open();
-
-    expect(fixture.componentInstance.form.controls.nombre.value).toBe('');
-    expect(fixture.componentInstance.form.controls.estado.value).toBe('PENDIENTE');
-    expect(fixture.componentInstance.pideNota()).toBe(false);
+    expect(fixture.componentInstance.editing()).toBe(false);
+    expect(nombreInput().value).toBe('');
+    expect(notaInput().value).toBe('');
     expect(fixture.nativeElement.textContent).toContain('Nueva evaluación');
   });
 
-  it('prefills the dialog with the evaluation being edited (EVA-02)', () => {
+  it('prefills the dialog with the evaluation being edited', () => {
     open(guardada);
     fixture.detectChanges();
 
     expect(fixture.componentInstance.form.controls.nombre.value).toBe('Primer parcial');
     expect(fixture.componentInstance.form.controls.fecha.value).toBe('2026-10-02');
-    expect(fixture.componentInstance.form.controls.tipo.value).toBe('PARCIAL_1');
-    expect(fixture.componentInstance.form.controls.estado.value).toBe('APROBADO');
     expect(fixture.componentInstance.form.controls.nota.value).toBe('7');
-    expect(fixture.componentInstance.pideNota()).toBe(true);
     expect(fixture.nativeElement.textContent).toContain('Editar evaluación');
   });
 
-  it('sends the nota and derives the estado from it', () => {
+  it('sends the nota as calificacion number', () => {
     open();
     fillBase();
 
     notaInput().value = '8.5';
     notaInput().dispatchEvent(new Event('input', { bubbles: true }));
     fixture.detectChanges();
-    expect(fixture.componentInstance.form.controls.estado.value).toBe('APROBADO');
     expect(fixture.componentInstance.form.controls.nota.value).toBe('8.5');
 
     submit();
@@ -147,8 +141,6 @@ describe('EvaluacionFormDialog', () => {
     expect(request.request.body).toEqual({
       nombre: 'Primer parcial',
       fecha: '2026-10-02',
-      tipo: 'PARCIAL_1',
-      estado: 'APROBADO',
       calificacion: 8.5,
     });
     request.flush(guardada);
@@ -166,16 +158,19 @@ describe('EvaluacionFormDialog', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.form.controls.nota.value).toBe('7,25');
-    expect(fixture.componentInstance.form.controls.estado.value).toBe('APROBADO');
 
     submit();
 
     const request = requests.expectOne(`${environment.apiUrl}/api/materias/3/evaluaciones`);
-    expect(request.request.body).toMatchObject({ calificacion: 7.25, estado: 'APROBADO' });
+    expect(request.request.body).toEqual({
+      nombre: 'Primer parcial',
+      fecha: '2026-10-02',
+      calificacion: 7.25,
+    });
     requests.verify();
   });
 
-  it('keeps the nota null while the evaluation is pending', () => {
+  it('keeps calificacion null when nota is left empty', () => {
     open();
     fillBase();
     submit();
@@ -184,20 +179,9 @@ describe('EvaluacionFormDialog', () => {
     expect(request.request.body).toEqual({
       nombre: 'Primer parcial',
       fecha: '2026-10-02',
-      tipo: 'PARCIAL_1',
-      estado: 'PENDIENTE',
       calificacion: null,
     });
     requests.verify();
-  });
-
-  it('clears the nota when the estado goes back to pendiente', () => {
-    open(guardada);
-    fixture.detectChanges();
-
-    select('evaluacion-estado', 'PENDIENTE');
-
-    expect(fixture.componentInstance.form.controls.nota.value).toBe('');
   });
 
   it('rejects a nota outside 0 a 10 without sending anything', () => {
@@ -237,6 +221,11 @@ describe('EvaluacionFormDialog', () => {
 
     const request = requests.expectOne(`${environment.apiUrl}/api/evaluaciones/44`);
     expect(request.request.method).toBe('PUT');
+    expect(request.request.body).toEqual({
+      nombre: 'Primer parcial',
+      fecha: '2026-10-02',
+      calificacion: 7,
+    });
     request.flush(guardada);
     fixture.detectChanges();
 

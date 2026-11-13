@@ -6,8 +6,6 @@ function evaluacion(calificacion: number | null, id = 1): EvaluacionResponse {
     id,
     nombre: `Evaluación ${id}`,
     fecha: '2026-11-10',
-    tipo: 'PARCIAL_1',
-    estado: calificacion === null ? 'PENDIENTE' : calificacion >= 6 ? 'APROBADO' : 'DESAPROBADO',
     calificacion,
     materiaId: 7,
   };

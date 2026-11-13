@@ -9,22 +9,19 @@ import {
   output,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePicker } from '../../../../components/ui/date-picker/date-picker';
 import { TextField } from '../../../../components/ui/text-field/text-field';
 import { Select, type SelectOption } from '../../../../components/ui/select/select';
 import { createRequestAction } from '../../../../core/services/request-action';
 import type { EvaluacionRequest, EvaluacionResponse } from '../../models';
 import {
-  ESTADOS_EVALUACION,
   EVALUACION_CALIFICACION_MAX,
   EVALUACION_CALIFICACION_MAX_LENGTH,
   EVALUACION_NOMBRE_MAX_LENGTH,
-  NOTA_APROBADA_MIN,
-  TIPOS_EVALUACION,
+  getEstadoEvaluacion,
 } from '../../models';
-import type { EstadoEvaluacion, TipoEvaluacion } from '../../models';
 import { EvaluacionService } from '../../evaluacion.service';
 import { Modal } from '../../../subjects/components/modal/modal';
 import { errorSurface, primaryButton, secondaryButton } from '../../../subjects/dialog-styles';
@@ -50,27 +47,17 @@ function parseNota(raw: string): number | null {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EvaluacionFormDialog {
-  readonly materia = input.required<{ id: number; nombre: string }>();
+  readonly materia = input<{ id: number; nombre: string } | null>(null);
+  readonly materias = input<readonly { id: number; nombre: string }[]>([]);
   readonly evaluacion = input<EvaluacionResponse | null>(null);
   readonly saved = output<EvaluacionResponse>();
   readonly cancelled = output<void>();
 
   private readonly evaluaciones = inject(EvaluacionService);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly modal = viewChild.required(Modal);
 
   readonly action = createRequestAction();
   readonly editing = computed(() => this.evaluacion() !== null);
-  readonly tipos = TIPOS_EVALUACION;
-  readonly estados = ESTADOS_EVALUACION;
-  readonly opcionesTipo: readonly SelectOption<TipoEvaluacion>[] = TIPOS_EVALUACION.map((t) => ({
-    value: t.valor,
-    label: t.etiqueta,
-  }));
-  readonly opcionesEstado: readonly SelectOption<EstadoEvaluacion>[] = ESTADOS_EVALUACION.map((e) => ({
-    value: e.valor,
-    label: e.etiqueta,
-  }));
   readonly nombreMax = EVALUACION_NOMBRE_MAX_LENGTH;
   readonly notaMax = EVALUACION_CALIFICACION_MAX;
   readonly notaLength = EVALUACION_CALIFICACION_MAX_LENGTH;
@@ -79,39 +66,61 @@ export class EvaluacionFormDialog {
   readonly secondaryButtonClass = secondaryButton;
   readonly errorSurfaceClass = errorSurface;
 
+  readonly opcionesMateria = computed<readonly SelectOption<number>[]>(() => {
+    const list = this.materias();
+    if (list.length > 0) {
+      return list.map((m) => ({ value: m.id, label: m.nombre }));
+    }
+    const single = this.materia();
+    return single ? [{ value: single.id, label: single.nombre }] : [];
+  });
+
   readonly form = new FormGroup({
+    materiaId: new FormControl<number | null>(null),
     nombre: new FormControl('', { nonNullable: true }),
     fecha: new FormControl(currentDateValue(), { nonNullable: true }),
-    tipo: new FormControl<TipoEvaluacion>('PARCIAL_1', { nonNullable: true }),
-    estado: new FormControl<EstadoEvaluacion>('PENDIENTE', { nonNullable: true }),
     nota: new FormControl('', { nonNullable: true }),
   });
 
-  readonly pideNota = computed(() => this.form.controls.estado.value !== 'PENDIENTE');
-  readonly notaComoNumero = computed(() => parseNota(this.form.controls.nota.value));
+  private readonly notaValue = toSignal(this.form.controls.nota.valueChanges, {
+    initialValue: this.form.controls.nota.value,
+  });
+  readonly notaComoNumero = computed(() => parseNota(this.notaValue()));
+  readonly estadoCalculado = computed(() => getEstadoEvaluacion(this.notaComoNumero()));
 
   private prefillDone = false;
 
   constructor() {
     effect(() => {
+      const single = this.materia();
+      const list = this.materias();
+      if (!this.form.controls.materiaId.value) {
+        if (single) {
+          this.form.controls.materiaId.setValue(single.id);
+        } else if (list.length > 0) {
+          this.form.controls.materiaId.setValue(list[0].id);
+        }
+      }
+    });
+
+    effect(() => {
       const current = this.evaluacion();
       if (!current || this.prefillDone) return;
       this.prefillDone = true;
       this.form.patchValue({
+        materiaId: current.materiaId,
         nombre: current.nombre,
         fecha: current.fecha,
-        tipo: current.tipo,
-        estado: current.estado,
         nota: current.calificacion === null ? '' : String(current.calificacion),
       });
       this.form.markAsPristine();
     });
+  }
 
-    this.form.controls.estado.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((estado) => {
-        if (estado === 'PENDIENTE') this.form.controls.nota.setValue('');
-      });
+  nombreMateriaActual(): string {
+    const id = this.form.controls.materiaId.value ?? this.materia()?.id;
+    if (!id) return this.materia()?.nombre ?? 'Materia';
+    return this.materias().find((m) => m.id === id)?.nombre ?? this.materia()?.nombre ?? 'Materia';
   }
 
   nombreError(): string | null {
@@ -134,25 +143,13 @@ export class EvaluacionFormDialog {
   notaError(): string | null {
     const control = this.form.controls.nota;
     if (!control.touched && !control.dirty) return null;
-    const valor = this.notaComoNumero();
-    if (valor === null)
-      return this.pideNota() ? 'Cargá la nota o dejá la evaluación pendiente.' : null;
-    if (Number.isNaN(valor) || valor < 0 || valor > this.notaMax) {
+    const raw = control.value.trim();
+    if (raw.length === 0) return null;
+    const valor = parseNota(raw);
+    if (valor === null || Number.isNaN(valor) || valor < 0 || valor > this.notaMax) {
       return `La nota va de 0 a ${this.notaMax}, con hasta dos decimales.`;
     }
     return null;
-  }
-
-  onNotaInput(event: Event): void {
-    const target = event.target;
-    if (!(target instanceof HTMLInputElement)) return;
-
-    this.form.controls.nota.setValue(target.value);
-    const valor = parseNota(target.value);
-    if (valor === null || Number.isNaN(valor)) return;
-    this.form.controls.estado.setValue(
-      valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO',
-    );
   }
 
   close(): void {
@@ -161,26 +158,26 @@ export class EvaluacionFormDialog {
 
   submit(): void {
     this.form.markAllAsTouched();
-    if (this.notaError() || this.nombreError() || this.fechaError()) return;
+    if (this.nombreError() || this.fechaError() || this.notaError()) return;
     if (this.action.disabled()) return;
 
-    const nota = this.notaComoNumero();
+    const targetMateriaId = this.form.controls.materiaId.value ?? this.materia()?.id ?? this.materias()[0]?.id;
+    if (!targetMateriaId) return;
+
+    const nota = parseNota(this.form.controls.nota.value);
     const request: EvaluacionRequest = {
       nombre: this.form.controls.nombre.value.trim(),
       fecha: this.form.controls.fecha.value,
-      tipo: this.form.controls.tipo.value,
-      estado: this.form.controls.estado.value,
       calificacion: nota === null || Number.isNaN(nota) ? null : nota,
     };
 
     const current = this.evaluacion();
     const send = current
       ? this.evaluaciones.update(current.id, request)
-      : this.evaluaciones.create(this.materia().id, request);
+      : this.evaluaciones.create(targetMateriaId, request);
 
     this.action
       .run(() => send)
-      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (saved) => this.saved.emit(saved),
         error: () => undefined,

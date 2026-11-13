@@ -1,6 +1,6 @@
 <app-modal
   [title]="editing() ? 'Editar evaluación' : 'Nueva evaluación'"
-  [description]="materia().nombre"
+  [description]="editing() ? ('Materia: ' + nombreMateriaActual()) : 'Cargá los datos del examen o entrega.'"
   [pending]="action.pending()"
   (closed)="cancelled.emit()"
 >
@@ -12,6 +12,19 @@
     class="space-y-4"
     style="--text-field-label-background: var(--theme-modal-surface)"
   >
+    @if (materias().length > 1 && !editing()) {
+      <div>
+        <label for="evaluacion-materia" class="mb-1.5 block text-xs font-medium text-[var(--theme-muted)]">
+          Materia
+        </label>
+        <app-select
+          id="evaluacion-materia"
+          [options]="opcionesMateria()"
+          formControlName="materiaId"
+        />
+      </div>
+    }
+
     <app-text-field
       id="evaluacion-nombre"
       label="Nombre de la evaluación"
@@ -21,30 +34,6 @@
       formControlName="nombre"
     />
 
-    <div class="grid gap-4 sm:grid-cols-2">
-      <div>
-        <label for="evaluacion-tipo" class="mb-1.5 block text-xs text-[var(--theme-muted)]"
-          >Tipo</label
-        >
-        <app-select
-          id="evaluacion-tipo"
-          [options]="opcionesTipo"
-          formControlName="tipo"
-        />
-      </div>
-
-      <div>
-        <label for="evaluacion-estado" class="mb-1.5 block text-xs text-[var(--theme-muted)]"
-          >Estado</label
-        >
-        <app-select
-          id="evaluacion-estado"
-          [options]="opcionesEstado"
-          formControlName="estado"
-        />
-      </div>
-    </div>
-
     <app-date-picker
       id="evaluacion-fecha"
       label="Fecha"
@@ -53,16 +42,33 @@
       formControlName="fecha"
     />
 
-    <app-text-field
-      id="evaluacion-nota"
-      label="Nota (0 a 10)"
-      [required]="pideNota()"
-      [errorText]="notaError()"
-      [maxLength]="notaLength"
-      inputMode="decimal"
-      supportingText="Podés usar coma decimal. Dejalo vacío si todavía no la rendiste."
-      (input)="onNotaInput($event)"
-    />
+    <div>
+      <app-text-field
+        id="evaluacion-nota"
+        label="Nota (0 a 10, opcional)"
+        [errorText]="notaError()"
+        [maxLength]="notaLength"
+        inputMode="decimal"
+        supportingText="Podés usar coma decimal. Dejalo vacío si todavía no la rendiste."
+        formControlName="nota"
+      />
+
+      @if (notaComoNumero() !== null && !notaError()) {
+        <div class="mt-2 flex items-center gap-2">
+          <span class="text-xs text-[var(--theme-muted)]">Resultado:</span>
+          <span
+            class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
+            [class]="
+              estadoCalculado() === 'APROBADO'
+                ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
+                : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+            "
+          >
+            {{ estadoCalculado() === 'APROBADO' ? 'Aprobado (>= 6)' : 'Desaprobado (< 6)' }}
+          </span>
+        </div>
+      }
+    </div>
 
     @if (action.errorMessage(); as message) {
       <p

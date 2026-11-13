@@ -8,6 +8,7 @@ import { DeleteSubjectDialog } from '../../components/delete-subject-dialog/dele
 import { SubjectFormDialog } from '../../components/subject-form-dialog/subject-form-dialog';
 import { SubjectRecentNotes } from '../../components/subject-recent-notes/subject-recent-notes';
 import { SubjectRecentTasks } from '../../components/subject-recent-tasks/subject-recent-tasks';
+import { SubjectRecentEvaluaciones } from '../../components/subject-recent-evaluaciones/subject-recent-evaluaciones';
 import { EvaluacionesSummary } from '../../../evaluaciones/components/evaluaciones-summary/evaluaciones-summary';
 import { dangerButton, primaryButton, secondaryButton } from '../../dialog-styles';
 
@@ -33,6 +34,7 @@ interface AttendanceTotals {
     RouterLink,
     SubjectRecentNotes,
     SubjectRecentTasks,
+    SubjectRecentEvaluaciones,
     EvaluacionesSummary,
     SubjectFormDialog,
     DeleteSubjectDialog,

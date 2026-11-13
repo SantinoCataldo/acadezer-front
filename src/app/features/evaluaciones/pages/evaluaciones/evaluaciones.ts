@@ -16,12 +16,6 @@ import { DeleteEvaluacionDialog } from '../../components/delete-evaluacion-dialo
 import { EvaluacionFormDialog } from '../../components/evaluacion-form-dialog/evaluacion-form-dialog';
 import { EvaluacionService } from '../../evaluacion.service';
 import type { EvaluacionResponse } from '../../models';
-import {
-  ESTADOS_EVALUACION,
-  TIPOS_EVALUACION,
-  type EstadoEvaluacion,
-  type TipoEvaluacion,
-} from '../../models';
 import { ETIQUETA_ESTADO_CURSADA, calcularPromedio, type EstadoCursada } from '../../promedio';
 import { primaryButton, secondaryButton } from '../../../subjects/dialog-styles';
 
@@ -59,6 +53,7 @@ export class Evaluaciones implements AfterViewInit {
   readonly todas = signal<readonly EvaluacionResponse[]>([]);
   readonly state = signal<ListState>('loading');
 
+  readonly showFormDialog = signal(false);
   readonly formMateria = signal<{ id: number; nombre: string } | null>(null);
   readonly editing = signal<EvaluacionResponse | null>(null);
   readonly deleting = signal<EvaluacionResponse | null>(null);
@@ -176,10 +171,15 @@ export class Evaluaciones implements AfterViewInit {
       });
   }
 
-  openCreateDialog(): void {
-    const primera = this.subjects()[0];
-    if (!primera) return;
-    this.formMateria.set({ id: primera.id, nombre: primera.nombre });
+  openCreateDialog(materia?: SubjectResponse): void {
+    if (materia) {
+      this.formMateria.set({ id: materia.id, nombre: materia.nombre });
+    } else {
+      const primera = this.subjects()[0];
+      this.formMateria.set(primera ? { id: primera.id, nombre: primera.nombre } : null);
+    }
+    this.editing.set(null);
+    this.showFormDialog.set(true);
   }
 
   openEditDialog(evaluacion: EvaluacionResponse): void {
@@ -188,6 +188,7 @@ export class Evaluaciones implements AfterViewInit {
       nombre: this.nombreMateria(evaluacion.materiaId),
     });
     this.editing.set(evaluacion);
+    this.showFormDialog.set(true);
   }
 
   openDeleteDialog(evaluacion: EvaluacionResponse): void {
@@ -195,6 +196,7 @@ export class Evaluaciones implements AfterViewInit {
   }
 
   onSaved(saved: EvaluacionResponse): void {
+    this.showFormDialog.set(false);
     this.formMateria.set(null);
     this.editing.set(null);
     this.todas.update((lista) => {
@@ -212,6 +214,7 @@ export class Evaluaciones implements AfterViewInit {
   }
 
   onDialogCancelled(): void {
+    this.showFormDialog.set(false);
     this.formMateria.set(null);
     this.editing.set(null);
     this.deleting.set(null);
@@ -220,16 +223,6 @@ export class Evaluaciones implements AfterViewInit {
   fechaCorta(valor: string | undefined | null): string {
     if (!valor) return '';
     return fechaLarga(valor);
-  }
-
-  etiquetaTipo(tipo: TipoEvaluacion | string | undefined | null): string {
-    if (!tipo) return '';
-    return TIPOS_EVALUACION.find((item) => item.valor === tipo)?.etiqueta ?? String(tipo);
-  }
-
-  etiquetaEstadoEvaluacion(estado: EstadoEvaluacion | string | undefined | null): string {
-    if (!estado) return '';
-    return ESTADOS_EVALUACION.find((item) => item.valor === estado)?.etiqueta ?? String(estado);
   }
 
   etiquetaEstado(estado: EstadoCursada | string | undefined | null): string {

@@ -30,8 +30,6 @@ describe('Evaluaciones', () => {
     materiaId: 1,
     nombre: 'Primer parcial',
     fecha: fecha(6),
-    tipo: 'PARCIAL_1',
-    estado: 'PENDIENTE',
     calificacion: null,
   };
 
@@ -40,8 +38,6 @@ describe('Evaluaciones', () => {
     materiaId: 1,
     nombre: 'Final',
     fecha: fecha(-9),
-    tipo: 'FINAL',
-    estado: 'APROBADO',
     calificacion: 8,
   };
 
@@ -50,8 +46,6 @@ describe('Evaluaciones', () => {
     materiaId: 2,
     nombre: 'Recuperatorio',
     fecha: fecha(-2),
-    tipo: 'RECUPERATORIO',
-    estado: 'DESAPROBADO',
     calificacion: 4,
   };
 
@@ -139,8 +133,7 @@ describe('Evaluaciones', () => {
     expect(text).toContain('Recuperatorio');
     expect(text).toContain('Pendiente');
     expect(text).toContain('Desaprobado');
-    expect(text).toContain('Parcial 1');
-    expect(text).toContain('Recuperatorio');
+    expect(text).toContain('Aprobado');
     expect(text).toContain('Análisis matemático');
     expect(text).toContain('Algoritmos');
     requests.verify();

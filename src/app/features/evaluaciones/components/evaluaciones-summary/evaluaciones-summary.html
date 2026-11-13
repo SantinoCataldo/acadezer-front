@@ -1,71 +1,64 @@
-<section
-  class="mt-8 rounded-[24px] border border-[var(--theme-border)] bg-[var(--theme-surface)] px-5 py-6 sm:px-7"
+<article
+  class="flex flex-col justify-between rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5"
   aria-labelledby="evaluaciones-summary-heading"
 >
-  @switch (state()) {
-    @case ('loading') {
-      <div aria-busy="true" class="flex flex-wrap items-center justify-between gap-4">
-        <div class="space-y-2">
-          <div class="h-3 w-28 animate-pulse rounded-full bg-[var(--theme-surface-high)]"></div>
-          <div class="h-3 w-52 animate-pulse rounded-full bg-[var(--theme-surface-high)]"></div>
-        </div>
-        <div class="h-10 w-24 animate-pulse rounded-[14px] bg-[var(--theme-surface-high)]"></div>
-        <p role="status" class="sr-only">Cargando el promedio de la materia…</p>
+  <div>
+    <header class="flex items-center justify-between gap-4">
+      <div class="min-w-0">
+        <h3 id="evaluaciones-summary-heading" class="text-lg font-semibold">
+          Promedio
+        </h3>
+        <p class="mt-1 text-sm text-[var(--theme-muted)]">Rendimiento en la cursada.</p>
       </div>
-    }
+      <a
+        routerLink="/estudio/evaluaciones"
+        class="group inline-flex min-h-11 shrink-0 items-center gap-1 rounded-[13px] px-3 text-sm font-medium text-[var(--theme-accent-content)] transition-[background-color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+      >
+        Ver todas
+        <span class="material-symbols-rounded text-lg transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden="true">arrow_forward</span>
+      </a>
+    </header>
 
-    @case ('error') {
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <p class="text-sm text-[var(--theme-muted)]">
+    @switch (state()) {
+      @case ('loading') {
+        <div aria-busy="true" class="mt-4 space-y-2">
+          <p role="status" class="sr-only">Cargando el promedio de la materia…</p>
+          <div class="h-14 animate-pulse rounded-[14px] bg-[var(--theme-surface-high)]"></div>
+        </div>
+      }
+
+      @case ('error') {
+        <div role="alert" class="mt-4 rounded-[14px] bg-[var(--theme-surface-high)] px-4 py-5 text-sm text-[var(--theme-muted)]">
           El promedio de esta materia no está disponible ahora.
-        </p>
-        <a
-          routerLink="/estudio/evaluaciones"
-          class="text-sm font-semibold text-[var(--theme-accent-content)] underline underline-offset-4"
-        >
-          Ver evaluaciones
-        </a>
-      </div>
-    }
-
-    @case ('ready') {
-      <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
-        <div class="min-w-0">
-          <h2 id="evaluaciones-summary-heading" class="text-sm font-semibold">
-            Promedio de la materia
-          </h2>
-          <p class="mt-1 text-sm leading-relaxed text-[var(--theme-muted)]">{{ detalle() }}</p>
-          @if (sinNota(); as pendientes) {
-            <p class="mt-1 text-xs text-[var(--theme-muted)]">{{ pendientes }}</p>
-          }
         </div>
+      }
 
-        <div class="flex items-end gap-4">
-          <p class="flex items-baseline gap-1.5">
+      @case ('ready') {
+        <div class="mt-4 flex items-baseline justify-between gap-3">
+          <div class="flex items-baseline gap-1.5">
             <span
               class="text-4xl font-semibold tabular-nums tracking-tight sm:text-5xl"
-              [class.text-[var(--theme-error)]]="resumen().estado === 'DESAPROBADO'"
+              [class.text-rose-500]="resumen().estado === 'DESAPROBADO'"
               [class.text-[var(--theme-accent-content)]]="resumen().estado !== 'DESAPROBADO'"
             >
               {{ resumen().promedio === null ? '—' : resumen().promedio }}
             </span>
             <span class="text-sm text-[var(--theme-muted)]">/ 10</span>
-          </p>
+          </div>
+
           <span class="rounded-full px-3 py-1 text-xs font-semibold" [class]="estadoClases()">
             {{ etiqueta() }}
           </span>
         </div>
-      </div>
 
-      <p class="mt-3 text-xs text-[var(--theme-muted)]">
-        {{ resumen().evaluadas }}
-        {{ resumen().evaluadas === 1 ? 'evaluación con nota' : 'evaluaciones con nota' }} ·
-        <a
-          routerLink="/estudio/evaluaciones"
-          class="font-semibold text-[var(--theme-accent-content)] underline underline-offset-4"
-          >ver todas</a
-        >
-      </p>
+        <p class="mt-4 text-xs text-[var(--theme-muted)]">
+          {{ resumen().evaluadas }}
+          {{ resumen().evaluadas === 1 ? 'evaluación con nota' : 'evaluaciones con nota' }}
+          @if (sinNota(); as pendientes) {
+            · {{ pendientes }}
+          }
+        </p>
+      }
     }
-  }
-</section>
+  </div>
+</article>

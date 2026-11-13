@@ -7,11 +7,9 @@ export {
   EVALUACION_NOMBRE_MAX_LENGTH,
   ESTADOS_EVALUACION,
   NOTA_APROBADA_MIN,
-  TIPOS_EVALUACION,
 } from './models';
 export type {
   EstadoEvaluacion,
   EvaluacionRequest,
   EvaluacionResponse,
-  TipoEvaluacion,
 } from './models';

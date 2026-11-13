@@ -25,6 +25,7 @@ describe('SubjectDetail', () => {
         provideRouter([
           { path: 'estudio', component: RouteStub },
           { path: 'estudio/evaluaciones', component: RouteStub },
+          { path: 'estudio/materias', component: RouteStub },
           { path: 'estudio/materias/:id', component: RouteStub },
         ]),
         {
@@ -67,7 +68,10 @@ describe('SubjectDetail', () => {
 
   function flushEvaluaciones(evaluaciones: unknown[] = []): void {
     fixture.detectChanges();
-    requests.expectOne(`${environment.apiUrl}/api/materias/7/evaluaciones`).flush(evaluaciones);
+    const reqs = requests.match(`${environment.apiUrl}/api/materias/7/evaluaciones`);
+    for (const req of reqs) {
+      req.flush(evaluaciones);
+    }
   }
 
   function openAndFlush(evaluaciones: unknown[] = []): void {
@@ -87,7 +91,6 @@ describe('SubjectDetail', () => {
     expect(text).toContain('Apuntes');
     expect(text).toContain('Tareas pendientes');
     expect(text).toContain('Evaluaciones');
-    expect(text).toContain('Nuevo apunte');
     expect(text).toContain('Asistencia');
     requests.verify();
   });
@@ -138,7 +141,7 @@ describe('SubjectDetail', () => {
 
     requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush(null, { status: 204, statusText: 'No Content' });
 
-    expect(router.navigateByUrl).toHaveBeenCalledWith('/estudio');
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/estudio/materias');
     requests.verify();
   });
 
@@ -158,14 +161,12 @@ describe('SubjectDetail', () => {
         materiaId: 7,
         nombre: 'Segundo parcial',
         fecha: '2026-11-05',
-        tipo: 'PARCIAL_2',
-        estado: 'APROBADO',
         calificacion: 7,
       },
     ]);
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Promedio de la materia');
+    expect(text).toContain('Promedio');
     expect(text).toContain('8');
     expect(text).toContain('Promocionado');
     expect(text).toContain('2 evaluaciones con nota');
@@ -177,9 +178,10 @@ describe('SubjectDetail', () => {
     requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush({ id: 7, nombre: 'Física' });
     flushNotes();
     fixture.detectChanges();
-    requests
-      .expectOne(`${environment.apiUrl}/api/materias/7/evaluaciones`)
-      .flush({ message: 'sin servicio' }, { status: 500, statusText: 'Internal Server Error' });
+    const reqs = requests.match(`${environment.apiUrl}/api/materias/7/evaluaciones`);
+    for (const req of reqs) {
+      req.flush({ message: 'sin servicio' }, { status: 500, statusText: 'Internal Server Error' });
+    }
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
