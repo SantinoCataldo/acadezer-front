@@ -54,6 +54,9 @@ export class StudySpaceComponent {
   readonly notesActive = () => {
     return (this.currentUrl().split(/[?#]/)[0] ?? '') === '/estudio/apuntes';
   };
+  readonly evaluacionesActive = () => {
+    return (this.currentUrl().split(/[?#]/)[0] ?? '') === '/estudio/evaluaciones';
+  };
   readonly tasksActive = () => {
     const path = this.currentUrl().split(/[?#]/)[0] ?? '';
     return path.startsWith('/estudio/tareas');
