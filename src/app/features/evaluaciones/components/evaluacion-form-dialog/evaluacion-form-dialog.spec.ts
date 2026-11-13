@@ -31,9 +31,11 @@ describe('EvaluacionFormDialog', () => {
   }
 
   function select(id: string, value: string): void {
-    const control = fixture.nativeElement.querySelector(`select#${id}`) as HTMLSelectElement;
-    control.value = value;
-    control.dispatchEvent(new Event('change'));
+    if (id === 'evaluacion-tipo') {
+      fixture.componentInstance.form.controls.tipo.setValue(value as any);
+    } else if (id === 'evaluacion-estado') {
+      fixture.componentInstance.form.controls.estado.setValue(value as any);
+    }
     fixture.detectChanges();
   }
 
@@ -83,6 +85,16 @@ describe('EvaluacionFormDialog', () => {
   }
 
   beforeEach(() => {
+    vi.stubGlobal('matchMedia', (query: string): MediaQueryList => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
     TestBed.configureTestingModule({
       imports: [EvaluacionFormDialog, FormsModule],
       providers: [provideHttpClient(), provideHttpClientTesting()],
@@ -93,6 +105,7 @@ describe('EvaluacionFormDialog', () => {
 
   afterEach(() => {
     TestBed.resetTestingModule();
+    vi.unstubAllGlobals();
   });
 
   it('starts empty and asks for the pending evaluation, without nota', () => {

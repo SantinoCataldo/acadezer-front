@@ -1,9 +1,9 @@
 <section aria-labelledby="evaluaciones-heading" class="text-[var(--theme-foreground)]">
-  <header class="flex flex-wrap items-end justify-between gap-4">
+  <header data-reveal class="flex flex-wrap items-end justify-between gap-4">
     <div>
-      <h2 id="evaluaciones-heading" class="text-xl font-semibold tracking-tight sm:text-2xl">
+      <h1 id="evaluaciones-heading" class="text-3xl font-semibold tracking-tight">
         Evaluaciones
-      </h2>
+      </h1>
       <p class="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">
         Exámenes, parciales y notas de todas tus materias.
       </p>
@@ -18,10 +18,10 @@
   </header>
 
   @if (state() === 'ready' && subjects().length > 0) {
-    <div class="mt-8 space-y-3">
+    <div data-reveal class="mt-8 space-y-3">
       @for (item of resumen(); track item.subject.id) {
         <article
-          class="flex flex-wrap items-center justify-between gap-4 rounded-[20px] bg-[var(--theme-surface)] px-5 py-4"
+          class="flex flex-wrap items-center justify-between gap-4 rounded-[20px] bg-[var(--theme-surface)] px-5 py-4 transition-transform duration-200 hover:scale-[1.01]"
         >
           <div class="min-w-0">
             <h3 class="truncate text-sm font-semibold">{{ item.subject.nombre }}</h3>
@@ -41,7 +41,7 @@
                 : item.resumen.estado === 'REGULAR'
                   ? 'bg-[var(--theme-surface-high)] text-[var(--theme-foreground)]'
                   : item.resumen.estado === 'DESAPROBADO'
-                    ? 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]'
+                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
                     : 'bg-[var(--theme-surface-high)] text-[var(--theme-muted)]'
             "
           >
@@ -122,11 +122,11 @@
             </button>
           </div>
         } @else {
-          <div class="space-y-10">
+          <div data-reveal class="space-y-10">
             @for (grupo of grupos(); track grupo.clave) {
               <div>
                 <div
-                  class="flex items-baseline justify-between gap-4 border-b border-[var(--theme-border)] pb-3"
+                  class="flex items-baseline justify-between gap-4 border-b border-[var(--theme-border)]/50 pb-3"
                 >
                   <h3 class="text-base font-semibold tracking-[-0.01em]">{{ grupo.titulo }}</h3>
                   <p class="text-xs text-[var(--theme-muted)]">{{ grupo.detalle }}</p>
@@ -135,7 +135,7 @@
                 <ul class="mt-4 space-y-3">
                   @for (evaluacion of grupo.evaluaciones; track evaluacion.id) {
                     <li
-                      class="flex flex-wrap items-center gap-4 rounded-[20px] border border-[var(--theme-border)] px-5 py-4"
+                      class="flex flex-wrap items-center gap-4 rounded-[20px] bg-[var(--theme-surface)] px-5 py-4 transition-transform duration-200 hover:scale-[1.01]"
                     >
                       <div class="flex min-w-0 flex-1 flex-col gap-1">
                         <div class="flex flex-wrap items-baseline gap-x-2">
@@ -159,7 +159,7 @@
                             evaluacion.estado === 'APROBADO'
                               ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
                               : evaluacion.estado === 'DESAPROBADO'
-                                ? 'bg-[var(--md-sys-color-error-container)] text-[var(--md-sys-color-on-error-container)]'
+                                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
                                 : 'bg-[var(--theme-surface-high)] text-[var(--theme-muted)]'
                           "
                         >
@@ -177,7 +177,7 @@
                         </button>
                         <button
                           type="button"
-                          class="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] hover:text-[var(--theme-error)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+                          class="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] hover:text-rose-500 active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
                           [attr.aria-label]="'Eliminar ' + evaluacion.nombre"
                           (click)="openDeleteDialog(evaluacion)"
                         >

@@ -13,6 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { DatePicker } from '../../../../components/ui/date-picker/date-picker';
 import { TextField } from '../../../../components/ui/text-field/text-field';
+import { Select, type SelectOption } from '../../../../components/ui/select/select';
 import { createRequestAction } from '../../../../core/services/request-action';
 import type { EvaluacionRequest, EvaluacionResponse } from '../../models';
 import {
@@ -44,7 +45,7 @@ function parseNota(raw: string): number | null {
 
 @Component({
   selector: 'app-evaluacion-form-dialog',
-  imports: [ReactiveFormsModule, Modal, TextField, DatePicker],
+  imports: [ReactiveFormsModule, Modal, TextField, DatePicker, Select],
   templateUrl: './evaluacion-form-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -62,6 +63,14 @@ export class EvaluacionFormDialog {
   readonly editing = computed(() => this.evaluacion() !== null);
   readonly tipos = TIPOS_EVALUACION;
   readonly estados = ESTADOS_EVALUACION;
+  readonly opcionesTipo: readonly SelectOption<TipoEvaluacion>[] = TIPOS_EVALUACION.map((t) => ({
+    value: t.valor,
+    label: t.etiqueta,
+  }));
+  readonly opcionesEstado: readonly SelectOption<EstadoEvaluacion>[] = ESTADOS_EVALUACION.map((e) => ({
+    value: e.valor,
+    label: e.etiqueta,
+  }));
   readonly nombreMax = EVALUACION_NOMBRE_MAX_LENGTH;
   readonly notaMax = EVALUACION_CALIFICACION_MAX;
   readonly notaLength = EVALUACION_CALIFICACION_MAX_LENGTH;

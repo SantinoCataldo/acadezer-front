@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
@@ -7,6 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { gsap } from 'gsap';
 import type { SubjectResponse } from '../../../subjects/models';
 import { SubjectsService } from '../../../subjects/services/subjects.service';
 import { DeleteEvaluacionDialog } from '../../components/delete-evaluacion-dialog/delete-evaluacion-dialog';
@@ -47,7 +49,7 @@ function fechaLarga(valor: string): string {
   templateUrl: './evaluaciones.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Evaluaciones {
+export class Evaluaciones implements AfterViewInit {
   private readonly evaluaciones = inject(EvaluacionService);
   private readonly subjectsService = inject(SubjectsService);
   private readonly destroyRef = inject(DestroyRef);
@@ -110,6 +112,23 @@ export class Evaluaciones {
 
   constructor() {
     this.load();
+  }
+
+  ngAfterViewInit(): void {
+    if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    gsap.fromTo(
+      '[data-reveal]',
+      { autoAlpha: 0, y: 12, filter: 'blur(6px)' },
+      {
+        autoAlpha: 1,
+        y: 0,
+        filter: 'blur(0px)',
+        duration: 0.35,
+        stagger: 0.05,
+        ease: 'power2.out',
+        clearProps: 'filter,transform,willChange',
+      },
+    );
   }
 
   load(): void {
