@@ -7,6 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { gsap } from 'gsap';
 import type { SubjectResponse } from '../../../subjects/models';
@@ -44,7 +45,7 @@ function fechaLarga(valor: string): string {
 
 @Component({
   selector: 'app-evaluaciones',
-  imports: [EvaluacionFormDialog, DeleteEvaluacionDialog],
+  imports: [RouterLink, EvaluacionFormDialog, DeleteEvaluacionDialog],
   host: { class: 'block' },
   templateUrl: './evaluaciones.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -107,8 +108,9 @@ export class Evaluaciones implements AfterViewInit {
 
   readonly isEmpty = computed(() => this.state() === 'ready' && this.todas().length === 0);
 
-  readonly nombreMateria = (materiaId: number): string =>
-    this.subjects().find((subject) => subject.id === materiaId)?.nombre ?? 'Materia';
+  nombreMateria(materiaId: number): string {
+    return this.subjects().find((subject) => subject.id === materiaId)?.nombre ?? 'Materia';
+  }
 
   constructor() {
     this.load();
@@ -215,19 +217,23 @@ export class Evaluaciones implements AfterViewInit {
     this.deleting.set(null);
   }
 
-  fechaCorta(valor: string): string {
+  fechaCorta(valor: string | undefined | null): string {
+    if (!valor) return '';
     return fechaLarga(valor);
   }
 
-  etiquetaTipo(tipo: TipoEvaluacion): string {
-    return TIPOS_EVALUACION.find((item) => item.valor === tipo)?.etiqueta ?? tipo;
+  etiquetaTipo(tipo: TipoEvaluacion | string | undefined | null): string {
+    if (!tipo) return '';
+    return TIPOS_EVALUACION.find((item) => item.valor === tipo)?.etiqueta ?? String(tipo);
   }
 
-  etiquetaEstadoEvaluacion(estado: EstadoEvaluacion): string {
-    return ESTADOS_EVALUACION.find((item) => item.valor === estado)?.etiqueta ?? estado;
+  etiquetaEstadoEvaluacion(estado: EstadoEvaluacion | string | undefined | null): string {
+    if (!estado) return '';
+    return ESTADOS_EVALUACION.find((item) => item.valor === estado)?.etiqueta ?? String(estado);
   }
 
-  etiquetaEstado(estado: EstadoCursada): string {
-    return ETIQUETA_ESTADO_CURSADA[estado];
+  etiquetaEstado(estado: EstadoCursada | string | undefined | null): string {
+    if (!estado) return '';
+    return ETIQUETA_ESTADO_CURSADA[estado as EstadoCursada] ?? String(estado);
   }
 }
