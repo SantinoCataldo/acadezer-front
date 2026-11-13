@@ -12,7 +12,7 @@
         [attr.title]="action.label"
         [attr.aria-pressed]="action.stateCommand || action.command === 'formatBlock' ? isActive(action) : null"
         class="flex size-9 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:bg-[var(--theme-canvas)] hover:text-[var(--theme-foreground)] active:scale-[0.96] aria-pressed:bg-[var(--theme-accent)] aria-pressed:text-[var(--theme-on-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
-        (pointerdown)="preserveSelection($event)"
+        (mousedown)="onToolbarMousedown($event)"
         (click)="apply(action)"
       >
         <span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ action.icon }}</span>

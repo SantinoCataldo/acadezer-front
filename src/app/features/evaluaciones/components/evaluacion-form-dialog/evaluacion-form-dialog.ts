@@ -20,6 +20,11 @@ import {
   EVALUACION_CALIFICACION_MAX,
   EVALUACION_CALIFICACION_MAX_LENGTH,
   EVALUACION_NOMBRE_MAX_LENGTH,
+  NOTA_APROBADA_MIN,
+  TIPOS_EVALUACION,
+  ESTADOS_EVALUACION,
+  type TipoEvaluacion,
+  type EstadoEvaluacion,
 } from '../../models';
 import { EvaluacionService } from '../../evaluacion.service';
 import { Modal } from '../../../subjects/components/modal/modal';
@@ -60,6 +65,16 @@ export class EvaluacionFormDialog {
   readonly nombreMax = EVALUACION_NOMBRE_MAX_LENGTH;
   readonly notaMax = EVALUACION_CALIFICACION_MAX;
   readonly notaLength = EVALUACION_CALIFICACION_MAX_LENGTH;
+  readonly tipos = TIPOS_EVALUACION;
+  readonly estados = ESTADOS_EVALUACION;
+  readonly opcionesTipo: readonly SelectOption<TipoEvaluacion>[] = TIPOS_EVALUACION.map((t) => ({
+    value: t.valor,
+    label: t.etiqueta,
+  }));
+  readonly opcionesEstado: readonly SelectOption<EstadoEvaluacion>[] = ESTADOS_EVALUACION.map((e) => ({
+    value: e.valor,
+    label: e.etiqueta,
+  }));
 
   readonly primaryButtonClass = primaryButton;
   readonly secondaryButtonClass = secondaryButton;
@@ -78,8 +93,12 @@ export class EvaluacionFormDialog {
     materiaId: new FormControl<number | null>(null),
     nombre: new FormControl('', { nonNullable: true }),
     fecha: new FormControl(currentDateValue(), { nonNullable: true }),
+    tipo: new FormControl<TipoEvaluacion>('PARCIAL_1', { nonNullable: true }),
+    estado: new FormControl<EstadoEvaluacion>('PENDIENTE', { nonNullable: true }),
     nota: new FormControl('', { nonNullable: true }),
   });
+
+  readonly pideNota = computed(() => this.form.controls.estado.value !== 'PENDIENTE');
 
   private readonly notaValue = toSignal(this.form.controls.nota.valueChanges, {
     initialValue: this.form.controls.nota.value,
@@ -109,9 +128,15 @@ export class EvaluacionFormDialog {
         materiaId: current.materiaId,
         nombre: current.nombre,
         fecha: current.fecha,
+        tipo: current.tipo ?? 'PARCIAL_1',
+        estado: current.estado ?? 'PENDIENTE',
         nota: current.calificacion === null ? '' : String(current.calificacion),
       });
       this.form.markAsPristine();
+    });
+
+    this.form.controls.estado.valueChanges.subscribe((estado) => {
+      if (estado === 'PENDIENTE') this.form.controls.nota.setValue('');
     });
   }
 
@@ -150,6 +175,16 @@ export class EvaluacionFormDialog {
     return null;
   }
 
+  onNotaInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    if (!target) return;
+    const valor = parseNota(target.value);
+    if (valor === null || Number.isNaN(valor)) return;
+    this.form.controls.estado.setValue(
+      valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO',
+    );
+  }
+
   close(): void {
     this.modal().requestClose();
   }
@@ -166,6 +201,8 @@ export class EvaluacionFormDialog {
     const request: EvaluacionRequest = {
       nombre: this.form.controls.nombre.value.trim(),
       fecha: this.form.controls.fecha.value,
+      tipo: this.form.controls.tipo.value,
+      estado: this.form.controls.estado.value,
       calificacion: nota === null || Number.isNaN(nota) ? null : nota,
     };
 
@@ -179,7 +216,6 @@ export class EvaluacionFormDialog {
       .subscribe({
         next: (saved) => this.saved.emit(saved),
         error: (err) => {
-          // Log the actual error for debugging
           console.error('Error guardando evaluación:', err);
         },
       });

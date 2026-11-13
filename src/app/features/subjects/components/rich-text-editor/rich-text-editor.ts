@@ -107,10 +107,16 @@ export class RichTextEditor {
       }
       document.execCommand(action.command, false, cmdValue);
     }
-    this.captureSelection(element);
+    // No capturamos selección aquí - el onInput/onSelectionChange lo hará
     this.refreshActiveActions();
     this.userEditedLocally = true;
     this.emit(element.innerHTML);
+  }
+
+  /** Usar mousedown para capturar selección ANTES de que el botón quite el foco */
+  protected onToolbarMousedown(event: MouseEvent): void {
+    this.captureSelection(this.editable().nativeElement);
+    event.preventDefault(); // Evita que el mousedown quite el foco del contenteditable
   }
 
   protected preserveSelection(event: PointerEvent): void {
