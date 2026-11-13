@@ -9,7 +9,9 @@ import { SubjectFormDialog } from '../../components/subject-form-dialog/subject-
 import { SubjectRecentNotes } from '../../components/subject-recent-notes/subject-recent-notes';
 import { SubjectRecentTasks } from '../../components/subject-recent-tasks/subject-recent-tasks';
 import { SubjectRecentEvaluaciones } from '../../components/subject-recent-evaluaciones/subject-recent-evaluaciones';
-import { EvaluacionesSummary } from '../../../evaluaciones/components/evaluaciones-summary/evaluaciones-summary';
+import { EvaluacionService } from '../../../evaluaciones/evaluacion.service';
+import type { EvaluacionResponse } from '../../../evaluaciones/models';
+import { calcularPromedio } from '../../../evaluaciones/promedio';
 import { dangerButton, primaryButton, secondaryButton } from '../../dialog-styles';
 
 type DetailState = 'loading' | 'error' | 'ready';
@@ -35,7 +37,6 @@ interface AttendanceTotals {
     SubjectRecentNotes,
     SubjectRecentTasks,
     SubjectRecentEvaluaciones,
-    EvaluacionesSummary,
     SubjectFormDialog,
     DeleteSubjectDialog,
   ],
@@ -46,10 +47,13 @@ export class SubjectDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly subjects = inject(SubjectsService);
+  private readonly evaluacionesService = inject(EvaluacionService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly subject = signal<SubjectResponse | null>(null);
   readonly state = signal<DetailState>('loading');
+  readonly evaluacionesMateria = signal<readonly EvaluacionResponse[]>([]);
+  readonly promedioMateria = computed(() => calcularPromedio(this.evaluacionesMateria()));
   readonly formTarget = signal<SubjectResponse | null>(null);
   readonly deleteTarget = signal<SubjectResponse | null>(null);
   readonly firstPresentDate = signal<string | null>(null);
@@ -103,12 +107,23 @@ export class SubjectDetail {
         next: (subject) => {
           this.subject.set(subject);
           this.state.set('ready');
+          this.loadEvaluaciones(subject.id);
           this.loadFirstPresentDate(subject);
         },
         error: () => {
           this.subject.set(null);
           this.state.set('error');
         },
+      });
+  }
+
+  private loadEvaluaciones(materiaId: number): void {
+    this.evaluacionesService
+      .listByMateria(materiaId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (evals) => this.evaluacionesMateria.set(evals),
+        error: () => this.evaluacionesMateria.set([]),
       });
   }
 

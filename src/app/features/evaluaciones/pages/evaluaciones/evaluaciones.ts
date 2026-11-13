@@ -11,7 +11,6 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { gsap } from 'gsap';
-import { Select, type SelectOption } from '../../../../components/ui/select/select';
 import type { SubjectResponse } from '../../../subjects/models';
 import { SubjectsService } from '../../../subjects/services/subjects.service';
 import { DeleteEvaluacionDialog } from '../../components/delete-evaluacion-dialog/delete-evaluacion-dialog';
@@ -20,15 +19,24 @@ import { EvaluacionService } from '../../evaluacion.service';
 import type { EvaluacionResponse } from '../../models';
 import { calcularPromedio } from '../../promedio';
 import { primaryButton, secondaryButton } from '../../../subjects/dialog-styles';
+import { SelectOption } from '@components/ui/select/select';
 
 type ListState = 'loading' | 'error' | 'ready';
-export type FiltroEstado = 'todas' | 'proximas' | 'rendidas' | 'aprobadas' | 'desaprobadas';
+export type FiltroEstado = 'todas' | 'proximas' | 'rendidas';
 
 interface Grupo {
   clave: string;
   titulo: string;
   detalle: string;
   evaluaciones: EvaluacionResponse[];
+}
+
+export interface TarjetaMateria {
+  subject: SubjectResponse;
+  promedio: number | null;
+  evaluadas: number;
+  pendientes: number;
+  total: number;
 }
 
 function esFutura(evaluacion: EvaluacionResponse, hoy: string): boolean {
@@ -42,7 +50,7 @@ function fechaLarga(valor: string): string {
 
 @Component({
   selector: 'app-evaluaciones',
-  imports: [RouterLink, FormsModule, Select, EvaluacionFormDialog, DeleteEvaluacionDialog],
+  imports: [RouterLink, FormsModule, EvaluacionFormDialog, DeleteEvaluacionDialog],
   host: { class: 'block' },
   templateUrl: './evaluaciones.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,6 +66,8 @@ export class Evaluaciones implements AfterViewInit {
 
   readonly filtroEstado = signal<FiltroEstado>('todas');
   readonly filtroMateriaId = signal<number>(0);
+  readonly vista = signal<'lista' | 'grilla'>('lista');
+  readonly editandoNotaId = signal<number | null>(null);
 
   readonly showFormDialog = signal(false);
   readonly formMateria = signal<{ id: number; nombre: string } | null>(null);
@@ -69,15 +79,29 @@ export class Evaluaciones implements AfterViewInit {
   readonly primaryButtonClass = primaryButton;
   readonly secondaryButtonClass = secondaryButton;
 
-  readonly opcionesMaterias = computed<readonly SelectOption<number>[]>(() => {
-    const list: SelectOption<number>[] = [
-      { value: 0, label: 'Todas las materias' },
-    ];
-    for (const sub of this.subjects()) {
-      list.push({ value: sub.id, label: sub.nombre });
+  readonly tarjetasMaterias = computed<TarjetaMateria[]>(() => {
+    const porMateria = new Map<number, EvaluacionResponse[]>();
+    for (const e of this.todas()) {
+      const list = porMateria.get(e.materiaId) ?? [];
+      list.push(e);
+      porMateria.set(e.materiaId, list);
     }
-    return list;
+    return this.subjects().map((subject) => {
+      const evals = porMateria.get(subject.id) ?? [];
+      const resumen = calcularPromedio(evals);
+      const evaluadas = evals.filter((e) => e.calificacion !== null).length;
+      const pendientes = evals.filter((e) => e.calificacion === null).length;
+      return {
+        subject,
+        promedio: resumen.promedio,
+        evaluadas,
+        pendientes,
+        total: evals.length,
+      };
+    });
   });
+
+  readonly promedioGeneral = computed(() => calcularPromedio(this.todas()).promedio);
 
   readonly materiaSeleccionada = computed(() => {
     const id = this.filtroMateriaId();
@@ -105,12 +129,6 @@ export class Evaluaciones implements AfterViewInit {
   readonly conteoRendidas = computed(
     () => this.evaluacionesPorMateria().filter((e) => e.calificacion !== null).length,
   );
-  readonly conteoAprobadas = computed(
-    () => this.evaluacionesPorMateria().filter((e) => e.calificacion !== null && e.calificacion >= 6).length,
-  );
-  readonly conteoDesaprobadas = computed(
-    () => this.evaluacionesPorMateria().filter((e) => e.calificacion !== null && e.calificacion < 6).length,
-  );
 
   readonly evaluacionesFiltradas = computed<EvaluacionResponse[]>(() => {
     const base = this.evaluacionesPorMateria();
@@ -120,10 +138,6 @@ export class Evaluaciones implements AfterViewInit {
         return base.filter((e) => e.calificacion === null);
       case 'rendidas':
         return base.filter((e) => e.calificacion !== null);
-      case 'aprobadas':
-        return base.filter((e) => e.calificacion !== null && e.calificacion >= 6);
-      case 'desaprobadas':
-        return base.filter((e) => e.calificacion !== null && e.calificacion < 6);
       case 'todas':
       default:
         return [...base];
@@ -244,6 +258,44 @@ export class Evaluaciones implements AfterViewInit {
     }
     this.editing.set(null);
     this.showFormDialog.set(true);
+  }
+
+  seleccionarMateria(id: number): void {
+    if (this.filtroMateriaId() === id) {
+      this.filtroMateriaId.set(0);
+    } else {
+      this.filtroMateriaId.set(id);
+    }
+  }
+
+  iniciarEdicionNotaRapida(id: number): void {
+    this.editandoNotaId.set(id);
+  }
+
+  cancelarEdicionNotaRapida(): void {
+    this.editandoNotaId.set(null);
+  }
+
+  guardarNotaRapida(evaluacion: EvaluacionResponse, raw: string): void {
+    const text = raw.trim().replace(',', '.');
+    if (text.length === 0) return;
+    const num = Number(text);
+    if (Number.isNaN(num) || num < 0 || num > 10) return;
+
+    this.evaluaciones
+      .update(evaluacion.id, {
+        nombre: evaluacion.nombre,
+        fecha: evaluacion.fecha,
+        calificacion: Number(num.toFixed(2)),
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (saved) => {
+          this.editandoNotaId.set(null);
+          this.onSaved(saved);
+        },
+        error: () => undefined,
+      });
   }
 
   onFiltroMateriaChange(id: unknown): void {

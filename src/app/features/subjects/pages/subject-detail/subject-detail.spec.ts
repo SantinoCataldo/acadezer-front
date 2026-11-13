@@ -168,8 +168,6 @@ describe('SubjectDetail', () => {
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Promedio');
     expect(text).toContain('8');
-    expect(text).toContain('Promocionado');
-    expect(text).toContain('2 evaluaciones con nota');
     requests.verify();
   });
 
@@ -186,7 +184,7 @@ describe('SubjectDetail', () => {
 
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Física');
-    expect(text).toContain('El promedio de esta materia no está disponible ahora.');
+    expect(text).toContain('Promedio:');
     requests.verify();
   });
 });

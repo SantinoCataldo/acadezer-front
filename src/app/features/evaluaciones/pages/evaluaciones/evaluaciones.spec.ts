@@ -133,8 +133,6 @@ describe('Evaluaciones', () => {
     expect(text).toContain('Recuperatorio');
     expect(text).toContain('Pendiente');
     expect(text).toContain('Rendida');
-    expect(text).toContain('Aprobadas');
-    expect(text).toContain('Desaprobadas');
     expect(text).toContain('Análisis matemático');
     expect(text).toContain('Algoritmos');
     requests.verify();
@@ -151,7 +149,7 @@ describe('Evaluaciones', () => {
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Promedio: 8 / 10');
+    expect(text).toContain('8');
     expect(text).toContain('Análisis matemático');
     expect(text).toContain('Primer parcial');
     expect(text).toContain('Final');
@@ -166,13 +164,13 @@ describe('Evaluaciones', () => {
       2: [recuperatorio],
     });
 
-    fixture.componentInstance.filtroEstado.set('aprobadas');
+    fixture.componentInstance.filtroEstado.set('rendidas');
     fixture.detectChanges();
 
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Final');
+    expect(text).toContain('Recuperatorio');
     expect(text).not.toContain('Primer parcial');
-    expect(text).not.toContain('Recuperatorio');
     requests.verify();
   });
 
@@ -273,6 +271,44 @@ describe('Evaluaciones', () => {
 
     expect(fixture.nativeElement.textContent).not.toContain('Final');
     expect(fixture.nativeElement.textContent).toContain('Todavía no cargaste evaluaciones');
+    requests.verify();
+  });
+
+  it('allows quick inline grade assignment for pending evaluations', () => {
+    open();
+    flushAll({ 1: [parcial] });
+
+    expect(fixture.nativeElement.textContent).toContain('Pendiente · Cargar nota');
+
+    fixture.componentInstance.iniciarEdicionNotaRapida(11);
+    fixture.detectChanges();
+
+    fixture.componentInstance.guardarNotaRapida(parcial, '7.5');
+    const updateReq = requests.expectOne(`${environment.apiUrl}/api/evaluaciones/11`);
+    expect(updateReq.request.method).toBe('PUT');
+    expect(updateReq.request.body).toEqual({
+      nombre: 'Primer parcial',
+      fecha: parcial.fecha,
+      calificacion: 7.5,
+    });
+    updateReq.flush({ ...parcial, calificacion: 7.5 });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('7.5');
+    expect(fixture.nativeElement.textContent).toContain('Rendida');
+    requests.verify();
+  });
+
+  it('switches between list and grid views', () => {
+    open();
+    flushAll({ 1: [final] });
+
+    expect(fixture.componentInstance.vista()).toBe('lista');
+
+    fixture.componentInstance.vista.set('grilla');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('article')).not.toBeNull();
     requests.verify();
   });
 });

@@ -3,6 +3,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, forkJoin, of, timeout } from 'rxjs';
 import type { AttendanceControlResponse, DiaSemana, EstadoControlAsistencia, SubjectResponse } from '../../models';
 import { SubjectsService } from '../../services/subjects.service';
+import { TareaService } from '../../../tareas/tarea-service';
+import type { Tarea } from '../../../tareas/tarea';
+import { EvaluacionService } from '../../../evaluaciones/evaluacion.service';
+import type { EvaluacionResponse } from '../../../evaluaciones/models';
 
 interface CalendarDay {
   key: number;
@@ -10,6 +14,8 @@ interface CalendarDay {
   dayNumber: string;
   scheduled: boolean;
   controls: readonly SubjectControlEntry[];
+  tasksCount: number;
+  evaluationsCount: number;
 }
 
 interface SubjectControlEntry {
@@ -54,6 +60,8 @@ function isoFromUtc(date: Date): string {
 export class StudyCalendar {
   private readonly subjectsService = inject(SubjectsService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly tareaService = inject(TareaService);
+  private readonly evaluacionService = inject(EvaluacionService);
   private monthLoadId = 0;
   private mobileTouchStartY: number | null = null;
   private mobileCloseTimer: number | null = null;
@@ -76,6 +84,8 @@ export class StudyCalendar {
   readonly historyLoading = signal(false);
   readonly historyUnavailable = signal(false);
   readonly selectedSubjectIds = signal<ReadonlySet<number>>(new Set());
+  readonly tareas = signal<readonly Tarea[]>([]);
+  readonly evaluaciones = signal<readonly EvaluacionResponse[]>([]);
   readonly warning = signal<string | null>(null);
   readonly month = signal(this.firstMonth(dateFromIso(this.today)));
   readonly selectedDate = signal(this.today);
@@ -134,6 +144,22 @@ export class StudyCalendar {
     };
   });
 
+  readonly tareasDelDia = computed(() => {
+    const date = this.selectedDate();
+    const selectedIds = this.selectedSubjectIds();
+    return this.tareas().filter(
+      (t) => t.fechaLimite && t.fechaLimite.slice(0, 10) === date && selectedIds.has(t.materiaId),
+    );
+  });
+
+  readonly evaluacionesDelDia = computed(() => {
+    const date = this.selectedDate();
+    const selectedIds = this.selectedSubjectIds();
+    return this.evaluaciones().filter(
+      (e) => e.fecha && e.fecha.slice(0, 10) === date && selectedIds.has(e.materiaId),
+    );
+  });
+
   readonly selectedSubjects = computed(() => this.subjects().filter((subject) => this.selectedSubjectIds().has(subject.id)));
   readonly visibleWeekdays = computed(() => this.makeVisibleWeekdays());
   readonly calendarRows = computed(() => this.makeWeeks());
@@ -161,11 +187,14 @@ export class StudyCalendar {
         this.selectedSubjectIds.set(new Set(subjects.map((subject) => subject.id)));
         this.loadAttendanceHistory(subjects);
         this.loadMonthControls();
+        this.loadTareasYEvaluaciones(subjects);
       },
       error: () => {
         this.subjects.set([]);
         this.selectedSubjectIds.set(new Set());
         this.controls.set([]);
+        this.tareas.set([]);
+        this.evaluaciones.set([]);
         this.excludedDates.set(new Set());
         this.excludedDatesBySubject.set(new Map());
         this.historyControls.set([]);
@@ -289,6 +318,21 @@ export class StudyCalendar {
 
   subjectPillClass(): string {
     return 'bg-[var(--theme-surface-raised)] text-[var(--theme-foreground)]';
+  }
+
+  subjectName(materiaId: number): string {
+    return this.subjects().find((s) => s.id === materiaId)?.nombre ?? 'Materia';
+  }
+
+  toggleCompletarTarea(tarea: Tarea): void {
+    const nuevo = !tarea.completado;
+    this.tareaService.cambiarCompletado(tarea.id, nuevo)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (actualizada) => {
+          this.tareas.update((list) => list.map((t) => t.id === tarea.id ? actualizada : t));
+        },
+      });
   }
 
   mark(subject: SubjectResponse, control: AttendanceControlResponse, estado: Exclude<EstadoControlAsistencia, 'PENDIENTE'>): void {
@@ -511,6 +555,21 @@ export class StudyCalendar {
     });
   }
 
+  private loadTareasYEvaluaciones(subjects: readonly SubjectResponse[]): void {
+    if (subjects.length === 0) {
+      this.tareas.set([]);
+      this.evaluaciones.set([]);
+      return;
+    }
+    forkJoin(subjects.map((s) => this.tareaService.getTareas(s.id).pipe(catchError(() => of([] as Tarea[])))))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (results) => this.tareas.set(results.flat()) });
+
+    forkJoin(subjects.map((s) => this.evaluacionService.listByMateria(s.id).pipe(catchError(() => of([] as EvaluacionResponse[])))))
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({ next: (results) => this.evaluaciones.set(results.flat()) });
+  }
+
   private loadMonthControls(): void {
     const loadId = ++this.monthLoadId;
     this.warning.set(null);
@@ -664,7 +723,15 @@ export class StudyCalendar {
         const mondayBasedOffset = (weekdayOffset + 6) % 7;
         const dateValue = new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth(), 1 - mondayOffset + week * 7 + mondayBasedOffset));
         if (dateValue.getUTCMonth() !== month.getUTCMonth()) {
-          row.push({ key: week * columns.length + row.length, date: null, dayNumber: '', scheduled: false, controls: [] });
+          row.push({
+            key: week * columns.length + row.length,
+            date: null,
+            dayNumber: '',
+            scheduled: false,
+            controls: [],
+            tasksCount: 0,
+            evaluationsCount: 0,
+          });
           continue;
         }
         const date = isoFromUtc(dateValue);
@@ -693,12 +760,21 @@ export class StudyCalendar {
         const historicalEntries = dateControls.filter((entry) =>
           !scheduledControlKeys.has(`${entry.subjectId}-${entry.control.horarioId}-${entry.control.numero}`),
         );
+        const tasksCount = this.tareas().filter(
+          (t) => t.fechaLimite && t.fechaLimite.slice(0, 10) === date && selectedIds.has(t.materiaId),
+        ).length;
+        const evaluationsCount = this.evaluaciones().filter(
+          (e) => e.fecha && e.fecha.slice(0, 10) === date && selectedIds.has(e.materiaId),
+        ).length;
+
         row.push({
           key: week * columns.length + row.length,
           date,
           dayNumber: String(dateValue.getUTCDate()),
           scheduled: schedules.length > 0,
           controls: [...scheduledEntries, ...historicalEntries],
+          tasksCount,
+          evaluationsCount,
         });
       }
       if (row.some((day) => day.date !== null)) rows.push(row);

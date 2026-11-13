@@ -89,7 +89,21 @@
           @for (day of week; track day.key) {
             @if (day.date; as date) {
               <button type="button" (click)="selectDate(date)" [attr.aria-pressed]="selectedDate() === date" [attr.aria-label]="dayLabel(date)" [style.background]="dayBackground(day)" [class]="'flex min-h-20 w-full cursor-pointer flex-col items-start justify-between rounded-[15px] p-2 text-left text-sm tabular-nums transition-[background-color,box-shadow,color,transform] duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--theme-accent-content)] sm:min-h-24 sm:rounded-[18px] sm:p-3 motion-reduce:transition-none ' + (selectedDate() === date ? 'ring-2 ring-inset ring-[var(--theme-accent)] font-semibold text-[var(--theme-foreground)]' : 'text-[var(--theme-foreground)]')">
-                <span [class]="date < today ? 'text-[var(--theme-foreground)]' : 'text-[var(--theme-muted)]'">{{ day.dayNumber }}</span>
+                <div class="flex w-full items-center justify-between">
+                  <span [class]="date < today ? 'text-[var(--theme-foreground)]' : 'text-[var(--theme-muted)]'">{{ day.dayNumber }}</span>
+                  <div class="flex items-center gap-1">
+                    @if (day.evaluationsCount > 0) {
+                      <span class="flex size-4 items-center justify-center rounded-full bg-[var(--theme-accent-soft)] text-[10px] font-bold text-[var(--theme-accent-content)]" [title]="day.evaluationsCount + ' evaluación(es)'">
+                        <span class="material-symbols-rounded text-[11px]">assignment</span>
+                      </span>
+                    }
+                    @if (day.tasksCount > 0) {
+                      <span class="flex size-4 items-center justify-center rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-500" [title]="day.tasksCount + ' tarea(s)'">
+                        <span class="material-symbols-rounded text-[11px]">task_alt</span>
+                      </span>
+                    }
+                  </div>
+                </div>
                 <span class="flex min-h-4 w-full items-center justify-center gap-1" aria-hidden="true">
                   @for (entry of day.controls.slice(0, 4); track entry.control.horarioId + '-' + entry.control.numero) {
                     @if (entry.control.estado === 'PENDIENTE') {
@@ -115,6 +129,8 @@
         <span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-[var(--attendance-absent-border)]"></span>Ausente</span>
         <span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-[var(--attendance-justified-border)]"></span>Justificada</span>
         <span class="inline-flex items-center gap-1.5"><span class="size-2 rounded-full bg-[var(--theme-muted)]/35"></span>Pendiente</span>
+        <span class="inline-flex items-center gap-1.5"><span class="flex size-3.5 items-center justify-center rounded-full bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-[10px]">assignment</span></span>Evaluación</span>
+        <span class="inline-flex items-center gap-1.5"><span class="flex size-3.5 items-center justify-center rounded-full bg-amber-500/20 text-amber-500"><span class="material-symbols-rounded text-[10px]">task_alt</span></span>Tarea</span>
       </div>
     </div>
 
@@ -158,14 +174,92 @@
             </div>
           }
         </div>
-      } @else if (selectedEvents().scheduledSessions.length === 0 && selectedEvents().attendance.length === 0) {
+      } @else if (selectedEvents().scheduledSessions.length === 0 && selectedEvents().attendance.length === 0 && evaluacionesDelDia().length === 0 && tareasDelDia().length === 0) {
         <div class="flex flex-1 flex-col items-center justify-center py-12 text-center">
           <span class="grid size-12 place-items-center rounded-[16px] bg-[var(--theme-surface-high)] text-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-2xl" aria-hidden="true">event_available</span></span>
           <p class="mt-4 text-sm font-medium">Día libre</p>
-          <p class="mt-1 max-w-xs text-sm text-[var(--theme-muted)]">No hay materias ni asistencias para esta fecha.</p>
+          <p class="mt-1 max-w-xs text-sm text-[var(--theme-muted)]">No hay materias, evaluaciones ni tareas para esta fecha.</p>
         </div>
       } @else {
-        <ul class="mt-5 grid content-start gap-4">
+        @if (evaluacionesDelDia().length > 0) {
+          <div class="mt-5 space-y-2.5">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-rounded text-base text-[var(--theme-accent-content)]" aria-hidden="true">assignment</span>
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--theme-muted)]">Evaluaciones ({{ evaluacionesDelDia().length }})</h3>
+            </div>
+            <ul class="space-y-2.5">
+              @for (ev of evaluacionesDelDia(); track ev.id) {
+                <li class="flex items-center justify-between gap-3 rounded-[18px] border border-[var(--theme-accent-soft)]/50 bg-[var(--theme-accent-soft)]/10 p-3.5 sm:p-4">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="rounded-full bg-[var(--theme-accent-soft)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--theme-accent-content)]">{{ subjectName(ev.materiaId) }}</span>
+                      <p class="truncate text-sm font-semibold text-[var(--theme-foreground)]">{{ ev.nombre }}</p>
+                    </div>
+                  </div>
+                  <div class="shrink-0 text-right">
+                    @if (ev.calificacion !== null && ev.calificacion !== undefined) {
+                      <span class="rounded-full bg-[var(--theme-surface-high)] px-3 py-1 text-xs font-bold text-[var(--theme-foreground)]">Nota: {{ ev.calificacion }}</span>
+                    } @else {
+                      <span class="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-medium text-amber-500">Pendiente</span>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (tareasDelDia().length > 0) {
+          <div class="mt-5 space-y-2.5">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-rounded text-base text-amber-500" aria-hidden="true">task_alt</span>
+              <h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--theme-muted)]">Tareas para este día ({{ tareasDelDia().length }})</h3>
+            </div>
+            <ul class="space-y-2.5">
+              @for (tarea of tareasDelDia(); track tarea.id) {
+                <li class="flex items-center justify-between gap-3 rounded-[18px] bg-[var(--theme-canvas)] p-3.5 sm:p-4">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <button
+                      type="button"
+                      (click)="toggleCompletarTarea(tarea)"
+                      [attr.aria-label]="tarea.completado ? 'Marcar tarea como pendiente' : 'Marcar tarea como completada'"
+                      class="grid size-6 shrink-0 place-items-center rounded-md border border-[var(--theme-outline)] text-xs transition-colors hover:border-[var(--theme-accent)] cursor-pointer"
+                      [class.bg-[var(--theme-accent)]]="tarea.completado"
+                      [class.border-[var(--theme-accent)]]="tarea.completado"
+                      [class.text-white]="tarea.completado"
+                    >
+                      @if (tarea.completado) {
+                        <span class="material-symbols-rounded text-sm" aria-hidden="true">check</span>
+                      }
+                    </button>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <span class="rounded-full bg-[var(--theme-surface-high)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--theme-muted)]">{{ subjectName(tarea.materiaId) }}</span>
+                        <p class="truncate text-sm font-medium" [class.line-through]="tarea.completado" [class.text-[var(--theme-muted)]]="tarea.completado">{{ tarea.titulo }}</p>
+                      </div>
+                      @if (tarea.descripcion) {
+                        <p class="mt-0.5 truncate text-xs text-[var(--theme-muted)]">{{ tarea.descripcion }}</p>
+                      }
+                    </div>
+                  </div>
+                  @if (tarea.completado) {
+                    <span class="shrink-0 text-xs font-semibold text-emerald-500">Lista</span>
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (selectedEvents().scheduledSessions.length > 0 || selectedEvents().attendance.length > 0) {
+          <div class="mt-5 space-y-2.5">
+            @if (evaluacionesDelDia().length > 0 || tareasDelDia().length > 0) {
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-rounded text-base text-[var(--theme-muted)]" aria-hidden="true">schedule</span>
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--theme-muted)]">Horarios y asistencia</h3>
+              </div>
+            }
+            <ul class="grid content-start gap-4">
           @for (session of selectedEvents().scheduledSessions; track session.subject.id + '-' + session.schedule.id) {
             <li class="rounded-[18px] bg-[var(--theme-canvas)] p-4 sm:p-5">
               <div class="flex items-center gap-3.5">
@@ -223,7 +317,9 @@
               <span class="shrink-0 text-xs font-medium">{{ statusLabel(entry.control.estado) }}</span>
             </li>
           }
-        </ul>
+            </ul>
+          </div>
+        }
       }
       </section>
     </div>

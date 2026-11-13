@@ -45,7 +45,16 @@
         @if (subject(); as current) {
           <header class="mt-6 flex flex-wrap items-start justify-between gap-4">
             <div class="min-w-0">
-              <h1 class="text-3xl font-semibold tracking-tight">{{ current.nombre }}</h1>
+              <div class="flex flex-wrap items-center gap-3">
+                <h1 class="text-3xl font-semibold tracking-tight">{{ current.nombre }}</h1>
+                <div class="inline-flex items-center gap-1.5 rounded-full bg-[var(--theme-surface)] px-3 py-1 text-xs font-semibold border border-[var(--theme-border)]/40">
+                  <span class="text-[var(--theme-muted)]">Promedio:</span>
+                  <span class="text-sm font-bold tabular-nums text-[var(--theme-accent-content)]">
+                    {{ promedioMateria().promedio === null ? '—' : promedioMateria().promedio }}
+                  </span>
+                  <span class="text-[11px] text-[var(--theme-muted)]">/ 10</span>
+                </div>
+              </div>
               <p class="mt-2 text-sm text-[var(--theme-muted)]">
                 {{ formatDateRange(current.fechaInicio, current.fechaFin, firstPresentDate()) }}
               </p>
@@ -192,8 +201,7 @@
 
           <app-subject-recent-notes class="mt-8 block" [materiaId]="current.id" />
 
-          <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <app-evaluaciones-summary [materiaId]="current.id" />
+          <div class="mt-8 grid gap-4 sm:grid-cols-2">
             <app-subject-recent-tasks [materiaId]="current.id" />
             <app-subject-recent-evaluaciones [materiaId]="current.id" />
           </div>
