@@ -217,6 +217,9 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.dibujarHero(2.95);
       return;
     }
+    // Sin IntersectionObserver (jsdom, navegadores viejos) el hero se anima igual:
+    // heroVisible arranca en true, así que sólo se saltea el observar.
+    if (typeof IntersectionObserver === 'undefined') return;
     this.observer = new IntersectionObserver((es) => (this.heroVisible = es[0].isIntersecting));
     this.observer.observe(this.cuadro().nativeElement);
     const inicio = performance.now();
@@ -412,9 +415,13 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private prepararScroll() {
     gsap.registerPlugin(ScrollTrigger);
-    this.lenis = new Lenis({ lerp: 0.09 });
-    this.lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add(this.tickerLenis);
+    // Lenis se apoya en ResizeObserver: si no está (jsdom, navegadores viejos) se
+    // deja el scroll nativo, que ya alcanza para las animaciones con ScrollTrigger.
+    if (typeof ResizeObserver !== 'undefined') {
+      this.lenis = new Lenis({ lerp: 0.09 });
+      this.lenis.on('scroll', ScrollTrigger.update);
+      gsap.ticker.add(this.tickerLenis);
+    }
     gsap.ticker.lagSmoothing(0);
 
     this.contexto = gsap.context(() => {
@@ -453,7 +460,8 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     ScrollTrigger.sort();
     ScrollTrigger.refresh();
-    document.fonts.ready.then(() => ScrollTrigger.refresh());
+    // Sin FontFaceSet no hay tipografías que esperar antes de rem edir.
+    document.fonts?.ready.then(() => ScrollTrigger.refresh());
   }
 
   fechaHoy() {

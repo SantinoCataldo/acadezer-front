@@ -77,6 +77,6 @@ describe('App', () => {
     await fixture.whenStable();
     const root: unknown = fixture.nativeElement;
     if (!(root instanceof HTMLElement)) throw new Error('Missing application root');
-    expect(root.querySelector('h1')?.textContent).toContain('Todo lo que estudiás');
+    expect(root.querySelector('h1')?.textContent).toContain('Vos estudiá');
   });
 });
