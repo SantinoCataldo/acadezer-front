@@ -1,8 +1,7 @@
 .tareas-page-layout {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - 8.5rem);
-  min-height: calc(100dvh - 8.5rem);
+  min-height: 100%;
 }
 
 @media (min-width: 64rem) {
@@ -51,7 +50,7 @@
 }
 
 .task-card {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   transform-origin: center;
   background-color: var(--theme-canvas);
   border: 1px solid transparent;

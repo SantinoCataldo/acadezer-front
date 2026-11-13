@@ -91,7 +91,7 @@
 
       <section
         aria-labelledby="tasks-heading"
-        class="order-2 flex h-full min-h-0 flex-col rounded-[20px] bg-[var(--theme-surface)] p-3.5 sm:p-5 lg:order-none lg:col-start-1 lg:row-start-1 lg:row-span-2"
+        class="order-2 flex flex-col rounded-[20px] bg-[var(--theme-surface)] p-3.5 sm:p-5 lg:order-none lg:col-start-1 lg:row-start-1 lg:row-span-2 lg:h-full lg:min-h-0"
         (dragover)="permitirDrop($event)"
         (drop)="soltarEnZona($event, 'pendientes')"
       >
@@ -204,7 +204,7 @@
 
       <section
         aria-labelledby="completed-heading"
-        class="order-3 flex min-h-0 flex-1 flex-col rounded-[20px] bg-[var(--theme-surface)] p-3.5 sm:p-5 lg:order-none lg:col-start-2 lg:row-start-2"
+        class="order-3 flex flex-col rounded-[20px] bg-[var(--theme-surface)] p-3.5 sm:p-5 lg:order-none lg:col-start-2 lg:row-start-2 lg:min-h-0 lg:flex-1"
         (dragover)="permitirDrop($event)"
         (drop)="soltarEnZona($event, 'completadas')"
       >
