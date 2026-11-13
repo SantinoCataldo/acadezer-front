@@ -147,7 +147,18 @@ export class EvaluacionFormDialog {
     });
 
     this.form.controls.estado.valueChanges.subscribe((estado) => {
-      if (estado === 'PENDIENTE') this.form.controls.nota.setValue('');
+      if (estado === 'PENDIENTE') {
+        this.form.controls.nota.setValue('');
+      } else {
+        const notaRaw = this.form.controls.nota.value;
+        const valor = parseNota(notaRaw);
+        if (valor !== null && !Number.isNaN(valor)) {
+          const expectedEstado = valor >= NOTA_APROBADA_MIN ? 'APROBADO' : 'DESAPROBADO';
+          if (estado !== expectedEstado) {
+            this.form.controls.estado.setValue(expectedEstado, { emitEvent: false });
+          }
+        }
+      }
     });
   }
 
@@ -199,11 +210,12 @@ export class EvaluacionFormDialog {
     if (!targetMateriaId) return;
 
     const nota = parseNota(this.form.controls.nota.value);
+    const { tipo, estado } = computeTipoEstado(nota === null || Number.isNaN(nota) ? null : nota);
     const request: EvaluacionRequest = {
       nombre: this.form.controls.nombre.value.trim(),
       fecha: this.form.controls.fecha.value,
-      tipo: this.form.controls.tipo.value,
-      estado: this.form.controls.estado.value,
+      tipo,
+      estado,
       calificacion: nota === null || Number.isNaN(nota) ? null : nota,
     };
 
