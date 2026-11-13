@@ -189,18 +189,23 @@
             </div>
             <ul class="space-y-2.5">
               @for (ev of evaluacionesDelDia(); track ev.id) {
-                <li class="flex items-center justify-between gap-3 rounded-[18px] border border-[var(--theme-accent-soft)]/50 bg-[var(--theme-accent-soft)]/10 p-3.5 sm:p-4">
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                      <span class="rounded-full bg-[var(--theme-accent-soft)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--theme-accent-content)]">{{ subjectName(ev.materiaId) }}</span>
-                      <p class="truncate text-sm font-semibold text-[var(--theme-foreground)]">{{ ev.nombre }}</p>
+                <li class="flex items-center justify-between gap-3 rounded-[18px] bg-[var(--theme-canvas)] p-3.5 sm:p-4">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <span class="grid size-6 shrink-0 place-items-center rounded-md bg-[var(--theme-surface-high)] text-[var(--theme-accent-content)]">
+                      <span class="material-symbols-rounded text-sm" aria-hidden="true">assignment</span>
+                    </span>
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <span class="rounded-full bg-[var(--theme-surface-high)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--theme-muted)]">{{ subjectName(ev.materiaId) }}</span>
+                        <p class="truncate text-sm font-medium text-[var(--theme-foreground)]">{{ ev.nombre }}</p>
+                      </div>
                     </div>
                   </div>
                   <div class="shrink-0 text-right">
                     @if (ev.calificacion !== null && ev.calificacion !== undefined) {
-                      <span class="rounded-full bg-[var(--theme-surface-high)] px-3 py-1 text-xs font-bold text-[var(--theme-foreground)]">Nota: {{ ev.calificacion }}</span>
+                      <span class="rounded-full bg-[var(--theme-surface-high)] px-2.5 py-0.5 text-xs font-bold text-[var(--theme-foreground)]">Nota: {{ ev.calificacion }}</span>
                     } @else {
-                      <span class="rounded-full bg-amber-500/15 px-3 py-1 text-xs font-medium text-amber-500">Pendiente</span>
+                      <span class="text-xs font-medium text-amber-500">Pendiente</span>
                     }
                   </div>
                 </li>

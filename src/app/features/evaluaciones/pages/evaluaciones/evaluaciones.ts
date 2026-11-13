@@ -266,6 +266,38 @@ export class Evaluaciones implements AfterViewInit {
     } else {
       this.filtroMateriaId.set(id);
     }
+    requestAnimationFrame(() => this.animarTransicion());
+  }
+
+  cambiarVista(nuevaVista: 'lista' | 'grilla'): void {
+    if (this.vista() === nuevaVista) return;
+    this.vista.set(nuevaVista);
+    requestAnimationFrame(() => this.animarTransicion());
+  }
+
+  cambiarFiltroEstado(nuevo: FiltroEstado): void {
+    if (this.filtroEstado() === nuevo) return;
+    this.filtroEstado.set(nuevo);
+    requestAnimationFrame(() => this.animarTransicion());
+  }
+
+  animarTransicion(): void {
+    if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const target = document.querySelector('[data-evaluaciones-container]');
+    if (!target) return;
+    gsap.killTweensOf(target);
+    gsap.fromTo(
+      target,
+      { autoAlpha: 0, filter: 'blur(10px)', y: 8 },
+      {
+        autoAlpha: 1,
+        filter: 'blur(0px)',
+        y: 0,
+        duration: 0.32,
+        ease: 'power2.out',
+        clearProps: 'filter,transform,opacity,visibility',
+      },
+    );
   }
 
   iniciarEdicionNotaRapida(id: number): void {
@@ -305,6 +337,7 @@ export class Evaluaciones implements AfterViewInit {
   limpiarFiltros(): void {
     this.filtroEstado.set('todas');
     this.filtroMateriaId.set(0);
+    requestAnimationFrame(() => this.animarTransicion());
   }
 
   openEditDialog(evaluacion: EvaluacionResponse): void {
