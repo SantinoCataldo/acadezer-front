@@ -8,19 +8,14 @@ import {
 } from '@angular/core';
 import { gsap } from 'gsap';
 import { authAppearance } from '@features/auth/auth-theme';
-import { Buho } from '../buho/buho';
-import { BuhoStateService } from '../../services/buho-state.service';
-
 @Component({
   selector: 'app-auth-hero',
-  imports: [Buho],
   templateUrl: './auth-hero.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthHero implements AfterViewInit {
   private readonly element = inject(ElementRef<HTMLElement>);
   private readonly destroyRef = inject(DestroyRef);
-  readonly buhoState = inject(BuhoStateService);
   private introContext: gsap.Context | null = null;
 
   readonly appearance = authAppearance;

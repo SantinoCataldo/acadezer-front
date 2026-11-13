@@ -13,11 +13,12 @@ import { TextField } from '@components/ui/text-field/text-field';
 import { AuthFormReveal } from '@features/auth/directives/auth-form-reveal.directive';
 import { authAppearance } from '@features/auth/auth-theme';
 import { BuhoStateService } from '../../services/buho-state.service';
+import { Buho } from '../../components/buho/buho';
 import { gsap } from 'gsap';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule, TextField, AuthFormReveal],
+  imports: [ReactiveFormsModule, TextField, AuthFormReveal, Buho],
   host: { class: 'block w-full' },
   templateUrl: './login.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,7 +28,7 @@ export class Login {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly buhoState = inject(BuhoStateService);
+  readonly buhoState = inject(BuhoStateService);
   private isNavigating = false;
   readonly appearance = authAppearance;
 

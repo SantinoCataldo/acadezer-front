@@ -24,20 +24,7 @@
       </p>
     </div>
 
-    <!-- Contenedor con el búho apoyado sobre la tarjeta de estudio -->
     <div data-study-flow class="relative mt-8 w-full max-w-[440px]">
-      <!-- Búho con las garras agarradas del borde superior de la tarjeta -->
-      <div class="relative z-20 -mb-[14px] flex justify-center">
-        <app-buho
-          class="block size-[135px] sm:size-[150px]"
-          [estado]="buhoState.estado()"
-          [mirada]="buhoState.mirada()"
-          [espiando]="buhoState.espiando()"
-          [conRama]="false"
-        />
-      </div>
-
-      <!-- Tarjeta original estática "Así se organiza tu estudio" -->
       <figure class="relative z-10 w-full rounded-[24px] bg-[var(--theme-canvas)] p-4 sm:p-5 border border-[var(--theme-border)]/50">
         <div class="flex items-center gap-3">
           <span [class]="'flex size-11 shrink-0 items-center justify-center rounded-[15px] ' + appearance.mark">
