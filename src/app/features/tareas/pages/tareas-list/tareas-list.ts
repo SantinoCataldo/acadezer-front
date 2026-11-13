@@ -32,17 +32,17 @@ export class TareasList implements OnInit {
     })),
   );
   readonly tareas = signal<Tarea[]>([]);
-  readonly materiasSeleccionadas = signal<ReadonlySet<number>>(new Set());
+  readonly materiasExcluidas = signal<ReadonlySet<number>>(new Set());
 
   readonly hayFiltrosActivos = computed(
-    () => this.materiasSeleccionadas().size > 0,
+    () => this.materiasExcluidas().size > 0,
   );
 
   readonly tareasFiltradas = computed(() => {
     let lista = this.tareas();
-    const seleccionadas = this.materiasSeleccionadas();
-    if (seleccionadas.size > 0) {
-      lista = lista.filter((t) => seleccionadas.has(t.materiaId));
+    const excluidas = this.materiasExcluidas();
+    if (excluidas.size > 0) {
+      lista = lista.filter((t) => !excluidas.has(t.materiaId));
     }
 
     return [...lista].sort((a, b) => this.ordenarTareas(a, b));
@@ -84,7 +84,10 @@ export class TareasList implements OnInit {
       if (materiaParam) {
         const id = Number(materiaParam);
         if (!isNaN(id) && id > 0) {
-          this.materiasSeleccionadas.set(new Set([id]));
+          const otherIds = this.materias().map((m) => m.id).filter((mId) => mId !== id);
+          if (otherIds.length > 0) {
+            this.materiasExcluidas.set(new Set(otherIds));
+          }
         }
       }
     });
@@ -100,6 +103,17 @@ export class TareasList implements OnInit {
           this.tareas.set([]);
           this.cargando.set(false);
           return;
+        }
+
+        const param = this.route.snapshot.queryParamMap.get('materiaId') ?? this.route.snapshot.queryParamMap.get('materia');
+        if (param) {
+          const id = Number(param);
+          if (!isNaN(id) && id > 0) {
+            const otherIds = materias.map((m) => m.id).filter((mId) => mId !== id);
+            if (otherIds.length > 0) {
+              this.materiasExcluidas.set(new Set(otherIds));
+            }
+          }
         }
 
         forkJoin(materias.map((materia) => this.tareaService.getTareas(materia.id)))
@@ -133,8 +147,8 @@ export class TareasList implements OnInit {
       });
     } else {
       this.tareaEditando.set(null);
-      const seleccionadas = this.materiasSeleccionadas();
-      const defaultMateria = seleccionadas.size === 1 ? Array.from(seleccionadas)[0] : this.materias()[0].id;
+      const activas = this.materias().filter((m) => this.materiaActiva(m.id));
+      const defaultMateria = activas.length === 1 ? activas[0].id : this.materias()[0].id;
       this.form.reset({
         materiaId: defaultMateria,
         titulo: '',
@@ -290,7 +304,7 @@ export class TareasList implements OnInit {
   }
 
   toggleMateria(id: number): void {
-    this.materiasSeleccionadas.update((current) => {
+    this.materiasExcluidas.update((current) => {
       const next = new Set(current);
       if (next.has(id)) {
         next.delete(id);
@@ -302,11 +316,11 @@ export class TareasList implements OnInit {
   }
 
   materiaActiva(id: number): boolean {
-    return this.materiasSeleccionadas().has(id);
+    return !this.materiasExcluidas().has(id);
   }
 
   limpiarFiltros(): void {
-    this.materiasSeleccionadas.set(new Set());
+    this.materiasExcluidas.set(new Set());
   }
 
   eliminar(tarea: Tarea, event?: MouseEvent): void {
