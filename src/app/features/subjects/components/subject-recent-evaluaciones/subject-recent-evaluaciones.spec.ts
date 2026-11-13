@@ -48,8 +48,8 @@ describe('SubjectRecentEvaluaciones', () => {
     expect(text).toContain('Parcial 2');
     expect(text).toContain('Parcial 1');
     expect(text).not.toContain('Extra');
-    expect(text).toContain('Aprobado');
-    expect(text).toContain('Desaprobado');
+    expect(text).toContain('8 / 10');
+    expect(text).toContain('4 / 10');
     expect(text).toContain('Pendiente');
     requests.verify();
   });
@@ -65,3 +65,4 @@ describe('SubjectRecentEvaluaciones', () => {
     requests.verify();
   });
 });
+

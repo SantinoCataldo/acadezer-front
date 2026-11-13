@@ -58,3 +58,4 @@ export class SubjectRecentEvaluaciones {
     return fechaCorta(fecha);
   }
 }
+

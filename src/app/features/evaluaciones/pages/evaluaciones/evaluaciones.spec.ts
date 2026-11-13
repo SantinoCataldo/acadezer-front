@@ -132,24 +132,47 @@ describe('Evaluaciones', () => {
     expect(text).toContain('Final');
     expect(text).toContain('Recuperatorio');
     expect(text).toContain('Pendiente');
-    expect(text).toContain('Desaprobado');
-    expect(text).toContain('Aprobado');
+    expect(text).toContain('Rendida');
+    expect(text).toContain('Aprobadas');
+    expect(text).toContain('Desaprobadas');
     expect(text).toContain('Análisis matemático');
     expect(text).toContain('Algoritmos');
     requests.verify();
   });
 
-  it('shows the promedio of each subject', () => {
+  it('shows the promedio of the subject when filtered', () => {
     open();
     flushAll({
       1: [parcial, final],
       2: [recuperatorio],
     });
 
+    fixture.componentInstance.filtroMateriaId.set(1);
+    fixture.detectChanges();
+
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Promedio 8');
-    expect(text).toContain('Promocionado');
-    expect(text).toContain('Desaprobado');
+    expect(text).toContain('Promedio: 8 / 10');
+    expect(text).toContain('Análisis matemático');
+    expect(text).toContain('Primer parcial');
+    expect(text).toContain('Final');
+    expect(text).not.toContain('Recuperatorio');
+    requests.verify();
+  });
+
+  it('filters evaluations by status pill', () => {
+    open();
+    flushAll({
+      1: [parcial, final],
+      2: [recuperatorio],
+    });
+
+    fixture.componentInstance.filtroEstado.set('aprobadas');
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Final');
+    expect(text).not.toContain('Primer parcial');
+    expect(text).not.toContain('Recuperatorio');
     requests.verify();
   });
 
@@ -168,7 +191,6 @@ describe('Evaluaciones', () => {
     flushAll();
 
     expect(fixture.nativeElement.textContent).toContain('Todavía no cargaste evaluaciones');
-    expect(fixture.nativeElement.textContent).toContain('Sin notas');
     requests.verify();
   });
 

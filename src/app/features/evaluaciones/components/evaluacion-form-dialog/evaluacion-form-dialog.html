@@ -49,25 +49,8 @@
         [errorText]="notaError()"
         [maxLength]="notaLength"
         inputMode="decimal"
-        supportingText="Podés usar coma decimal. Dejalo vacío si todavía no la rendiste."
         formControlName="nota"
       />
-
-      @if (notaComoNumero() !== null && !notaError()) {
-        <div class="mt-2 flex items-center gap-2">
-          <span class="text-xs text-[var(--theme-muted)]">Resultado:</span>
-          <span
-            class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
-            [class]="
-              estadoCalculado() === 'APROBADO'
-                ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
-                : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-            "
-          >
-            {{ estadoCalculado() === 'APROBADO' ? 'Aprobado (>= 6)' : 'Desaprobado (< 6)' }}
-          </span>
-        </div>
-      }
     </div>
 
     @if (action.errorMessage(); as message) {

@@ -66,23 +66,12 @@
                 </div>
                 <div class="flex shrink-0 items-center gap-2">
                   @if (evaluacion.calificacion !== null) {
-                    <span
-                      class="text-sm font-semibold tabular-nums"
-                      [class.text-rose-500]="evaluacion.calificacion < 6"
-                      [class.text-[var(--theme-accent-content)]]="evaluacion.calificacion >= 6"
-                    >
-                      {{ evaluacion.calificacion }}
-                    </span>
-                    <span
-                      class="rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                      [class]="
-                        evaluacion.calificacion >= 6
-                          ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
-                          : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                      "
-                    >
-                      {{ evaluacion.calificacion >= 6 ? 'Aprobado' : 'Desaprobado' }}
-                    </span>
+                    <div class="flex items-baseline gap-1">
+                      <span class="text-sm font-semibold tabular-nums text-[var(--theme-foreground)]">
+                        {{ evaluacion.calificacion }}
+                      </span>
+                      <span class="text-xs text-[var(--theme-muted)]">/ 10</span>
+                    </div>
                   } @else {
                     <span
                       class="rounded-full bg-[var(--theme-surface-high)] px-2.5 py-0.5 text-xs text-[var(--theme-muted)]"
@@ -99,3 +88,4 @@
     }
   </div>
 </section>
+

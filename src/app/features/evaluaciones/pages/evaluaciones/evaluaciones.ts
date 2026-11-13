@@ -8,18 +8,21 @@ import {
   signal,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { gsap } from 'gsap';
+import { Select, type SelectOption } from '../../../../components/ui/select/select';
 import type { SubjectResponse } from '../../../subjects/models';
 import { SubjectsService } from '../../../subjects/services/subjects.service';
 import { DeleteEvaluacionDialog } from '../../components/delete-evaluacion-dialog/delete-evaluacion-dialog';
 import { EvaluacionFormDialog } from '../../components/evaluacion-form-dialog/evaluacion-form-dialog';
 import { EvaluacionService } from '../../evaluacion.service';
 import type { EvaluacionResponse } from '../../models';
-import { ETIQUETA_ESTADO_CURSADA, calcularPromedio, type EstadoCursada } from '../../promedio';
+import { calcularPromedio } from '../../promedio';
 import { primaryButton, secondaryButton } from '../../../subjects/dialog-styles';
 
 type ListState = 'loading' | 'error' | 'ready';
+export type FiltroEstado = 'todas' | 'proximas' | 'rendidas' | 'aprobadas' | 'desaprobadas';
 
 interface Grupo {
   clave: string;
@@ -39,7 +42,7 @@ function fechaLarga(valor: string): string {
 
 @Component({
   selector: 'app-evaluaciones',
-  imports: [RouterLink, EvaluacionFormDialog, DeleteEvaluacionDialog],
+  imports: [RouterLink, FormsModule, Select, EvaluacionFormDialog, DeleteEvaluacionDialog],
   host: { class: 'block' },
   templateUrl: './evaluaciones.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +56,9 @@ export class Evaluaciones implements AfterViewInit {
   readonly todas = signal<readonly EvaluacionResponse[]>([]);
   readonly state = signal<ListState>('loading');
 
+  readonly filtroEstado = signal<FiltroEstado>('todas');
+  readonly filtroMateriaId = signal<number>(0);
+
   readonly showFormDialog = signal(false);
   readonly formMateria = signal<{ id: number; nombre: string } | null>(null);
   readonly editing = signal<EvaluacionResponse | null>(null);
@@ -63,45 +69,100 @@ export class Evaluaciones implements AfterViewInit {
   readonly primaryButtonClass = primaryButton;
   readonly secondaryButtonClass = secondaryButton;
 
+  readonly opcionesMaterias = computed<readonly SelectOption<number>[]>(() => {
+    const list: SelectOption<number>[] = [
+      { value: 0, label: 'Todas las materias' },
+    ];
+    for (const sub of this.subjects()) {
+      list.push({ value: sub.id, label: sub.nombre });
+    }
+    return list;
+  });
+
+  readonly materiaSeleccionada = computed(() => {
+    const id = this.filtroMateriaId();
+    if (!id || id === 0) return null;
+    return this.subjects().find((s) => s.id === id) ?? null;
+  });
+
+  readonly promedioMateriaSeleccionada = computed(() => {
+    const mat = this.materiaSeleccionada();
+    if (!mat) return null;
+    const evals = this.todas().filter((e) => e.materiaId === mat.id);
+    return calcularPromedio(evals);
+  });
+
+  readonly evaluacionesPorMateria = computed(() => {
+    const matId = this.filtroMateriaId();
+    if (!matId || matId === 0) return this.todas();
+    return this.todas().filter((e) => e.materiaId === matId);
+  });
+
+  readonly conteoTodas = computed(() => this.evaluacionesPorMateria().length);
+  readonly conteoProximas = computed(
+    () => this.evaluacionesPorMateria().filter((e) => e.calificacion === null).length,
+  );
+  readonly conteoRendidas = computed(
+    () => this.evaluacionesPorMateria().filter((e) => e.calificacion !== null).length,
+  );
+  readonly conteoAprobadas = computed(
+    () => this.evaluacionesPorMateria().filter((e) => e.calificacion !== null && e.calificacion >= 6).length,
+  );
+  readonly conteoDesaprobadas = computed(
+    () => this.evaluacionesPorMateria().filter((e) => e.calificacion !== null && e.calificacion < 6).length,
+  );
+
+  readonly evaluacionesFiltradas = computed<EvaluacionResponse[]>(() => {
+    const base = this.evaluacionesPorMateria();
+    const filtro = this.filtroEstado();
+    switch (filtro) {
+      case 'proximas':
+        return base.filter((e) => e.calificacion === null);
+      case 'rendidas':
+        return base.filter((e) => e.calificacion !== null);
+      case 'aprobadas':
+        return base.filter((e) => e.calificacion !== null && e.calificacion >= 6);
+      case 'desaprobadas':
+        return base.filter((e) => e.calificacion !== null && e.calificacion < 6);
+      case 'todas':
+      default:
+        return [...base];
+    }
+  });
+
   readonly grupos = computed<Grupo[]>(() => {
+    const base = this.evaluacionesFiltradas();
     const hoy = this.today;
-    const futuras = this.todas().filter((evaluacion) => esFutura(evaluacion, hoy));
-    const pasadas = this.todas().filter((evaluacion) => !esFutura(evaluacion, hoy));
+    const futuras = base.filter((evaluacion) => evaluacion.calificacion === null || esFutura(evaluacion, hoy));
+    const pasadas = base.filter((evaluacion) => evaluacion.calificacion !== null && !esFutura(evaluacion, hoy));
 
     const ordenar = (a: EvaluacionResponse, b: EvaluacionResponse) =>
       a.fecha.localeCompare(b.fecha) || a.nombre.localeCompare(b.nombre);
 
-    const lista: Grupo[] = [
-      {
+    const lista: Grupo[] = [];
+    if (futuras.length > 0) {
+      lista.push({
         clave: 'proximas',
         titulo: 'Próximas',
         detalle: 'Lo que tenés que rendir',
         evaluaciones: futuras.sort(ordenar),
-      },
-      {
+      });
+    }
+    if (pasadas.length > 0) {
+      lista.push({
         clave: 'rendidas',
         titulo: 'Rendidas',
-        detalle: 'Con su nota y resultado',
+        detalle: 'Con calificación registrada',
         evaluaciones: pasadas.sort((a, b) => ordenar(b, a)),
-      },
-    ];
-    return lista.filter((grupo) => grupo.evaluaciones.length > 0);
-  });
-
-  readonly resumen = computed(() => {
-    const porMateria = new Map<number, EvaluacionResponse[]>();
-    for (const evaluacion of this.todas()) {
-      const lista = porMateria.get(evaluacion.materiaId) ?? [];
-      lista.push(evaluacion);
-      porMateria.set(evaluacion.materiaId, lista);
+      });
     }
-    return this.subjects().map((subject) => ({
-      subject,
-      resumen: calcularPromedio(porMateria.get(subject.id) ?? []),
-    }));
+    return lista;
   });
 
   readonly isEmpty = computed(() => this.state() === 'ready' && this.todas().length === 0);
+  readonly isFilterEmpty = computed(
+    () => this.state() === 'ready' && this.todas().length > 0 && this.evaluacionesFiltradas().length === 0,
+  );
 
   nombreMateria(materiaId: number): string {
     return this.subjects().find((subject) => subject.id === materiaId)?.nombre ?? 'Materia';
@@ -174,12 +235,24 @@ export class Evaluaciones implements AfterViewInit {
   openCreateDialog(materia?: SubjectResponse): void {
     if (materia) {
       this.formMateria.set({ id: materia.id, nombre: materia.nombre });
+    } else if (this.filtroMateriaId() > 0) {
+      const actual = this.materiaSeleccionada();
+      this.formMateria.set(actual ? { id: actual.id, nombre: actual.nombre } : null);
     } else {
       const primera = this.subjects()[0];
       this.formMateria.set(primera ? { id: primera.id, nombre: primera.nombre } : null);
     }
     this.editing.set(null);
     this.showFormDialog.set(true);
+  }
+
+  onFiltroMateriaChange(id: unknown): void {
+    this.filtroMateriaId.set(Number(id) || 0);
+  }
+
+  limpiarFiltros(): void {
+    this.filtroEstado.set('todas');
+    this.filtroMateriaId.set(0);
   }
 
   openEditDialog(evaluacion: EvaluacionResponse): void {
@@ -223,10 +296,5 @@ export class Evaluaciones implements AfterViewInit {
   fechaCorta(valor: string | undefined | null): string {
     if (!valor) return '';
     return fechaLarga(valor);
-  }
-
-  etiquetaEstado(estado: EstadoCursada | string | undefined | null): string {
-    if (!estado) return '';
-    return ETIQUETA_ESTADO_CURSADA[estado as EstadoCursada] ?? String(estado);
   }
 }

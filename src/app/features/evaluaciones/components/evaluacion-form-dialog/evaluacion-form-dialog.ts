@@ -20,7 +20,6 @@ import {
   EVALUACION_CALIFICACION_MAX,
   EVALUACION_CALIFICACION_MAX_LENGTH,
   EVALUACION_NOMBRE_MAX_LENGTH,
-  getEstadoEvaluacion,
 } from '../../models';
 import { EvaluacionService } from '../../evaluacion.service';
 import { Modal } from '../../../subjects/components/modal/modal';
@@ -86,7 +85,6 @@ export class EvaluacionFormDialog {
     initialValue: this.form.controls.nota.value,
   });
   readonly notaComoNumero = computed(() => parseNota(this.notaValue()));
-  readonly estadoCalculado = computed(() => getEstadoEvaluacion(this.notaComoNumero()));
 
   private prefillDone = false;
 
