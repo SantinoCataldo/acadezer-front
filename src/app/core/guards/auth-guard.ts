@@ -8,8 +8,14 @@ export const authGuard: CanActivateFn = () => {
   const router = inject(Router);
   return auth.restoreSession().pipe(
     map((authenticated) => {
-      if (authenticated) return true;
-      return auth.status() === 'unavailable' ? false : router.createUrlTree(['/login']);
+      if (!authenticated) {
+        return auth.status() === 'unavailable' ? false : router.createUrlTree(['/login']);
+      }
+      // Los usuarios con rol ADMIN sólo pueden acceder al panel de administración (/admin)
+      if (auth.hasRole('ADMIN')) {
+        return router.createUrlTree(['/admin']);
+      }
+      return true;
     }),
   );
 };

@@ -65,7 +65,8 @@ export class Login {
       .subscribe({
         next: () => {
           this.form.controls.password.reset();
-          void this.router.navigateByUrl('/estudio');
+          const target = this.auth.hasRole('ADMIN') ? '/admin' : '/estudio';
+          void this.router.navigateByUrl(target);
         },
         error: () => undefined,
       });

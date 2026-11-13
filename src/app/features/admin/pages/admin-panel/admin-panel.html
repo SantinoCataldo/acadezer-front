@@ -1,0 +1,631 @@
+<main class="min-h-dvh bg-[var(--theme-canvas)] text-[var(--theme-foreground)]">
+  <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
+    <!-- Botón Cerrar sesión con animación de salida -->
+    <button
+      type="button"
+      data-reveal
+      (click)="cerrarSesion()"
+      class="group inline-flex min-h-11 cursor-pointer items-center gap-2 text-sm font-medium text-[var(--theme-muted)] transition-colors hover:text-rose-500"
+    >
+      <span class="material-symbols-rounded text-lg transition-transform duration-150 group-hover:-translate-x-1" aria-hidden="true">logout</span>
+      Cerrar sesión
+    </button>
+
+    <!-- Header con botón de refresco sin bordes -->
+    <header data-reveal class="mt-5 flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">Administración</h1>
+          <span class="rounded-full bg-[var(--theme-accent-soft)] px-2.5 py-0.5 text-xs font-bold text-[var(--theme-accent-content)]">
+            Panel seguro
+          </span>
+        </div>
+        <p class="mt-1.5 text-sm text-[var(--theme-muted)]">
+          Hola <span class="font-medium text-[var(--theme-foreground)]">{{ usuario()?.nombre }}</span>. Supervisión en tiempo real de la plataforma y control de cuentas.
+        </p>
+      </div>
+
+      <button
+        type="button"
+        (click)="refrescarTodo()"
+        [disabled]="cargandoEstadisticas() || cargandoUsuarios()"
+        class="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-[13px] bg-[var(--theme-surface)] px-4 text-xs font-semibold text-[var(--theme-foreground)] transition-[background-color,transform] hover:bg-[var(--theme-surface-high)] active:scale-95 disabled:cursor-wait disabled:opacity-60"
+      >
+        <span
+          class="material-symbols-rounded text-base text-[var(--theme-accent-content)]"
+          [class.animate-spin]="cargandoEstadisticas() || cargandoUsuarios()"
+          aria-hidden="true"
+        >
+          refresh
+        </span>
+        Actualizar datos
+      </button>
+    </header>
+
+    <!-- Avisos de acción (éxito o error) -->
+    @if (mensajeExito()) {
+      <div data-reveal class="mt-6 flex items-center justify-between gap-3 rounded-[16px] bg-emerald-500/15 p-4 text-sm font-medium text-emerald-800 dark:text-emerald-300" role="status">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-rounded text-xl text-emerald-600 dark:text-emerald-400" aria-hidden="true">check_circle</span>
+          <span>{{ mensajeExito() }}</span>
+        </div>
+        <button type="button" (click)="mensajeExito.set('')" class="cursor-pointer text-xs font-semibold hover:underline" aria-label="Cerrar aviso">
+          Descartar
+        </button>
+      </div>
+    }
+
+    @if (errorAccion()) {
+      <div data-reveal class="mt-6 flex items-center justify-between gap-3 rounded-[16px] bg-rose-500/15 p-4 text-sm font-medium text-rose-800 dark:text-rose-300" role="alert">
+        <div class="flex items-center gap-2.5">
+          <span class="material-symbols-rounded text-xl text-rose-600 dark:text-rose-400" aria-hidden="true">error</span>
+          <span>{{ errorAccion() }}</span>
+        </div>
+        <button type="button" (click)="errorAccion.set('')" class="cursor-pointer text-xs font-semibold hover:underline" aria-label="Cerrar aviso">
+          Descartar
+        </button>
+      </div>
+    }
+
+    <!-- SECCIÓN ESTADÍSTICAS -->
+    <section data-reveal class="mt-10" aria-labelledby="titulo-estadisticas">
+      <div class="flex items-center justify-between">
+        <h2 id="titulo-estadisticas" class="text-base font-semibold text-[var(--theme-foreground)] sm:text-lg">
+          Métricas de la plataforma
+        </h2>
+        @if (!cargandoEstadisticas() && estadisticas()) {
+          <span class="text-xs text-[var(--theme-muted)]">Datos agregados en vivo</span>
+        }
+      </div>
+
+      <!-- SKELETON DE ESTADÍSTICAS (SIN BORDES) -->
+      @if (cargandoEstadisticas()) {
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-4" aria-busy="true" aria-label="Cargando estadísticas">
+          @for (_ of [1, 2, 3, 4, 5, 6, 7]; track $index) {
+            <div class="flex h-[116px] flex-col justify-between animate-pulse rounded-[20px] bg-[var(--theme-surface)]/60 p-4 sm:p-5">
+              <div class="flex items-center gap-2">
+                <div class="size-6 rounded-full bg-[var(--theme-surface-high)]"></div>
+                <div class="h-4 w-20 rounded bg-[var(--theme-surface-high)]"></div>
+              </div>
+              <div>
+                <div class="h-7 w-16 rounded bg-[var(--theme-surface-high)]"></div>
+                <div class="mt-2 h-3 w-28 rounded bg-[var(--theme-surface-high)]/70"></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (errorEstadisticas()) {
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-rose-500/30 bg-rose-500/10 p-5 text-sm text-rose-700 dark:text-rose-300">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-rounded text-xl" aria-hidden="true">error_outline</span>
+            <p>{{ errorEstadisticas() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="traerEstadisticas()"
+            class="min-h-10 cursor-pointer rounded-[12px] bg-[var(--theme-surface)] px-4 text-xs font-semibold text-[var(--theme-foreground)] hover:bg-[var(--theme-surface-high)]"
+          >
+            Reintentar
+          </button>
+        </div>
+      } @else {
+        <!-- GRID DE TARJETAS ESTADÍSTICAS (SIN BORDES) -->
+        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-2 md:grid-cols-4">
+          @for (t of tarjetas(); track t.titulo) {
+            <article
+              class="group relative flex flex-col justify-between rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5 transition-transform duration-200 hover:scale-[1.01]"
+              [class.col-span-2]="t.destacada && tarjetas().length % 2 !== 0"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs font-medium text-[var(--theme-muted)]">{{ t.titulo }}</span>
+                <span class="flex size-8 items-center justify-center rounded-full bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)] transition-transform duration-200 group-hover:scale-110" aria-hidden="true">
+                  <span class="material-symbols-rounded text-lg">{{ t.icono }}</span>
+                </span>
+              </div>
+
+              <div class="mt-3">
+                <p class="text-2xl font-bold tabular-nums tracking-tight text-[var(--theme-foreground)] sm:text-3xl">
+                  {{ t.valor }}
+                </p>
+                @if (t.detalle) {
+                  <p class="mt-1 truncate text-xs text-[var(--theme-muted)]">
+                    {{ t.detalle }}
+                  </p>
+                }
+              </div>
+            </article>
+          }
+        </div>
+
+        <!-- PANEL DE SALUD Y ACTIVIDAD DEL SISTEMA (SIN BORDES) -->
+        @if (estadisticas(); as e) {
+          <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <!-- Tasa de activación con barra de estado -->
+            <div class="flex flex-col justify-between rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-[var(--theme-muted)]">Salud de cuentas</span>
+                <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  {{ tasaHabilitados() }}% activas
+                </span>
+              </div>
+              <div class="mt-3">
+                <div class="h-2 w-full overflow-hidden rounded-full bg-rose-500/20">
+                  <div
+                    class="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                    [style.width.%]="tasaHabilitados()"
+                  ></div>
+                </div>
+                <div class="mt-2 flex items-center justify-between text-[11px] text-[var(--theme-muted)]">
+                  <span>{{ e.usuariosHabilitados }} habilitados</span>
+                  <span>{{ e.usuarios - e.usuariosHabilitados }} suspendidos</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Promedio de recursos por estudiante -->
+            <div class="flex flex-col justify-between rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5">
+              <span class="text-xs font-medium text-[var(--theme-muted)]">Promedio por estudiante</span>
+              <div class="mt-2 flex items-baseline gap-2">
+                <p class="text-2xl font-bold tabular-nums text-[var(--theme-foreground)]">
+                  {{ promedioApuntesPorEstudiante() }}
+                </p>
+                <span class="text-xs text-[var(--theme-muted)]">apuntes / alumno</span>
+              </div>
+              <p class="mt-1 text-[11px] text-[var(--theme-muted)]">
+                {{ promedioMateriasPorEstudiante() }} materias cursadas por alumno
+              </p>
+            </div>
+
+            <!-- Volumen total generado -->
+            <div class="flex flex-col justify-between rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5">
+              <span class="text-xs font-medium text-[var(--theme-muted)]">Volumen de estudio</span>
+              <div class="mt-2 flex items-baseline gap-2">
+                <p class="text-2xl font-bold tabular-nums text-[var(--theme-foreground)]">
+                  {{ totalRecursosGenerados() }}
+                </p>
+                <span class="text-xs text-[var(--theme-muted)]">actividades totales</span>
+              </div>
+              <p class="mt-1 text-[11px] text-[var(--theme-muted)]">
+                Notas, materias, evaluaciones, tareas y asistencias
+              </p>
+            </div>
+          </div>
+        }
+      }
+    </section>
+
+    <!-- SECCIÓN USUARIOS -->
+    <section data-reveal class="mt-12" aria-labelledby="titulo-usuarios">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 id="titulo-usuarios" class="text-base font-semibold text-[var(--theme-foreground)] sm:text-lg">
+            Usuarios registrados
+          </h2>
+          <p class="text-xs text-[var(--theme-muted)]">Control de cuentas, búsqueda y filtros integrados</p>
+        </div>
+
+        <div class="text-xs text-[var(--theme-muted)]">
+          <span class="font-semibold text-[var(--theme-foreground)]">{{ usuariosFiltrados().length }}</span>
+          de {{ totalUsuarios() }} usuarios
+        </div>
+      </div>
+
+      <!-- SKELETON DE LA TABLA (SIN BORDES) -->
+      @if (cargandoUsuarios()) {
+        <div class="mt-4 overflow-hidden rounded-[24px] bg-[var(--theme-surface)]/60" aria-busy="true" aria-label="Cargando usuarios">
+          <div class="divide-y divide-[var(--theme-border)]/30">
+            @for (_ of [1, 2, 3, 4, 5]; track $index) {
+              <div class="flex items-center justify-between gap-4 p-4 sm:p-5 animate-pulse">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="size-10 shrink-0 rounded-full bg-[var(--theme-surface-high)]"></div>
+                  <div class="space-y-1.5">
+                    <div class="h-4 w-32 rounded bg-[var(--theme-surface-high)]"></div>
+                    <div class="h-3 w-48 rounded bg-[var(--theme-surface-high)]/60"></div>
+                  </div>
+                </div>
+                <div class="h-6 w-24 rounded-full bg-[var(--theme-surface-high)]"></div>
+                <div class="h-6 w-20 rounded-full bg-[var(--theme-surface-high)]"></div>
+                <div class="h-8 w-20 rounded-[10px] bg-[var(--theme-surface-high)]"></div>
+              </div>
+            }
+          </div>
+        </div>
+      } @else if (errorUsuarios()) {
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-rose-500/30 bg-rose-500/10 p-5 text-sm text-rose-700 dark:text-rose-300">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-rounded text-xl" aria-hidden="true">error_outline</span>
+            <p>{{ errorUsuarios() }}</p>
+          </div>
+          <button
+            type="button"
+            (click)="traerUsuarios()"
+            class="min-h-10 cursor-pointer rounded-[12px] bg-[var(--theme-surface)] px-4 text-xs font-semibold text-[var(--theme-foreground)] hover:bg-[var(--theme-surface-high)]"
+          >
+            Reintentar
+          </button>
+        </div>
+      } @else {
+        <!-- CUADRO DE USUARIOS: MISMO COLOR QUE EL FONDO (CANVAS) Y CON BORDES DEFINIDOS -->
+        <div class="mt-4 overflow-hidden rounded-[24px] border border-[var(--theme-border)]/70 bg-[var(--theme-canvas)] shadow-none">
+          <!-- TOOLBAR INTEGRADA: BUSCADOR CON FLOATING LABEL + SELECT DE FILTRO + SELECT DE ORDEN + EXPORTAR CSV -->
+          <div class="border-b border-[var(--theme-border)]/60 p-4 sm:p-5">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-center">
+              <!-- Buscador con label flotante animado -->
+              <div class="lg:col-span-5 [--text-field-label-background:var(--theme-canvas)]">
+                <app-text-field
+                  id="admin-search-users"
+                  label="Buscar por nombre o correo"
+                  type="search"
+                  placeholder="Ej: Santino o admin@acadezer.com"
+                  [ngModel]="busqueda()"
+                  (ngModelChange)="busqueda.set($event)"
+                />
+              </div>
+
+              <!-- Select personalizado de Filtro por Rol/Estado -->
+              <div class="lg:col-span-3">
+                <app-select
+                  id="admin-filter-role"
+                  label="Filtrar por"
+                  [options]="opcionesFiltro()"
+                  [ngModel]="activeTab()"
+                  (ngModelChange)="activeTab.set($event)"
+                />
+              </div>
+
+              <!-- Select personalizado de Ordenamiento -->
+              <div class="lg:col-span-2">
+                <app-select
+                  id="admin-sort-users"
+                  label="Ordenar usuarios"
+                  [options]="opcionesOrden"
+                  [ngModel]="ordenUsuarios()"
+                  (ngModelChange)="ordenUsuarios.set($event)"
+                />
+              </div>
+
+              <!-- Botón Exportar CSV (sin bordes) -->
+              <div class="flex items-center justify-end lg:col-span-2">
+                <button
+                  type="button"
+                  (click)="exportarUsuariosCsv()"
+                  [disabled]="usuariosFiltrados().length === 0"
+                  class="inline-flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-[14px] bg-[var(--theme-surface)] px-4 text-xs font-semibold text-[var(--theme-foreground)] transition-colors hover:bg-[var(--theme-surface-high)] active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                  title="Descargar lista de usuarios en formato CSV"
+                >
+                  <span class="material-symbols-rounded text-base text-[var(--theme-accent-content)]" aria-hidden="true">download</span>
+                  Exportar CSV
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TABLA ELEVADA DE USUARIOS (FONDO TRANSPARENTE / CANVA) -->
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[700px] text-left text-sm">
+              <thead class="border-b border-[var(--theme-border)]/40 bg-[var(--theme-surface)]/30 text-xs font-semibold text-[var(--theme-muted)]">
+                <tr>
+                  <th scope="col" class="px-5 py-3.5">Usuario</th>
+                  <th scope="col" class="px-4 py-3.5">ID</th>
+                  <th scope="col" class="px-5 py-3.5">Rol</th>
+                  <th scope="col" class="px-5 py-3.5">Estado</th>
+                  <th scope="col" class="px-5 py-3.5 text-right"><span class="sr-only">Acciones</span></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[var(--theme-border)]/40">
+                @for (u of usuariosFiltrados(); track u.id) {
+                  <tr class="transition-colors hover:bg-[var(--theme-surface)]/40">
+                    <!-- Nombre y Avatar con botón de abrir ficha -->
+                    <td class="px-5 py-3.5">
+                      <button
+                        type="button"
+                        (click)="abrirDetalle(u)"
+                        class="flex cursor-pointer items-center gap-3 text-left group"
+                        title="Ver ficha completa de {{ u.nombre }}"
+                      >
+                        <div
+                          class="flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-transform group-hover:scale-105"
+                          [class.bg-[var(--theme-accent)]]="u.role === 'ADMIN'"
+                          [class.text-[var(--theme-on-accent)]]="u.role === 'ADMIN'"
+                          [class.bg-[var(--theme-surface-high)]]="u.role !== 'ADMIN'"
+                          [class.text-[var(--theme-foreground)]]="u.role !== 'ADMIN'"
+                        >
+                          {{ userInitial(u.nombre) }}
+                        </div>
+                        <div class="min-w-0">
+                          <p class="truncate font-semibold text-sm text-[var(--theme-foreground)] group-hover:text-[var(--theme-accent-content)]">
+                            {{ u.nombre }}
+                          </p>
+                          <p class="truncate text-xs text-[var(--theme-muted)]">
+                            {{ u.email }}
+                          </p>
+                        </div>
+                      </button>
+                    </td>
+
+                    <!-- ID de usuario -->
+                    <td class="px-4 py-3.5">
+                      <span class="inline-flex items-center rounded-md bg-[var(--theme-surface)] px-2 py-0.5 text-xs font-mono text-[var(--theme-muted)]">
+                        #{{ u.id }}
+                      </span>
+                    </td>
+
+                    <!-- Rol -->
+                    <td class="px-5 py-3.5">
+                      @if (u.role === 'ADMIN') {
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-[var(--theme-accent-soft)] px-2.5 py-1 text-xs font-semibold text-[var(--theme-accent-content)]">
+                          <span class="material-symbols-rounded text-sm" aria-hidden="true">shield_person</span>
+                          Administrador
+                        </span>
+                      } @else {
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-[var(--theme-surface-high)] px-2.5 py-1 text-xs font-medium text-[var(--theme-muted)]">
+                          <span class="material-symbols-rounded text-sm" aria-hidden="true">school</span>
+                          Estudiante
+                        </span>
+                      }
+                    </td>
+
+                    <!-- Estado -->
+                    <td class="px-5 py-3.5">
+                      @if (u.enabled) {
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                          <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+                          Habilitada
+                        </span>
+                      } @else {
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-rose-500/15 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:text-rose-300">
+                          <span class="size-1.5 rounded-full bg-rose-500" aria-hidden="true"></span>
+                          Suspendida
+                        </span>
+                      }
+                    </td>
+
+                    <!-- Acciones con botón suspender sin bordes -->
+                    <td class="px-5 py-3.5 text-right">
+                      <div class="inline-flex items-center justify-end gap-1.5">
+                        <!-- Botón ver ficha -->
+                        <button
+                          type="button"
+                          (click)="abrirDetalle(u)"
+                          class="inline-flex min-h-8 cursor-pointer items-center gap-1 rounded-[10px] bg-[var(--theme-surface)] px-2.5 text-xs font-medium text-[var(--theme-muted)] transition-colors hover:text-[var(--theme-foreground)] hover:bg-[var(--theme-surface-high)]"
+                          title="Ver ficha de usuario"
+                        >
+                          <span class="material-symbols-rounded text-sm" aria-hidden="true">visibility</span>
+                          <span class="hidden sm:inline">Detalles</span>
+                        </button>
+
+                        @if (u.role === 'ADMIN') {
+                          <span class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-[var(--theme-muted)]" title="Las cuentas de administrador no pueden suspenderse">
+                            <span class="material-symbols-rounded text-sm" aria-hidden="true">lock</span>
+                            Protegido
+                          </span>
+                        } @else {
+                          @if (u.enabled) {
+                            <!-- Botón Suspender SIN BORDES -->
+                            <button
+                              type="button"
+                              (click)="abrirConfirmacionSuspender(u)"
+                              [disabled]="procesando() === u.id || suspendiendo()"
+                              class="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-[10px] bg-rose-500/10 px-3 text-xs font-semibold text-rose-600 transition-colors hover:bg-rose-500/20 active:scale-95 disabled:opacity-50 dark:text-rose-400"
+                            >
+                              <span class="material-symbols-rounded text-sm" aria-hidden="true">block</span>
+                              Suspender
+                            </button>
+                          } @else {
+                            <button
+                              type="button"
+                              (click)="habilitarCuenta(u)"
+                              [disabled]="procesando() === u.id || suspendiendo()"
+                              class="inline-flex min-h-8 cursor-pointer items-center gap-1.5 rounded-[10px] bg-[var(--theme-accent)] px-3 text-xs font-semibold text-[var(--theme-on-accent)] transition-transform hover:brightness-105 active:scale-95 disabled:opacity-50"
+                            >
+                              @if (procesando() === u.id) {
+                                <span class="material-symbols-rounded animate-spin text-sm" aria-hidden="true">refresh</span>
+                                Habilitando...
+                              } @else {
+                                <span class="material-symbols-rounded text-sm" aria-hidden="true">check_circle</span>
+                                Habilitar
+                              }
+                            </button>
+                          }
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="px-5 py-12 text-center text-[var(--theme-muted)]">
+                      <div class="flex flex-col items-center justify-center">
+                        <span class="material-symbols-rounded text-4xl text-[var(--theme-muted)]/60" aria-hidden="true">search_off</span>
+                        <p class="mt-2 text-sm font-semibold text-[var(--theme-foreground)]">No se encontraron usuarios</p>
+                        <p class="mt-1 text-xs text-[var(--theme-muted)] max-w-sm">
+                          {{ busqueda() ? 'Ningún usuario coincide con "' + busqueda() + '".' : 'No hay usuarios en esta categoría.' }}
+                        </p>
+                        @if (busqueda() || activeTab() !== 'all') {
+                          <div class="mt-4 flex items-center gap-2">
+                            @if (busqueda()) {
+                              <button
+                                type="button"
+                                (click)="limpiarBusqueda()"
+                                class="min-h-9 cursor-pointer rounded-[11px] bg-[var(--theme-surface-high)] px-3 text-xs font-semibold text-[var(--theme-foreground)] hover:brightness-105"
+                              >
+                                Limpiar búsqueda
+                              </button>
+                            }
+                            @if (activeTab() !== 'all') {
+                              <button
+                                type="button"
+                                (click)="setTab('all')"
+                                class="min-h-9 cursor-pointer rounded-[11px] bg-[var(--theme-surface)] px-3 text-xs font-semibold text-[var(--theme-muted)] hover:text-[var(--theme-foreground)]"
+                              >
+                                Mostrar todos
+                              </button>
+                            }
+                          </div>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- FOOTER INFORMATIVO DEL CUADRO (SIN LÍNEA DIVISORA) -->
+          <div class="bg-[var(--theme-surface)]/20 px-5 py-3 text-xs text-[var(--theme-muted)] flex flex-wrap items-center justify-between gap-2">
+            <span>Listando {{ usuariosFiltrados().length }} de {{ totalUsuarios() }} usuarios registrados</span>
+            <span>{{ totalEstudiantes() }} estudiantes · {{ totalAdmins() }} administradores</span>
+          </div>
+        </div>
+      }
+    </section>
+  </div>
+
+  <!-- MODAL PERSONALIZADO DE CONFIRMACIÓN PARA SUSPENDER USUARIO -->
+  @if (modalSuspender(); as u) {
+    <app-modal
+      [title]="'¿Suspender cuenta de ' + u.nombre + '?'"
+      description="El usuario no podrá iniciar sesión en Acadezer ni acceder a sus materias hasta que vuelvas a habilitarlo."
+      panelClass="sm:max-w-md"
+      [pending]="suspendiendo()"
+      (closed)="cerrarModalSuspender()"
+    >
+      <div class="mt-2 rounded-[14px] bg-rose-500/10 p-3.5 text-xs text-rose-700 dark:text-rose-300">
+        <p class="font-semibold">Esta acción tiene efecto inmediato:</p>
+        <ul class="mt-1 list-disc pl-4 space-y-0.5 text-[11px]">
+          <li>Se cerrarán las sesiones activas asociadas.</li>
+          <li>Sus apuntes y tareas permanecerán intactos en la base de datos.</li>
+          <li>Podrás reactivar la cuenta en cualquier momento con un clic en "Habilitar".</li>
+        </ul>
+      </div>
+
+      <div class="mt-5 flex items-center justify-end gap-2.5">
+        <button
+          type="button"
+          (click)="cerrarModalSuspender()"
+          [disabled]="suspendiendo()"
+          class="min-h-10 cursor-pointer rounded-[12px] bg-[var(--theme-surface-high)] px-4 text-xs font-semibold text-[var(--theme-foreground)] hover:brightness-105 disabled:opacity-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="confirmarSuspension()"
+          [disabled]="suspendiendo()"
+          class="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-[12px] bg-rose-600 px-4 text-xs font-semibold text-white hover:bg-rose-700 active:scale-95 disabled:opacity-50"
+        >
+          @if (suspendiendo()) {
+            <span class="material-symbols-rounded animate-spin text-sm" aria-hidden="true">refresh</span>
+            Suspendiendo...
+          } @else {
+            <span class="material-symbols-rounded text-sm" aria-hidden="true">block</span>
+            Suspender usuario
+          }
+        </button>
+      </div>
+    </app-modal>
+  }
+
+  <!-- NUEVO MODAL: FICHA TÉCNICA / DETALLE DEL USUARIO -->
+  @if (modalDetalle(); as u) {
+    <app-modal
+      [title]="'Ficha de usuario'"
+      description="Información detallada del usuario y control de cuenta."
+      panelClass="sm:max-w-md"
+      (closed)="cerrarDetalle()"
+    >
+      <div class="mt-3 space-y-4">
+        <!-- Cabecera de usuario con avatar -->
+        <div class="flex items-center gap-3.5 rounded-[16px] bg-[var(--theme-surface)] p-3.5">
+          <div
+            class="flex size-12 shrink-0 items-center justify-center rounded-full text-base font-bold"
+            [class.bg-[var(--theme-accent)]]="u.role === 'ADMIN'"
+            [class.text-[var(--theme-on-accent)]]="u.role === 'ADMIN'"
+            [class.bg-[var(--theme-surface-high)]]="u.role !== 'ADMIN'"
+            [class.text-[var(--theme-foreground)]]="u.role !== 'ADMIN'"
+          >
+            {{ userInitial(u.nombre) }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <h3 class="truncate text-base font-semibold text-[var(--theme-foreground)]">{{ u.nombre }}</h3>
+            <p class="truncate text-xs text-[var(--theme-muted)]">{{ u.email }}</p>
+          </div>
+        </div>
+
+        <!-- Atributos -->
+        <div class="space-y-2 text-xs">
+          <!-- ID con botón copiar -->
+          <div class="flex items-center justify-between rounded-[12px] border border-[var(--theme-border)]/50 p-2.5">
+            <span class="text-[var(--theme-muted)]">ID de usuario</span>
+            <div class="flex items-center gap-2">
+              <span class="font-mono font-semibold text-[var(--theme-foreground)]">#{{ u.id }}</span>
+              <button
+                type="button"
+                (click)="copiarIdUsuario(u.id)"
+                class="cursor-pointer rounded-md bg-[var(--theme-surface-high)] px-2 py-0.5 text-[11px] font-semibold text-[var(--theme-foreground)] hover:bg-[var(--theme-surface)]"
+              >
+                {{ copiadoId() ? '¡Copiado!' : 'Copiar' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Rol -->
+          <div class="flex items-center justify-between rounded-[12px] border border-[var(--theme-border)]/50 p-2.5">
+            <span class="text-[var(--theme-muted)]">Rol en plataforma</span>
+            <span class="font-semibold text-[var(--theme-foreground)]">
+              {{ u.role === 'ADMIN' ? 'Administrador' : 'Estudiante' }}
+            </span>
+          </div>
+
+          <!-- Estado -->
+          <div class="flex items-center justify-between rounded-[12px] border border-[var(--theme-border)]/50 p-2.5">
+            <span class="text-[var(--theme-muted)]">Estado actual</span>
+            @if (u.enabled) {
+              <span class="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                <span class="size-2 rounded-full bg-emerald-500"></span>
+                Habilitada
+              </span>
+            } @else {
+              <span class="inline-flex items-center gap-1.5 font-semibold text-rose-600 dark:text-rose-400">
+                <span class="size-2 rounded-full bg-rose-500"></span>
+                Suspendida
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- Acciones en el modal de detalle (sin línea divisora) -->
+        <div class="mt-4 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            (click)="cerrarDetalle()"
+            class="min-h-10 cursor-pointer rounded-[12px] bg-[var(--theme-surface-high)] px-4 text-xs font-semibold text-[var(--theme-foreground)] hover:brightness-105"
+          >
+            Cerrar
+          </button>
+
+          @if (u.role !== 'ADMIN') {
+            @if (u.enabled) {
+              <button
+                type="button"
+                (click)="cerrarDetalle(); abrirConfirmacionSuspender(u)"
+                class="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-[12px] bg-rose-500/15 px-4 text-xs font-semibold text-rose-600 hover:bg-rose-500/25 dark:text-rose-400"
+              >
+                <span class="material-symbols-rounded text-sm" aria-hidden="true">block</span>
+                Suspender
+              </button>
+            } @else {
+              <button
+                type="button"
+                (click)="cerrarDetalle(); habilitarCuenta(u)"
+                class="inline-flex min-h-10 cursor-pointer items-center gap-1.5 rounded-[12px] bg-[var(--theme-accent)] px-4 text-xs font-semibold text-[var(--theme-on-accent)] hover:brightness-105"
+              >
+                <span class="material-symbols-rounded text-sm" aria-hidden="true">check_circle</span>
+                Habilitar cuenta
+              </button>
+            }
+          }
+        </div>
+      </div>
+    </app-modal>
+  }
+</main>

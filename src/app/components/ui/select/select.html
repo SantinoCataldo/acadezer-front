@@ -1,0 +1,106 @@
+<div class="relative block w-full">
+  <button
+    #triggerBtn
+    type="button"
+    [id]="id()"
+    [disabled]="disabled()"
+    [attr.aria-expanded]="isOpen()"
+    aria-haspopup="listbox"
+    (click)="toggle()"
+    class="group flex min-h-14 w-full cursor-pointer items-center justify-between rounded-[14px] border border-[var(--theme-border)]/70 bg-transparent pl-3.5 pr-3 text-left text-sm font-medium text-[var(--theme-foreground)] transition-[background-color,border-color,transform] duration-150 hover:border-[var(--theme-border)] hover:bg-[var(--theme-foreground)]/[0.04] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+  >
+    <span class="truncate" [class.text-[var(--theme-muted)]]="!selectedOption()">
+      {{ displayText() }}
+    </span>
+
+    <span class="material-symbols-rounded shrink-0 text-[20px] text-[var(--theme-muted)] transition-transform duration-200" [class.rotate-180]="isOpen()" aria-hidden="true">
+      keyboard_arrow_down
+    </span>
+  </button>
+
+  @if (isOpen()) {
+    @if (isMobile()) {
+      <div
+        class="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs"
+        aria-hidden="true"
+        (click)="close()"
+      ></div>
+
+      <div
+        #bottomSheetEl
+        role="dialog"
+        [attr.aria-label]="label() || 'Opciones'"
+        class="fixed inset-x-0 bottom-0 z-[101] max-h-[80vh] w-full overflow-y-auto rounded-t-[28px] border-t border-[var(--theme-border)]/50 bg-[var(--theme-surface)] p-5 pb-8 shadow-2xl"
+      >
+        <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-[var(--theme-muted)]/30"></div>
+
+        <div class="mb-4">
+          <h3 class="text-base font-semibold text-[var(--theme-foreground)]">{{ label() || 'Elegir opción' }}</h3>
+        </div>
+
+        <div role="listbox" class="space-y-1 no-scrollbar">
+          @for (option of options(); track option.value; let index = $index) {
+            <button
+              type="button"
+              role="option"
+              [attr.aria-selected]="value() === option.value"
+              (click)="selectOption(option)"
+              class="flex min-h-12 w-full cursor-pointer items-center justify-between rounded-[14px] px-3.5 py-3 text-left text-sm font-medium transition-[background-color,transform] duration-150 hover:bg-[var(--theme-foreground)]/[0.06] hover:translate-x-0.5 active:scale-[0.99]"
+              [class.bg-[var(--theme-accent-content)]/12]="value() === option.value"
+              [class.text-[var(--theme-accent-content)]]="value() === option.value"
+              [class.font-semibold]="value() === option.value"
+              [class.text-[var(--theme-foreground)]]="value() !== option.value"
+            >
+              <div class="min-w-0 flex-1">
+                <p class="truncate font-medium">{{ option.label }}</p>
+                @if (option.description) {
+                  <p class="truncate text-xs text-[var(--theme-muted)]">{{ option.description }}</p>
+                }
+              </div>
+
+              @if (value() === option.value) {
+                <span class="material-symbols-rounded shrink-0 text-lg text-[var(--theme-accent-content)]" aria-hidden="true">
+                  check
+                </span>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    } @else {
+      <div
+        #popoverEl
+        role="listbox"
+        [attr.aria-label]="label() || 'Opciones'"
+        class="no-scrollbar fixed z-[100] max-h-60 overflow-y-auto rounded-[14px] border border-[var(--theme-border)]/60 bg-[var(--theme-surface)] p-1.5 shadow-[0_8px_20px_-4px_rgba(0,0,0,0.1),0_2px_6px_-2px_rgba(0,0,0,0.05)] backdrop-blur-md dark:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.6)]"
+        [style.top]="popoverPosition().top"
+        [style.bottom]="popoverPosition().bottom"
+        [style.left]="popoverPosition().left"
+        [style.width]="popoverPosition().width"
+      >
+        @for (option of options(); track option.value; let index = $index) {
+          <button
+            type="button"
+            role="option"
+            [attr.aria-selected]="value() === option.value"
+            (click)="selectOption(option)"
+            class="flex min-h-10 w-full cursor-pointer items-center justify-between rounded-[10px] px-3 py-2 text-left text-sm font-medium transition-[background-color,transform] duration-150 hover:bg-[var(--theme-foreground)]/[0.06] hover:translate-x-0.5 active:scale-[0.99]"
+            [class.bg-[var(--theme-foreground)]/[0.04]]="focusedIndex() === index && value() !== option.value"
+            [class.bg-[var(--theme-accent-content)]/12]="value() === option.value"
+            [class.text-[var(--theme-accent-content)]]="value() === option.value"
+            [class.font-semibold]="value() === option.value"
+            [class.text-[var(--theme-foreground)]]="value() !== option.value"
+          >
+            <span class="truncate">{{ option.label }}</span>
+            @if (value() === option.value) {
+              <span class="material-symbols-rounded shrink-0 text-base text-[var(--theme-accent-content)]" aria-hidden="true">
+                check
+              </span>
+            }
+          </button>
+        }
+      </div>
+    }
+  }
+</div>
+

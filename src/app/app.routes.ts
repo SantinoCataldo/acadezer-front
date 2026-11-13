@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '@core/guards/auth-guard';
 import { guestGuard } from '@core/guards/guest-guard';
+import { roleGuard } from '@core/guards/role-guard';
 import { subjectRoutes } from '@features/subjects/subjects.routes';
 
 export const routes: Routes = [
@@ -43,6 +44,14 @@ export const routes: Routes = [
     ],
   },
   ...subjectRoutes,
+  {
+    // solo entran los usuarios con rol ADMIN
+    path: 'admin',
+    loadComponent: () => import('@features/admin/pages/admin-panel/admin-panel').then((m) => m.AdminPanel),
+    canActivate: [roleGuard],
+    data: { layout: 'bare', role: 'ADMIN' },
+    title: 'Acadezer - Administración',
+  },
   {
     path: '**',
     redirectTo: '',
