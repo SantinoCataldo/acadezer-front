@@ -1,0 +1,98 @@
+<app-modal
+  [title]="editing() ? 'Editar evaluación' : 'Nueva evaluación'"
+  [description]="materia().nombre"
+  [pending]="action.pending()"
+  (closed)="cancelled.emit()"
+>
+  <form
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    [attr.aria-busy]="action.pending()"
+    novalidate
+    class="space-y-4"
+    style="--text-field-label-background: var(--theme-modal-surface)"
+  >
+    <app-text-field
+      id="evaluacion-nombre"
+      label="Nombre de la evaluación"
+      [required]="true"
+      [maxLength]="nombreMax"
+      [errorText]="nombreError()"
+      formControlName="nombre"
+    />
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <label for="evaluacion-tipo" class="mb-1.5 block text-xs text-[var(--theme-muted)]"
+          >Tipo</label
+        >
+        <select
+          id="evaluacion-tipo"
+          formControlName="tipo"
+          class="h-12 w-full rounded-[14px] border border-[var(--theme-border)] bg-transparent px-3 text-base text-[var(--theme-foreground)] outline-none transition-[border-color,border-width] duration-150 focus:border-[var(--theme-accent-content)] disabled:opacity-60 motion-reduce:transition-none"
+        >
+          @for (tipo of tipos; track tipo.valor) {
+            <option [value]="tipo.valor">{{ tipo.etiqueta }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label for="evaluacion-estado" class="mb-1.5 block text-xs text-[var(--theme-muted)]"
+          >Estado</label
+        >
+        <select
+          id="evaluacion-estado"
+          formControlName="estado"
+          class="h-12 w-full rounded-[14px] border border-[var(--theme-border)] bg-transparent px-3 text-base text-[var(--theme-foreground)] outline-none transition-[border-color,border-width] duration-150 focus:border-[var(--theme-accent-content)] disabled:opacity-60 motion-reduce:transition-none"
+        >
+          @for (estado of estados; track estado.valor) {
+            <option [value]="estado.valor">{{ estado.etiqueta }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <app-date-picker
+      id="evaluacion-fecha"
+      label="Fecha"
+      [required]="true"
+      [errorText]="fechaError()"
+      formControlName="fecha"
+    />
+
+    <app-text-field
+      id="evaluacion-nota"
+      label="Nota (0 a 10)"
+      [required]="pideNota()"
+      [errorText]="notaError()"
+      [maxLength]="notaLength"
+      inputMode="decimal"
+      supportingText="Podés usar coma decimal. Dejalo vacío si todavía no la rendiste."
+      (input)="onNotaInput($event)"
+    />
+
+    @if (action.errorMessage(); as message) {
+      <p
+        class="rounded-[14px] bg-[var(--md-sys-color-error-container)] p-3 text-sm text-[var(--md-sys-color-on-error-container)]"
+        aria-live="polite"
+      >
+        {{ message }}
+      </p>
+    }
+
+    <div class="flex flex-col-reverse gap-2 pt-2 sm:flex-row">
+      <button
+        type="button"
+        [class]="secondaryButtonClass"
+        [disabled]="action.pending()"
+        (click)="close()"
+      >
+        Cancelar
+      </button>
+      <button type="submit" [class]="primaryButtonClass" [disabled]="action.disabled()">
+        {{ editing() ? 'Guardar cambios' : 'Crear evaluación' }}
+      </button>
+    </div>
+  </form>
+</app-modal>
