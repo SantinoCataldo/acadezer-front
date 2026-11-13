@@ -71,6 +71,8 @@ export class DatePicker implements ControlValueAccessor {
   readonly placeholder = input<string>('Fecha');
   readonly allowClear = input<boolean>(true);
   readonly panelClass = input<string>('');
+  readonly errorText = input<string | null>(null);
+  readonly required = input(false);
 
   private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);

@@ -6,6 +6,8 @@
     [disabled]="disabled()"
     [attr.aria-expanded]="isOpen()"
     aria-haspopup="dialog"
+    [attr.aria-invalid]="errorText() ? 'true' : null"
+    [attr.aria-required]="required() ? 'true' : null"
     (click)="toggle()"
     class="group inline-flex min-h-10 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-[var(--theme-border)] bg-transparent px-3.5 py-1.5 text-xs font-medium text-[var(--theme-foreground)] transition-[background-color,border-color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
   >
@@ -97,5 +99,16 @@
         }
       </footer>
     </div>
+  }
+
+  @if (errorText()) {
+    <p
+      [id]="id() + '-error'"
+      role="alert"
+      aria-live="polite"
+      class="mt-1.5 text-xs leading-relaxed text-[var(--theme-error)]"
+    >
+      {{ errorText() }}
+    </p>
   }
 </div>
