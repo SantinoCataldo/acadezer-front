@@ -4,11 +4,13 @@ import { FormArray, FormControl, FormGroup, ReactiveFormsModule, AbstractControl
 import { gsap } from 'gsap';
 import { TextField } from '../../../../components/ui/text-field/text-field';
 import { DatePicker } from '../../../../components/ui/date-picker/date-picker';
+import { TimePicker } from '../../../../components/ui/time-picker/time-picker';
 import { createRequestAction } from '../../../../core/services/request-action';
 import type { DiaSemana, HorarioRequest, HorarioResponse, SubjectRequest, SubjectResponse } from '../../models';
 import { SubjectsService } from '../../services/subjects.service';
 import { Modal } from '../modal/modal';
 import { errorSurface, primaryButton, secondaryButton } from '../../dialog-styles';
+import { toast } from 'ngx-sonner';
 
 export const NOMBRE_MAX = 150;
 
@@ -68,7 +70,7 @@ function createSchedule(schedule?: Partial<HorarioResponse>): ScheduleForm {
 
 @Component({
   selector: 'app-subject-form-dialog',
-  imports: [ReactiveFormsModule, Modal, TextField, DatePicker],
+  imports: [ReactiveFormsModule, Modal, TextField, DatePicker, TimePicker],
   templateUrl: './subject-form-dialog.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -165,10 +167,7 @@ export class SubjectFormDialog {
   }
 
   scheduleDayClass(day: DiaSemana): string {
-    const base = 'min-h-11 min-w-11 cursor-pointer rounded-full px-3 text-sm font-semibold transition-[background-color,color,transform] duration-150 hover:scale-[0.99] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none';
-    return this.isDaySelected(day)
-      ? `${base} bg-[var(--theme-accent)] text-[var(--theme-on-accent)]`
-      : `${base} bg-[var(--theme-surface-raised)] text-[var(--theme-foreground)] hover:bg-[var(--theme-surface-high)]`;
+    return 'schedule-day-pill';
   }
 
   removeSchedule(index: number): void {
@@ -223,10 +222,29 @@ export class SubjectFormDialog {
       const key = card.dataset['scheduleDay'] ?? '';
       if (key === day) {
         if (this.prefersReducedMotion()) continue;
+        const targetHeight = card.offsetHeight;
         gsap.fromTo(
           card,
-          { autoAlpha: 0, y: 8, scale: 0.985, filter: 'blur(4px)' },
-          { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.24, ease: 'power2.out', clearProps: 'filter,transform,opacity,visibility' },
+          {
+            height: 0,
+            autoAlpha: 0,
+            overflow: 'hidden',
+            paddingTop: 0,
+            paddingBottom: 0,
+            y: -10,
+            scale: 0.98,
+          },
+          {
+            height: targetHeight,
+            autoAlpha: 1,
+            paddingTop: '',
+            paddingBottom: '',
+            y: 0,
+            scale: 1,
+            duration: 0.28,
+            ease: 'power2.out',
+            clearProps: 'height,overflow,paddingTop,paddingBottom,opacity,visibility,transform',
+          },
         );
         continue;
       }
@@ -284,7 +302,10 @@ export class SubjectFormDialog {
       .run(() => send)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (saved) => this.saved.emit(saved),
+        next: (saved) => {
+          toast.success(current ? 'Materia actualizada' : 'Materia creada');
+          this.saved.emit(saved);
+        },
         error: () => undefined,
       });
   }

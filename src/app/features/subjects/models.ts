@@ -72,3 +72,12 @@ export interface NoteResponse {
   creadoEn: string;
   actualizadoEn: string;
 }
+
+export interface PracticeQuestion {
+  pregunta: string;
+  respuesta: string;
+}
+
+export interface PracticeQuestionsResponse {
+  preguntas: PracticeQuestion[];
+}

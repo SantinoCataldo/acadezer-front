@@ -63,4 +63,20 @@ describe('NotesService', () => {
     request.flush({ id: 3, titulo: 'Variables', contenido: '<p>Tipos</p>', materiaId: 7 });
     requests.verify();
   });
+
+  it('requests practice questions generated with AI for a note', () => {
+    const mockResponse = {
+      preguntas: [
+        { pregunta: '¿Qué es una variable?', respuesta: 'Un espacio en memoria.' },
+      ],
+    };
+    service.generatePracticeQuestions(3).subscribe((res) => {
+      expect(res.preguntas).toEqual(mockResponse.preguntas);
+    });
+
+    const request = requests.expectOne(`${environment.apiUrl}/api/apuntes/3/preguntas`);
+    expect(request.request.method).toBe('POST');
+    request.flush(mockResponse);
+    requests.verify();
+  });
 });

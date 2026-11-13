@@ -9,7 +9,7 @@ describe('DeleteSubjectDialog', () => {
   let requests: HttpTestingController;
   let fixture: ComponentFixture<DeleteSubjectDialog>;
 
-  const subject: SubjectResponse = { id: 7, nombre: 'Física', descripcion: null };
+  const subject: SubjectResponse = { id: 7, nombre: 'Física', fechaInicio: null, fechaFin: null, horarios: [] };
 
   beforeEach(() => {
     TestBed.configureTestingModule({

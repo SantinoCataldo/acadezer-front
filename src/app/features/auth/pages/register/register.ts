@@ -16,6 +16,7 @@ import { TextField } from '@components/ui/text-field/text-field';
 import { AuthService } from '@core/services/auth.service';
 import { AuthFormReveal } from '@features/auth/directives/auth-form-reveal.directive';
 import { authAppearance } from '@features/auth/auth-theme';
+import { BuhoStateService } from '../../services/buho-state.service';
 
 @Component({
   selector: 'app-register',
@@ -29,6 +30,7 @@ export class Register {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly buhoState = inject(BuhoStateService);
   private isNavigating = false;
 
   readonly appearance = authAppearance;
@@ -50,6 +52,10 @@ export class Register {
     this.form.controls.email.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.emailAlreadyRegistered.set(false));
+
+    this.destroyRef.onDestroy(() => {
+      this.buhoState.reset();
+    });
   }
 
   nameErrorMessage(): string | null {
@@ -129,6 +135,7 @@ export class Register {
         tap(() => {
           this.registered.set(true);
           this.autoLoginPending.set(true);
+          this.buhoState.setEstado('feliz');
         }),
         switchMap(() => this.auth.login({ email: normalizedEmail, password })),
         takeUntilDestroyed(this.destroyRef),
@@ -138,9 +145,11 @@ export class Register {
           this.autoLoginPending.set(false);
           this.form.controls.password.reset();
           this.form.controls.confirmPassword.reset();
-          void this.router.navigateByUrl('/onboarding');
+          // el búho festeja un momento antes de ir al onboarding
+          setTimeout(() => void this.router.navigateByUrl('/onboarding'), 700);
         },
         error: (error: unknown) => {
+          this.buhoState.setEstado('error');
           this.autoLoginPending.set(false);
           if (this.registered()) {
             this.form.controls.password.reset();
@@ -158,6 +167,30 @@ export class Register {
           }
         },
       });
+  }
+
+  enfocarTexto(campo: 'nombre' | 'email'): void {
+    this.buhoState.setEstado('escribiendo');
+    this.escribir(campo);
+  }
+
+  escribir(campo: 'nombre' | 'email'): void {
+    // cuanto más largo el texto, más a la derecha mira
+    this.buhoState.setMirada(Math.min(this.form.controls[campo].value.length / 30, 1));
+  }
+
+  enfocarPassword(): void {
+    this.buhoState.setEstado('tapado');
+  }
+
+  // si tocás el ojito de "mostrar contraseña", el búho espía
+  revisarEspia(event: Event): void {
+    const campo = event.currentTarget as HTMLElement;
+    setTimeout(() => this.buhoState.setEspiando(campo.querySelector('input')?.type === 'text'));
+  }
+
+  desenfocar(): void {
+    this.buhoState.setEstado('normal');
   }
 
   navigateToLogin(event: MouseEvent): void {

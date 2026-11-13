@@ -64,7 +64,8 @@ export function createRequestAction() {
         return defer(send).pipe(
           takeUntilDestroyed(destroyRef),
           catchError((error: unknown) => {
-            errorMessage.set(responseMessage(error));
+            const message = responseMessage(error);
+            errorMessage.set(message);
             if (error instanceof HttpErrorResponse && error.status === 429) {
               deadline = Date.now() + retryDelay(error) * 1000;
               updateCountdown();

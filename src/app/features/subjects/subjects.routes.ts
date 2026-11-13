@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from '../../core/guards/auth-guard';
+import { canDeactivateUnsavedChangesGuard } from '../../core/guards/unsaved-changes.guard';
 
 /** Rutas privadas del espacio de estudio y sus materias. */
 export const subjectRoutes: Routes = [
@@ -28,6 +29,7 @@ export const subjectRoutes: Routes = [
       {
         path: 'apuntes',
         loadComponent: () => import('./pages/notes-page/notes-page').then((m) => m.NotesPage),
+        canDeactivate: [canDeactivateUnsavedChangesGuard],
         title: 'Acadezer - Apuntes',
       },
       {
@@ -39,6 +41,7 @@ export const subjectRoutes: Routes = [
       {
         path: 'materias/:id',
         loadComponent: () => import('./pages/subject-detail/subject-detail').then((m) => m.SubjectDetail),
+        canDeactivate: [canDeactivateUnsavedChangesGuard],
         title: 'Acadezer - Materia',
       },
       { path: 'horario', pathMatch: 'full', redirectTo: 'materias' },

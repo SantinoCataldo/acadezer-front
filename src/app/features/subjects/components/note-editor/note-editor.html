@@ -8,7 +8,7 @@
       type="button"
       [class]="iconButtonClass"
       [disabled]="saveAction.pending()"
-      (click)="cancelled.emit()"
+      (click)="requestCancel()"
       aria-label="Cerrar editor de apunte"
       title="Cerrar"
     >
@@ -38,6 +38,16 @@
         </span>
       </button>
       @if (editing()) {
+        <button
+          type="button"
+          (click)="openPractice()"
+          class="inline-flex min-h-9 items-center gap-1.5 rounded-[12px] bg-[var(--theme-accent-soft)] px-2.5 sm:px-3 text-xs font-semibold text-[var(--theme-accent-content)] transition-[transform,background-color] hover:scale-[0.99] active:scale-[1.01] hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] cursor-pointer"
+          aria-label="Practicar con IA preguntas sobre este apunte"
+          title="Practicar con IA"
+        >
+          <span class="material-symbols-rounded text-base" aria-hidden="true">auto_awesome</span>
+          <span class="hidden sm:inline">Practicar con IA</span>
+        </button>
         <button
           type="button"
           [class]="iconButtonClass"
@@ -105,7 +115,7 @@
         type="button"
         [class]="secondaryButtonClass"
         [disabled]="saveAction.pending()"
-        (click)="cancelled.emit()"
+        (click)="requestCancel()"
       >
         Cancelar
       </button>
@@ -138,33 +148,29 @@
     title="Información"
     (closed)="showingInfo.set(false)"
   >
-    <dl class="space-y-2">
-      <div
-        class="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-2xl bg-[var(--theme-surface-high)] px-4 py-3"
-      >
-        <dt class="shrink-0 text-sm text-[var(--theme-muted)]">Nombre</dt>
-        <dd class="min-w-0 break-words text-right text-sm font-medium">{{ current.titulo }}</dd>
+    <dl class="divide-y divide-[var(--theme-border)]/50 rounded-[18px] border border-[var(--theme-border)]/60 bg-[var(--theme-surface-raised)] px-4 shadow-xs dark:bg-[var(--theme-surface)]">
+      <div class="flex min-h-12 items-center justify-between gap-4 py-3">
+        <dt class="text-sm font-medium text-[var(--theme-muted)]">Nombre</dt>
+        <dd class="max-w-[65%] truncate text-right text-sm font-semibold text-[var(--theme-foreground)]">{{ current.titulo }}</dd>
       </div>
-      <div
-        class="flex items-center justify-between gap-4 rounded-2xl bg-[var(--theme-surface-high)] px-4 py-3"
-      >
-        <dt class="text-sm text-[var(--theme-muted)]">Tipo</dt>
-        <dd class="text-sm font-medium">Nota</dd>
+      <div class="flex min-h-12 items-center justify-between gap-4 py-3">
+        <dt class="text-sm font-medium text-[var(--theme-muted)]">Tipo</dt>
+        <dd class="text-right text-sm font-semibold text-[var(--theme-foreground)]">Apunte de estudio</dd>
       </div>
-      <div
-        class="flex items-center justify-between gap-4 rounded-2xl bg-[var(--theme-surface-high)] px-4 py-3"
-      >
-        <dt class="text-sm text-[var(--theme-muted)]">Id</dt>
-        <dd class="text-sm font-medium">{{ current.id }}</dd>
+      <div class="flex min-h-12 items-center justify-between gap-4 py-3">
+        <dt class="text-sm font-medium text-[var(--theme-muted)]">ID</dt>
+        <dd class="text-right text-sm font-semibold text-[var(--theme-foreground)]">#{{ current.id }}</dd>
       </div>
-      <div
-        class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-2xl bg-[var(--theme-surface-high)] px-4 py-3"
-      >
-        <dt class="shrink-0 text-sm text-[var(--theme-muted)]">Fecha de creación</dt>
-        <dd class="break-words text-right text-sm font-medium">
-          {{ metadataDate(current.creadoEn) }}
-        </dd>
+      <div class="flex min-h-12 items-center justify-between gap-4 py-3">
+        <dt class="text-sm font-medium text-[var(--theme-muted)]">Longitud</dt>
+        <dd class="text-right text-sm font-semibold text-[var(--theme-foreground)]">{{ plainTextLength() }} caracteres</dd>
       </div>
+      @if (current.creadoEn) {
+        <div class="flex min-h-12 items-center justify-between gap-4 py-3">
+          <dt class="text-sm font-medium text-[var(--theme-muted)]">Fecha de creación</dt>
+          <dd class="text-right text-sm font-semibold text-[var(--theme-foreground)]">{{ metadataDate(current.creadoEn) }}</dd>
+        </div>
+      }
     </dl>
   </app-modal>
 }
@@ -172,11 +178,17 @@
 @if (confirmingDelete()) {
   <app-modal
     title="¿Eliminar este apunte?"
-    description="Se borra el contenido y no se puede recuperar."
     [pending]="deleteAction.pending()"
     (closed)="closeDeleteConfirmation()"
   >
     <div class="space-y-4">
+      <div class="flex items-start gap-3 rounded-[16px] bg-red-500/10 p-4 dark:bg-red-500/15">
+        <span class="material-symbols-rounded shrink-0 text-xl text-[var(--theme-error)]" aria-hidden="true">delete_forever</span>
+        <p class="text-sm leading-relaxed text-[var(--theme-foreground)]">
+          Se borrará el contenido del apunte permanentemente. No vas a poder recuperarlo.
+        </p>
+      </div>
+
       @if (deleteAction.errorMessage()) {
         <p role="alert" [class]="errorSurfaceClass">{{ deleteAction.errorMessage() }}</p>
       }
@@ -201,4 +213,45 @@
       </div>
     </div>
   </app-modal>
+}
+
+@if (showingDiscardDialog()) {
+  <app-modal
+    title="¿Descartar cambios?"
+    (closed)="cancelDiscard()"
+  >
+    <div class="space-y-4">
+      <div class="flex items-start gap-3 rounded-[16px] bg-amber-500/10 p-4 dark:bg-amber-500/15">
+        <span class="material-symbols-rounded shrink-0 text-xl text-amber-600 dark:text-amber-400" aria-hidden="true">warning</span>
+        <p class="text-sm leading-relaxed text-[var(--theme-foreground)]">
+          Tenés cambios sin guardar en el apunte. Si salís ahora, se van a perder permanentemente.
+        </p>
+      </div>
+
+      <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
+        <button
+          type="button"
+          [class]="secondaryButtonClass"
+          (click)="cancelDiscard()"
+        >
+          Seguir editando
+        </button>
+        <button
+          type="button"
+          [class]="dangerButtonClass"
+          (click)="confirmDiscard()"
+        >
+          Descartar cambios
+        </button>
+      </div>
+    </div>
+  </app-modal>
+}
+
+@if (showingPractice() && note(); as currentNote) {
+  <app-note-practice-dialog
+    [noteId]="currentNote.id"
+    [noteTitle]="currentNote.titulo"
+    (closed)="closePractice()"
+  />
 }

@@ -335,20 +335,13 @@
     >
       <div>
         <label for="task-subject" class="mb-1.5 block text-xs font-medium text-[var(--theme-muted)]">Materia</label>
-        <div class="relative">
-          <select
-            id="task-subject"
-            formControlName="materiaId"
-            class="min-h-11 w-full appearance-none cursor-pointer rounded-[12px] bg-[var(--theme-surface-raised)] pl-3.5 pr-10 text-sm font-medium text-[var(--theme-foreground)] outline-none transition-[background-color] hover:bg-[var(--theme-surface)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
-          >
-            @for (subject of materias(); track subject.id) {
-              <option [ngValue]="subject.id" class="bg-[var(--theme-surface)] text-[var(--theme-foreground)] py-1.5">{{ subject.nombre }}</option>
-            }
-          </select>
-          <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--theme-muted)]" aria-hidden="true">
-            <span class="material-symbols-rounded text-[20px]">keyboard_arrow_down</span>
-          </span>
-        </div>
+        <app-select
+          id="task-subject"
+          formControlName="materiaId"
+          label="Materia"
+          placeholder="Elegí una materia"
+          [options]="materiasSelectOptions()"
+        />
       </div>
 
       <app-text-field

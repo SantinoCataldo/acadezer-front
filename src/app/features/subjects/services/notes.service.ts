@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import type { NoteRequest, NoteResponse } from '../models';
+import type { NoteRequest, NoteResponse, PracticeQuestionsResponse } from '../models';
 
 /**
  * APU-01: CRUD de apuntes de una materia.
@@ -34,5 +34,9 @@ export class NotesService {
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/api/apuntes/${id}`);
+  }
+
+  generatePracticeQuestions(id: number): Observable<PracticeQuestionsResponse> {
+    return this.http.post<PracticeQuestionsResponse>(`${environment.apiUrl}/api/apuntes/${id}/preguntas`, {});
   }
 }

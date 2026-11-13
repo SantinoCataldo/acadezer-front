@@ -41,7 +41,7 @@
           @for (day of weekdays; track day.value) {
             <button
               type="button"
-              [class]="scheduleDayClass(day.value)"
+              class="schedule-day-pill"
               [disabled]="isDayAnimating(day.value)"
               [attr.aria-pressed]="isDaySelected(day.value)"
               (click)="toggleScheduleDay(day.value)"
@@ -70,20 +70,18 @@
             <div class="mt-2 grid grid-cols-2 gap-2">
               <div>
                 <label [for]="'schedule-start-' + index" class="mb-1 block text-[11px] text-[var(--theme-muted)]">Desde</label>
-                <input
+                <app-time-picker
                   [id]="'schedule-start-' + index"
-                  type="time"
                   formControlName="horaInicio"
-                  class="min-h-10 w-full rounded-[11px] bg-[var(--theme-surface)] px-3 text-sm text-[var(--theme-foreground)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                  label="Desde"
                 />
               </div>
               <div>
                 <label [for]="'schedule-end-' + index" class="mb-1 block text-[11px] text-[var(--theme-muted)]">Hasta</label>
-                <input
+                <app-time-picker
                   [id]="'schedule-end-' + index"
-                  type="time"
                   formControlName="horaFin"
-                  class="min-h-10 w-full rounded-[11px] bg-[var(--theme-surface)] px-3 text-sm text-[var(--theme-foreground)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"
+                  label="Hasta"
                 />
               </div>
             </div>
@@ -115,7 +113,7 @@
             }
           </div>
         } @empty {
-          <p class="rounded-[16px] bg-[var(--theme-surface-high)] px-4 py-5 text-sm text-[var(--theme-muted)]">
+          <p class="schedule-empty-card">
             Elegí arriba los días en los que cursás.
           </p>
         }

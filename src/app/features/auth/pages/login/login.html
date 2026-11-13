@@ -29,6 +29,9 @@
           [maxLength]="254"
           [errorText]="emailErrorMessage()"
           formControlName="email"
+          (focusin)="enfocarEmail()"
+          (focusout)="desenfocar()"
+          (input)="escribirEmail()"
         />
 
         <app-text-field
@@ -43,6 +46,9 @@
           [revealable]="true"
           [errorText]="passwordErrorMessage()"
           formControlName="password"
+          (focusin)="enfocarPassword()"
+          (focusout)="desenfocar()"
+          (click)="revisarEspia($event)"
         />
 
         @if (action.errorMessage()) {

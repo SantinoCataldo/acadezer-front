@@ -5,7 +5,6 @@
   style="--text-field-label-background: var(--theme-canvas)"
   appAuthFormReveal
 >
-
     @if (registered()) {
       <div role="status" class="auth-step-enter text-center">
         <h1 data-reveal-item class="text-[28px] font-semibold leading-tight tracking-[-0.045em] text-[var(--theme-foreground)]">
@@ -83,6 +82,9 @@
               [required]="true"
               [errorText]="nameErrorMessage()"
               formControlName="nombre"
+              (focusin)="enfocarTexto('nombre')"
+              (focusout)="desenfocar()"
+              (input)="escribir('nombre')"
             />
 
             <app-text-field
@@ -96,6 +98,9 @@
               [maxLength]="254"
               [errorText]="emailErrorMessage()"
               formControlName="email"
+              (focusin)="enfocarTexto('email')"
+              (focusout)="desenfocar()"
+              (input)="escribir('email')"
             />
 
             <button
@@ -123,6 +128,9 @@
               [revealable]="true"
               [errorText]="passwordErrorMessage()"
               formControlName="password"
+              (focusin)="enfocarPassword()"
+              (focusout)="desenfocar()"
+              (click)="revisarEspia($event)"
             />
 
             <app-text-field
@@ -137,6 +145,9 @@
               [revealable]="true"
               [errorText]="confirmationErrorMessage()"
               formControlName="confirmPassword"
+              (focusin)="enfocarPassword()"
+              (focusout)="desenfocar()"
+              (click)="revisarEspia($event)"
             />
 
             @if (action.errorMessage()) {

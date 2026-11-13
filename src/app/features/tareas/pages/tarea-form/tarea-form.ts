@@ -6,6 +6,7 @@ import { TextField } from '../../../../components/ui/text-field/text-field';
 import { DatePicker } from '../../../../components/ui/date-picker/date-picker';
 import { TareaService } from '../../tarea-service';
 import { TareaRequest } from '../../tarea';
+import { toast } from 'ngx-sonner';
 
 @Component({
   selector: 'app-tarea-form',
@@ -79,6 +80,7 @@ export class TareaForm implements OnInit {
     request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.saving.set(false);
+        toast.success(this.id ? 'Tarea actualizada' : 'Tarea creada');
         this.volverALista();
       },
       error: () => {

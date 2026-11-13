@@ -150,14 +150,12 @@ export class NotesSection {
   }
 
   onSaved(saved: NoteResponse): void {
-    // Guardar cierra el editor y vuelve a la lista: el apunte queda arriba como
-    // el más reciente, así se ve el resultado sin pasos extra.
     this.notes.update((current) =>
       [...current.filter((note) => note.id !== saved.id), saved].sort(byLastModified),
     );
-    this.editing.set(null);
-    this.view.set('list');
-    this.editorOpenChange.emit(false);
+    this.editing.set(saved);
+    this.view.set('editor');
+    this.editorOpenChange.emit(true);
   }
 
   onDeleted(): void {

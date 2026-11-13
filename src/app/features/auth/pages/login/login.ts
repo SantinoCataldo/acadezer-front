@@ -4,7 +4,6 @@ import {
   DestroyRef,
   ElementRef,
   inject,
-  signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -13,6 +12,7 @@ import { AuthService } from '@core/services/auth.service';
 import { TextField } from '@components/ui/text-field/text-field';
 import { AuthFormReveal } from '@features/auth/directives/auth-form-reveal.directive';
 import { authAppearance } from '@features/auth/auth-theme';
+import { BuhoStateService } from '../../services/buho-state.service';
 import { gsap } from 'gsap';
 
 @Component({
@@ -27,10 +27,17 @@ export class Login {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly buhoState = inject(BuhoStateService);
   private isNavigating = false;
   readonly appearance = authAppearance;
 
   readonly action = this.auth.loginAction;
+
+  constructor() {
+    this.destroyRef.onDestroy(() => {
+      this.buhoState.reset();
+    });
+  }
 
   readonly form = inject(NonNullableFormBuilder).group({
     email: ['', [Validators.required, Validators.email, Validators.maxLength(254)]],
@@ -65,11 +72,39 @@ export class Login {
       .subscribe({
         next: () => {
           this.form.controls.password.reset();
+          // el búho festeja un momento antes de entrar
+          this.buhoState.setEstado('feliz');
           const target = this.auth.hasRole('ADMIN') ? '/admin' : '/estudio';
-          void this.router.navigateByUrl(target);
+          setTimeout(() => void this.router.navigateByUrl(target), 700);
         },
-        error: () => undefined,
+        error: () => {
+          this.buhoState.setEstado('error');
+        },
       });
+  }
+
+  enfocarEmail(): void {
+    this.buhoState.setEstado('escribiendo');
+    this.escribirEmail();
+  }
+
+  escribirEmail(): void {
+    // cuanto más largo el correo, más a la derecha mira
+    this.buhoState.setMirada(Math.min(this.form.controls.email.value.length / 30, 1));
+  }
+
+  enfocarPassword(): void {
+    this.buhoState.setEstado('tapado');
+  }
+
+  // si tocás el ojito de "mostrar contraseña", el búho espía
+  revisarEspia(event: Event): void {
+    const campo = event.currentTarget as HTMLElement;
+    setTimeout(() => this.buhoState.setEspiando(campo.querySelector('input')?.type === 'text'));
+  }
+
+  desenfocar(): void {
+    this.buhoState.setEstado('normal');
   }
 
   navigateToRegister(event: MouseEvent): void {

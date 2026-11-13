@@ -54,6 +54,13 @@
             <dt class="text-sm text-[var(--theme-muted)]">Correo</dt>
             <dd class="max-w-[65%] truncate text-right text-sm font-medium">{{ currentUser()?.email }}</dd>
           </div>
+          <div class="flex min-h-14 items-center justify-between gap-4 py-3">
+            <dt class="flex items-center gap-1.5 text-sm text-[var(--theme-muted)]">
+              <span class="material-symbols-rounded text-base text-[var(--theme-accent-content)]" aria-hidden="true">auto_awesome</span>
+              Límite de IA
+            </dt>
+            <dd class="text-right text-sm font-medium">20 consultas / hora</dd>
+          </div>
         </dl>
 
         @if (esAdmin()) {
