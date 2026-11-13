@@ -1,0 +1,216 @@
+<section aria-labelledby="evaluaciones-heading" class="text-[var(--theme-foreground)]">
+  <header data-reveal class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 id="evaluaciones-heading" class="text-3xl font-semibold tracking-tight">
+        Evaluaciones
+      </h1>
+      <p class="mt-2 text-sm leading-relaxed text-[var(--theme-muted)]">
+        Exámenes, parciales y notas de todas tus materias.
+      </p>
+    </div>
+
+    @if (subjects().length > 0) {
+      <button type="button" [class]="primaryButtonClass" (click)="openCreateDialog()">
+        <span class="material-symbols-rounded text-lg" aria-hidden="true">add</span>
+        Nueva evaluación
+      </button>
+    }
+  </header>
+
+  @if (state() === 'ready' && subjects().length > 0) {
+    <div data-reveal class="mt-8 space-y-3">
+      @for (item of resumen(); track item.subject.id) {
+        <article
+          class="flex flex-wrap items-center justify-between gap-4 rounded-[20px] bg-[var(--theme-surface)] px-5 py-4 transition-transform duration-200 hover:scale-[1.01]"
+        >
+          <div class="min-w-0">
+            <h3 class="truncate text-sm font-semibold">{{ item.subject.nombre }}</h3>
+            <p class="mt-1 text-xs leading-relaxed text-[var(--theme-muted)]">
+              {{
+                item.resumen.promedio === null
+                  ? 'Sin notas cargadas'
+                  : 'Promedio ' + item.resumen.promedio
+              }}
+            </p>
+          </div>
+          <span
+            class="rounded-full px-3 py-1 text-xs font-semibold"
+            [class]="
+              item.resumen.estado === 'PROMOCIONADO'
+                ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
+                : item.resumen.estado === 'REGULAR'
+                  ? 'bg-[var(--theme-surface-high)] text-[var(--theme-foreground)]'
+                  : item.resumen.estado === 'DESAPROBADO'
+                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                    : 'bg-[var(--theme-surface-high)] text-[var(--theme-muted)]'
+            "
+          >
+            {{ etiquetaEstado(item.resumen.estado) }}
+          </span>
+        </article>
+      }
+    </div>
+  }
+
+  <div class="mt-10">
+    @switch (state()) {
+      @case ('loading') {
+        <div aria-busy="true" class="space-y-3">
+          <p role="status" class="sr-only">Cargando evaluaciones…</p>
+          @for (placeholder of [1, 2, 3]; track placeholder) {
+            <div class="h-20 animate-pulse rounded-[20px] bg-[var(--theme-surface)]"></div>
+          }
+        </div>
+      }
+
+      @case ('error') {
+        <div
+          role="alert"
+          class="rounded-[24px] bg-[var(--md-sys-color-error-container)] px-5 py-10 text-center text-[var(--md-sys-color-on-error-container)] sm:px-8"
+        >
+          <p class="font-semibold">No pudimos cargar tus evaluaciones.</p>
+          <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed opacity-90">
+            Revisá tu conexión y volvé a intentarlo.
+          </p>
+          <button type="button" [class]="primaryButtonClass + ' mt-6 mx-auto'" (click)="load()">
+            <span class="material-symbols-rounded text-lg" aria-hidden="true">refresh</span>
+            Reintentar
+          </button>
+        </div>
+      }
+
+      @case ('ready') {
+        @if (subjects().length === 0) {
+          <div
+            class="rounded-[24px] bg-[var(--theme-surface)] px-5 py-12 text-center sm:px-8 sm:py-16"
+          >
+            <span
+              class="material-symbols-rounded text-4xl text-[var(--theme-accent-content)]"
+              aria-hidden="true"
+              >library_books</span
+            >
+            <h3 class="mt-4 text-lg font-semibold">Todavía no creaste materias</h3>
+            <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--theme-muted)]">
+              Las evaluaciones cuelgan de una materia. Creá una materia primero y después cargá sus
+              parciales y finales.
+            </p>
+            <a routerLink="/estudio" [class]="primaryButtonClass + ' mt-6 mx-auto'">
+              Ir a mis materias
+            </a>
+          </div>
+        } @else if (isEmpty()) {
+          <div
+            class="rounded-[24px] bg-[var(--theme-surface)] px-5 py-12 text-center sm:px-8 sm:py-16"
+          >
+            <span
+              class="material-symbols-rounded text-4xl text-[var(--theme-accent-content)]"
+              aria-hidden="true"
+              >event_upcoming</span
+            >
+            <h3 class="mt-4 text-lg font-semibold">Todavía no cargaste evaluaciones</h3>
+            <p class="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--theme-muted)]">
+              Anotá el próximo parcial con su fecha y Acadezer te va mostrando el promedio de cada
+              materia.
+            </p>
+            <button
+              type="button"
+              [class]="primaryButtonClass + ' mt-6 mx-auto'"
+              (click)="openCreateDialog()"
+            >
+              <span class="material-symbols-rounded text-lg" aria-hidden="true">add</span>
+              Nueva evaluación
+            </button>
+          </div>
+        } @else {
+          <div data-reveal class="space-y-10">
+            @for (grupo of grupos(); track grupo.clave) {
+              <div>
+                <div
+                  class="flex items-baseline justify-between gap-4 border-b border-[var(--theme-border)]/50 pb-3"
+                >
+                  <h3 class="text-base font-semibold tracking-[-0.01em]">{{ grupo.titulo }}</h3>
+                  <p class="text-xs text-[var(--theme-muted)]">{{ grupo.detalle }}</p>
+                </div>
+
+                <ul class="mt-4 space-y-3">
+                  @for (evaluacion of grupo.evaluaciones; track evaluacion.id) {
+                    <li
+                      class="flex flex-wrap items-center gap-4 rounded-[20px] bg-[var(--theme-surface)] px-5 py-4 transition-transform duration-200 hover:scale-[1.01]"
+                    >
+                      <div class="flex min-w-0 flex-1 flex-col gap-1">
+                        <div class="flex flex-wrap items-baseline gap-x-2">
+                          <h4 class="text-sm font-semibold">{{ evaluacion.nombre }}</h4>
+                          <span class="text-xs text-[var(--theme-muted)]">{{
+                            nombreMateria(evaluacion.materiaId)
+                          }}</span>
+                        </div>
+                        <p class="text-xs text-[var(--theme-muted)]">
+                          {{ etiquetaTipo(evaluacion.tipo) }} · {{ fechaCorta(evaluacion.fecha) }}
+                        </p>
+                      </div>
+
+                      <div class="flex items-center gap-3">
+                        <span class="text-sm font-semibold tabular-nums">
+                          {{ evaluacion.calificacion === null ? '—' : evaluacion.calificacion }}
+                        </span>
+                        <span
+                          class="rounded-full px-3 py-1 text-xs font-semibold"
+                          [class]="
+                            evaluacion.estado === 'APROBADO'
+                              ? 'bg-[var(--theme-accent-soft)] text-[var(--theme-accent-content)]'
+                              : evaluacion.estado === 'DESAPROBADO'
+                                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+                                : 'bg-[var(--theme-surface-high)] text-[var(--theme-muted)]'
+                          "
+                        >
+                          {{ etiquetaEstadoEvaluacion(evaluacion.estado) }}
+                        </span>
+                        <button
+                          type="button"
+                          class="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] hover:text-[var(--theme-foreground)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+                          [attr.aria-label]="'Editar ' + evaluacion.nombre"
+                          (click)="openEditDialog(evaluacion)"
+                        >
+                          <span class="material-symbols-rounded text-lg" aria-hidden="true"
+                            >edit</span
+                          >
+                        </button>
+                        <button
+                          type="button"
+                          class="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full text-[var(--theme-muted)] transition-[background-color,color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] hover:text-rose-500 active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
+                          [attr.aria-label]="'Eliminar ' + evaluacion.nombre"
+                          (click)="openDeleteDialog(evaluacion)"
+                        >
+                          <span class="material-symbols-rounded text-lg" aria-hidden="true"
+                            >delete</span
+                          >
+                        </button>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        }
+      }
+    }
+  </div>
+
+  @if (formMateria(); as materia) {
+    <app-evaluacion-form-dialog
+      [materia]="materia"
+      [evaluacion]="editing()"
+      (saved)="onSaved($event)"
+      (cancelled)="onDialogCancelled()"
+    />
+  }
+
+  @if (deleting(); as evaluacion) {
+    <app-delete-evaluacion-dialog
+      [evaluacion]="evaluacion"
+      (deleted)="onDeleted($event)"
+      (cancelled)="onDialogCancelled()"
+    />
+  }
+</section>

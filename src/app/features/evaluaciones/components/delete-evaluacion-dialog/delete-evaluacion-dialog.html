@@ -1,0 +1,46 @@
+<app-modal
+  [title]="'¿Eliminar ' + evaluacion().nombre + '?'"
+  [pending]="action.pending()"
+  (closed)="cancelled.emit()"
+>
+  <div class="space-y-4">
+    <div class="flex items-start gap-3 rounded-[16px] bg-[var(--theme-surface-high)] p-4">
+      <span
+        class="material-symbols-rounded shrink-0 text-xl text-[var(--theme-error)]"
+        aria-hidden="true"
+        >delete_forever</span
+      >
+      <p class="text-sm leading-relaxed text-[var(--theme-foreground)]">
+        La evaluación sale de la lista y deja de entrar en el promedio de la materia. No la vas a
+        poder recuperar.
+      </p>
+    </div>
+
+    @if (action.errorMessage()) {
+      <p role="alert" [class]="errorSurfaceClass">{{ action.errorMessage() }}</p>
+    }
+
+    <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
+      <button
+        type="button"
+        [class]="secondaryButtonClass"
+        [disabled]="action.pending()"
+        (click)="close()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        [class]="dangerButtonClass"
+        [disabled]="action.disabled()"
+        (click)="confirm()"
+      >
+        @if (action.pending()) {
+          Eliminando…
+        } @else {
+          Eliminar evaluación
+        }
+      </button>
+    </div>
+  </div>
+</app-modal>

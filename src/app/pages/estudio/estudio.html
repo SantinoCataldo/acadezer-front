@@ -47,12 +47,16 @@
           <span class="material-symbols-rounded text-[20px]" aria-hidden="true">description</span>
           @if (navigationStyle() !== 'tasks') { <span>Apuntes</span> }
         </a>
-        @for (item of [{ icon: 'event_note', label: 'Evaluaciones' }]; track item.label) {
-          <span aria-disabled="true" [attr.title]="item.label + ' · próximamente'" [attr.aria-label]="navigationStyle() === 'tasks' ? item.label + ' próximamente' : null" [class]="'flex items-center gap-3 px-3 text-sm text-[var(--theme-muted)] opacity-80 ' + (navigationStyle() === 'tasks' ? 'min-h-14 justify-center rounded-full' : 'min-h-11 ' + (navigationStyle() === 'guapa' ? 'rounded-full' : 'rounded-[13px]'))">
-            <span class="material-symbols-rounded text-[20px]" aria-hidden="true">{{ item.icon }}</span>
-            @if (navigationStyle() !== 'tasks') { <span>{{ item.label }}</span> }
-          </span>
-        }
+        <a
+          routerLink="/estudio/evaluaciones"
+          [attr.aria-current]="evaluacionesActive() ? 'page' : null"
+          [attr.title]="navigationStyle() === 'tasks' ? 'Evaluaciones' : null"
+          [attr.aria-label]="navigationStyle() === 'tasks' ? 'Evaluaciones' : null"
+          [class]="navigationItemClass(evaluacionesActive())"
+        >
+          <span class="material-symbols-rounded text-[20px]" aria-hidden="true">event_note</span>
+          @if (navigationStyle() !== 'tasks') { <span>Evaluaciones</span> }
+        </a>
       </nav>
 
       <button type="button" (click)="openOptions()" aria-label="Opciones de cuenta y apariencia" [class]="'mt-auto flex min-h-14 shrink-0 cursor-pointer items-center gap-3 bg-[var(--theme-surface)] px-3 text-left outline-offset-2 transition-colors hover:bg-[var(--theme-surface-high)] focus-visible:outline-2 focus-visible:outline-[var(--theme-accent-content)] ' + (navigationStyle() === 'tasks' ? 'w-14 justify-center rounded-full px-0' : 'w-full rounded-[16px]')">
@@ -77,6 +81,7 @@
         <a routerLink="/estudio/calendario" [attr.aria-current]="calendarActive() ? 'page' : null" aria-label="Calendario" title="Calendario" [class]="'grid size-11 place-items-center rounded-full ' + (calendarActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">calendar_month</span></a>
         <a routerLink="/estudio/apuntes" [attr.aria-current]="notesActive() ? 'page' : null" aria-label="Apuntes" title="Apuntes" [class]="'grid size-11 place-items-center rounded-full ' + (notesActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">description</span></a>
         <a routerLink="/estudio/tareas" [attr.aria-current]="tasksActive() ? 'page' : null" aria-label="Tareas" title="Tareas" [class]="'grid size-11 place-items-center rounded-full ' + (tasksActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">task_alt</span></a>
+        <a routerLink="/estudio/evaluaciones" [attr.aria-current]="evaluacionesActive() ? 'page' : null" aria-label="Evaluaciones" title="Evaluaciones" [class]="'grid size-11 place-items-center rounded-full ' + (evaluacionesActive() ? 'bg-[var(--theme-accent)] text-[var(--theme-on-accent)]' : 'text-[var(--theme-muted)]')"><span class="material-symbols-rounded text-xl" aria-hidden="true">event_note</span></a>
         <button type="button" (click)="openOptions()" aria-label="Opciones de cuenta y apariencia" title="Opciones" class="grid size-11 cursor-pointer place-items-center rounded-full text-[var(--theme-muted)] transition-colors hover:bg-[var(--theme-surface)] hover:text-[var(--theme-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)]"><span class="material-symbols-rounded text-xl" aria-hidden="true">tune</span></button>
       </div>
     </nav>

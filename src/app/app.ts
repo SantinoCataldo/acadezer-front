@@ -36,7 +36,16 @@ export class App {
   private shouldShowLayout(url: string): boolean {
     const path = url.split(/[?#]/, 1)[0]?.replace(/\/+$/, '') || '/';
     const isStudySpace = path === '/estudio' || path.startsWith('/estudio/');
-    return !isStudySpace && path !== '/' && path !== '/home' && path !== '/login' && path !== '/register' && path !== '/onboarding';
+    const isAdmin = path === '/admin' || path.startsWith('/admin/');
+    return (
+      !isStudySpace &&
+      !isAdmin &&
+      path !== '/' &&
+      path !== '/home' &&
+      path !== '/login' &&
+      path !== '/register' &&
+      path !== '/onboarding'
+    );
   }
 
   private shouldShowThemeSwitcher(url: string): boolean {

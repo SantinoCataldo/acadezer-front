@@ -113,4 +113,18 @@ describe('session guards', () => {
     requests.expectOne(`${environment.apiUrl}/auth/me`).flush(student);
     expect(destination(await decision)).toBe('/estudio');
   });
+
+  it('redirects an authenticated admin away from student pages to /admin', async () => {
+    sessionStorage.setItem('acadezer_access_token', testToken());
+    const decision = evaluate(authGuard);
+    requests.expectOne(`${environment.apiUrl}/auth/me`).flush({ ...student, role: 'ADMIN' });
+    expect(destination(await decision)).toBe('/admin');
+  });
+
+  it('redirects an authenticated admin away from guest pages to /admin', async () => {
+    sessionStorage.setItem('acadezer_access_token', testToken());
+    const decision = evaluate(guestGuard);
+    requests.expectOne(`${environment.apiUrl}/auth/me`).flush({ ...student, role: 'ADMIN' });
+    expect(destination(await decision)).toBe('/admin');
+  });
 });

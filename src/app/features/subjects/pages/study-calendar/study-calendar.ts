@@ -138,7 +138,7 @@ export class StudyCalendar {
   readonly visibleWeekdays = computed(() => this.makeVisibleWeekdays());
   readonly calendarRows = computed(() => this.makeWeeks());
   readonly subjectSelectionLabel = computed(() => {
-    if (this.subjects().length === 0) return this.state() === 'loading' ? 'Cargando materias…' : 'No hay materias para mostrar.';
+    if (this.subjects().length === 0) return this.state() === 'loading' ? '' : 'No hay materias para mostrar.';
     return this.selectedSubjects().length === this.subjects().length
       ? 'Todas las materias activadas. Tocá un día para ver las materias.'
       : `${this.selectedSubjects().length} de ${this.subjects().length} materias activadas.`;

@@ -192,6 +192,8 @@
 
           <app-subject-recent-notes class="mt-8 block" [materiaId]="current.id" />
 
+          <app-evaluaciones-summary [materiaId]="current.id" />
+
           <section class="mt-10" aria-labelledby="sections-heading">
             <h2 id="sections-heading" class="text-xl font-semibold tracking-tight">Secciones de la materia</h2>
             <div class="mt-4 grid gap-4 sm:grid-cols-2">
@@ -199,19 +201,21 @@
 
               <article class="flex flex-col justify-between rounded-[20px] bg-[var(--theme-surface)] p-4 sm:p-5">
                 <div>
-                  <div class="flex items-center justify-between gap-4">
+                  <header class="flex items-center justify-between gap-4">
                     <div class="min-w-0">
                       <h3 class="text-lg font-semibold">Evaluaciones</h3>
                       <p class="mt-1 text-sm text-[var(--theme-muted)]">Fechas de examen y notas de 0 a 10.</p>
                     </div>
-                    <span
-                      class="inline-flex min-h-11 shrink-0 items-center rounded-full border border-[var(--theme-border)]/60 px-3 text-xs font-semibold text-[var(--theme-muted)]"
+                    <a
+                      routerLink="/estudio/evaluaciones"
+                      class="group inline-flex min-h-11 shrink-0 items-center gap-1 rounded-[13px] px-3 text-sm font-medium text-[var(--theme-accent-content)] transition-[background-color,transform] duration-150 hover:scale-[0.99] hover:bg-[var(--theme-surface-high)] active:scale-[1.01] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent-content)] motion-reduce:transition-none"
                     >
-                      Próximamente
-                    </span>
-                  </div>
+                      Ver todas
+                      <span class="material-symbols-rounded text-lg transition-transform duration-200 group-hover:translate-x-1 motion-reduce:transition-none" aria-hidden="true">arrow_forward</span>
+                    </a>
+                  </header>
                   <p class="mt-4 rounded-[14px] bg-[var(--theme-surface-high)] px-4 py-5 text-sm text-[var(--theme-muted)]">
-                    Próximamente vas a poder registrar tus exámenes y notas acá.
+                    Registrá los parciales, finales y recuperatorios con su fecha y su nota.
                   </p>
                 </div>
               </article>

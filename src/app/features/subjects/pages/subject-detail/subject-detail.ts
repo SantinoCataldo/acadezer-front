@@ -8,6 +8,7 @@ import { DeleteSubjectDialog } from '../../components/delete-subject-dialog/dele
 import { SubjectFormDialog } from '../../components/subject-form-dialog/subject-form-dialog';
 import { SubjectRecentNotes } from '../../components/subject-recent-notes/subject-recent-notes';
 import { SubjectRecentTasks } from '../../components/subject-recent-tasks/subject-recent-tasks';
+import { EvaluacionesSummary } from '../../../evaluaciones/components/evaluaciones-summary/evaluaciones-summary';
 import { dangerButton, primaryButton, secondaryButton } from '../../dialog-styles';
 
 type DetailState = 'loading' | 'error' | 'ready';
@@ -28,7 +29,14 @@ interface AttendanceTotals {
  */
 @Component({
   selector: 'app-subject-detail',
-  imports: [RouterLink, SubjectRecentNotes, SubjectRecentTasks, SubjectFormDialog, DeleteSubjectDialog],
+  imports: [
+    RouterLink,
+    SubjectRecentNotes,
+    SubjectRecentTasks,
+    EvaluacionesSummary,
+    SubjectFormDialog,
+    DeleteSubjectDialog,
+  ],
   templateUrl: './subject-detail.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

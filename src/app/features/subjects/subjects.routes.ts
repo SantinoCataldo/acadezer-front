@@ -31,6 +31,12 @@ export const subjectRoutes: Routes = [
         title: 'Acadezer - Apuntes',
       },
       {
+        path: 'evaluaciones',
+        loadComponent: () =>
+          import('../evaluaciones/pages/evaluaciones/evaluaciones').then((m) => m.Evaluaciones),
+        title: 'Acadezer - Evaluaciones',
+      },
+      {
         path: 'materias/:id',
         loadComponent: () => import('./pages/subject-detail/subject-detail').then((m) => m.SubjectDetail),
         title: 'Acadezer - Materia',

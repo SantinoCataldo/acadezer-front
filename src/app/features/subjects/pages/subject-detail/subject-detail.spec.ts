@@ -24,6 +24,7 @@ describe('SubjectDetail', () => {
         provideHttpClientTesting(),
         provideRouter([
           { path: 'estudio', component: RouteStub },
+          { path: 'estudio/evaluaciones', component: RouteStub },
           { path: 'estudio/materias/:id', component: RouteStub },
         ]),
         {
@@ -64,11 +65,21 @@ describe('SubjectDetail', () => {
     requests.expectOne(`${environment.apiUrl}/api/materias/7/pendientes`).flush([]);
   }
 
-  it('shows the subject and its sections', () => {
+  function flushEvaluaciones(evaluaciones: unknown[] = []): void {
+    fixture.detectChanges();
+    requests.expectOne(`${environment.apiUrl}/api/materias/7/evaluaciones`).flush(evaluaciones);
+  }
+
+  function openAndFlush(evaluaciones: unknown[] = []): void {
     open();
     requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush({ id: 7, nombre: 'Física' });
     flushNotes();
+    flushEvaluaciones(evaluaciones);
     fixture.detectChanges();
+  }
+
+  it('shows the subject and its sections', () => {
+    openAndFlush();
 
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Física');
@@ -94,10 +105,7 @@ describe('SubjectDetail', () => {
   });
 
   it('edits the subject and shows the data confirmed by the API', () => {
-    open();
-    requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush({ id: 7, nombre: 'Física' });
-    flushNotes();
-    fixture.detectChanges();
+    openAndFlush();
 
     buttonWith('Editar').click();
     fixture.detectChanges();
@@ -122,10 +130,7 @@ describe('SubjectDetail', () => {
   });
 
   it('returns to the list after deleting the subject', () => {
-    open();
-    requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush({ id: 7, nombre: 'Física' });
-    flushNotes();
-    fixture.detectChanges();
+    openAndFlush();
 
     buttonWith('Eliminar').click();
     fixture.detectChanges();
@@ -134,6 +139,52 @@ describe('SubjectDetail', () => {
     requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush(null, { status: 204, statusText: 'No Content' });
 
     expect(router.navigateByUrl).toHaveBeenCalledWith('/estudio');
+    requests.verify();
+  });
+
+  it('shows the promedio and the estado of the cursada of the subject', () => {
+    openAndFlush([
+      {
+        id: 1,
+        materiaId: 7,
+        nombre: 'Primer parcial',
+        fecha: '2026-09-20',
+        tipo: 'PARCIAL_1',
+        estado: 'APROBADO',
+        calificacion: 9,
+      },
+      {
+        id: 2,
+        materiaId: 7,
+        nombre: 'Segundo parcial',
+        fecha: '2026-11-05',
+        tipo: 'PARCIAL_2',
+        estado: 'APROBADO',
+        calificacion: 7,
+      },
+    ]);
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Promedio de la materia');
+    expect(text).toContain('8');
+    expect(text).toContain('Promocionado');
+    expect(text).toContain('2 evaluaciones con nota');
+    requests.verify();
+  });
+
+  it('keeps the subject usable when the promedio request fails', () => {
+    open();
+    requests.expectOne(`${environment.apiUrl}/api/materias/7`).flush({ id: 7, nombre: 'Física' });
+    flushNotes();
+    fixture.detectChanges();
+    requests
+      .expectOne(`${environment.apiUrl}/api/materias/7/evaluaciones`)
+      .flush({ message: 'sin servicio' }, { status: 500, statusText: 'Internal Server Error' });
+    fixture.detectChanges();
+
+    const text = fixture.nativeElement.textContent;
+    expect(text).toContain('Física');
+    expect(text).toContain('El promedio de esta materia no está disponible ahora.');
     requests.verify();
   });
 });
