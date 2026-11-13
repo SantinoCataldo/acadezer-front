@@ -28,6 +28,16 @@ export class StudyOptionsDialog {
   readonly styleSelected = output<NavigationStyle>();
 
   constructor() {
+    if (typeof window !== 'undefined') {
+      const onResize = () => {
+        if (window.innerWidth < 640 && this.section() === 'navigation') {
+          this.section.set('account');
+        }
+      };
+      window.addEventListener('resize', onResize);
+      this.destroyRef.onDestroy(() => window.removeEventListener('resize', onResize));
+    }
+
     this.destroyRef.onDestroy(() => {
       const content = this.sectionContent()?.nativeElement;
       if (content) gsap.killTweensOf(content);
@@ -36,6 +46,7 @@ export class StudyOptionsDialog {
 
   selectSection(section: OptionsSection): void {
     if (section === this.section()) return;
+    if (section === 'navigation' && typeof window !== 'undefined' && window.innerWidth < 640) return;
 
     const content = this.sectionContent()?.nativeElement;
     if (content) {
