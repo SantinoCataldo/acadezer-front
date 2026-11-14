@@ -60,6 +60,7 @@ function normalizeNoteHtml(html: string): string {
   selector: 'app-note-editor',
   imports: [ReactiveFormsModule, RichTextEditor, Modal, NotePracticeDialog],
   templateUrl: './note-editor.html',
+  styleUrl: './note-editor.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NoteEditor {

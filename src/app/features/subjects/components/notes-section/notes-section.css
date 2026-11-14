@@ -156,12 +156,7 @@
   }
 }
 
-.notes-pane-editor > app-note-editor,
 .notes-pane-editor > div {
-  animation: notePaneFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-[data-view='editor'] .notes-pane-editor {
   animation: notePaneFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
