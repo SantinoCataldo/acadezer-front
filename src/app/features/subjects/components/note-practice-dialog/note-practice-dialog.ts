@@ -40,7 +40,6 @@ export function setCachedQuestions(noteId: number, questions: readonly PracticeQ
   try {
     sessionStorage.setItem(`${PRACTICE_CACHE_PREFIX}${noteId}`, JSON.stringify(questions));
   } catch {
-    // sessionStorage quota or security restrictions
   }
 }
 
@@ -48,7 +47,6 @@ export function clearPracticeCache(noteId: number): void {
   try {
     sessionStorage.removeItem(`${PRACTICE_CACHE_PREFIX}${noteId}`);
   } catch {
-    // ignore
   }
 }
 
@@ -249,4 +247,3 @@ export class NotePracticeDialog implements OnInit {
     this.viewMode.update((mode) => (mode === 'card' ? 'list' : 'card'));
   }
 }
-

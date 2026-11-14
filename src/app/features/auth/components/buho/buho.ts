@@ -167,7 +167,6 @@ export class Buho implements OnInit, OnDestroy {
     }
 
     ctx.save();
-    // Se apoya firme en las patas (salto solo si festeja éxito)
     ctx.translate(100, 184 - this.salto);
     ctx.scale(1 + this.aplasta, 1 - this.aplasta + respira);
     ctx.translate(-100, -184);
@@ -372,7 +371,6 @@ export class Buho implements OnInit, OnDestroy {
     ctx.lineTo(-42, -2);
     ctx.closePath();
     ctx.fill();
-    // Borla que se balancea (más cuando está feliz)
     const balanceo = this.reducido ? 0 : Math.sin(this.tiempo * 3) * 4 + this.feliz * Math.sin(this.tiempo * 12) * 6;
     ctx.strokeStyle = this.c.borla;
     ctx.lineWidth = 2;
@@ -404,7 +402,6 @@ export class Buho implements OnInit, OnDestroy {
         if (this.conRama()) {
           ctx.lineTo(x + dedo * 5, 184);
         } else {
-          // Garras que se curvan abrazando el borde superior de la tarjeta
           ctx.quadraticCurveTo(x + dedo * 4, 181, x + dedo * 6, 187);
         }
         ctx.stroke();
@@ -412,11 +409,9 @@ export class Buho implements OnInit, OnDestroy {
     }
   }
 
-  // Las alas van detrás del cuerpo en reposo y adelante cuando tapan los ojos
   private alas(adelante: boolean) {
     const ctx = this.ctx!;
     for (const lado of [-1, 1]) {
-      // el ala derecha baja un poco cuando mostrás la contraseña: espía con un ojo
       const cubre = lado === 1 ? this.tapa * (1 - this.espia * 0.7) : this.tapa;
       if ((cubre > 0.35) !== adelante) continue;
       const aleteo = this.reducido ? 0 : this.feliz * Math.sin(this.tiempo * 20) * 0.6;
@@ -431,7 +426,6 @@ export class Buho implements OnInit, OnDestroy {
     }
   }
 
-  // Forma de un ala: una gota con plumas
   private ala() {
     const ctx = this.ctx!;
     const g = ctx.createLinearGradient(0, -34, 0, 34);

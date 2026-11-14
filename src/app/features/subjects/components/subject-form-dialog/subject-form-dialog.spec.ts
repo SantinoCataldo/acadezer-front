@@ -28,7 +28,6 @@ describe('SubjectFormDialog', () => {
   }
 
   function fillNombre(value: string): void {
-    // El host de app-text-field también lleva el id: hay que buscar el input interno.
     const input = fixture.nativeElement.querySelector('app-text-field input') as HTMLInputElement;
     input.value = value;
     input.dispatchEvent(new Event('input'));
@@ -120,7 +119,6 @@ describe('SubjectFormDialog', () => {
 
     expect(fixture.nativeElement.querySelector('[role="dialog"]')).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('La descripción supera el máximo permitido');
-    // El formulario sigue abierto con lo que había escrito el usuario.
     const nombre = fixture.nativeElement.querySelector('app-text-field input') as HTMLInputElement;
     expect(nombre.value).toBe('Química');
     requests.verify();

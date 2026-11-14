@@ -28,11 +28,6 @@ function isFocusable(element: HTMLElement): boolean {
 
 let modalSequence = 0;
 
-/**
- * Diálogo accesible y autocontenido (sin CDK overlay para no depender de
- * estilos globales compartidos). Cubre RNF-01: foco atrapado, Escape para
- * cerrar, foco devuelto al abrirse y cierre bloqueado durante el envío.
- */
 @Component({
   selector: 'app-modal',
   templateUrl: './modal.html',
@@ -42,7 +37,6 @@ export class Modal implements AfterViewInit {
   readonly title = input.required<string>();
   readonly description = input<string | null>(null);
   readonly panelClass = input('');
-  /** Mientras sea true, Escape y el fondo no cierran el diálogo. */
   readonly pending = input(false);
   readonly closed = output<void>();
   readonly closing = signal(false);

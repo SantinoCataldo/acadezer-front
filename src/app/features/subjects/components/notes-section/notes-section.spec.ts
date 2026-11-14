@@ -152,7 +152,6 @@ describe('NotesSection', () => {
     fixture.detectChanges();
 
     expect(text()).toContain('Parcial');
-    // El editor sigue abierto con el apunte recién guardado.
     const tituloGuardado = fixture.nativeElement.querySelector('#apunte-titulo') as HTMLInputElement;
     expect(tituloGuardado.value).toBe('Parcial');
     expect(fixture.nativeElement.querySelector('[contenteditable="true"]').innerHTML).toBe(

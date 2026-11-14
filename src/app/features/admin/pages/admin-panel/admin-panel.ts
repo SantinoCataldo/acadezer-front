@@ -54,15 +54,12 @@ export class AdminPanel implements OnInit, AfterViewInit {
   readonly errorAccion = signal('');
   readonly mensajeExito = signal('');
 
-  // Modal para suspender cuenta
   readonly modalSuspender = signal<UserResponse | null>(null);
   readonly suspendiendo = signal(false);
 
-  // Modal para ficha/detalle de usuario
   readonly modalDetalle = signal<UserResponse | null>(null);
   readonly copiadoId = signal(false);
 
-  // Totales para los filtros
   readonly totalUsuarios = computed(() => this.usuarios().length);
   readonly totalEstudiantes = computed(
     () => this.usuarios().filter((u) => u.role !== 'ADMIN').length,
@@ -71,7 +68,6 @@ export class AdminPanel implements OnInit, AfterViewInit {
   readonly totalHabilitados = computed(() => this.usuarios().filter((u) => u.enabled).length);
   readonly totalSuspendidos = computed(() => this.usuarios().filter((u) => !u.enabled).length);
 
-  // Opciones dinámicas para el select de filtros
   readonly opcionesFiltro = computed<SelectOption<UserFilterTab>[]>(() => [
     { value: 'all', label: `Todos (${this.totalUsuarios()})` },
     { value: 'students', label: `Estudiantes (${this.totalEstudiantes()})` },
@@ -80,7 +76,6 @@ export class AdminPanel implements OnInit, AfterViewInit {
     { value: 'suspended', label: `Suspendidos (${this.totalSuspendidos()})` },
   ]);
 
-  // Opciones fijas para el select de ordenamiento
   readonly opcionesOrden: SelectOption<UserSortOption>[] = [
     { value: 'nombre-asc', label: 'Nombre: A → Z' },
     { value: 'nombre-desc', label: 'Nombre: Z → A' },
@@ -88,7 +83,6 @@ export class AdminPanel implements OnInit, AfterViewInit {
     { value: 'antiguos', label: 'Más antiguos (ID)' },
   ];
 
-  // Métricas avanzadas / analítica de la plataforma
   readonly tasaHabilitados = computed(() => {
     const e = this.estadisticas();
     if (!e || e.usuarios === 0) return 100;
@@ -113,7 +107,6 @@ export class AdminPanel implements OnInit, AfterViewInit {
     return e.materias + e.apuntes + e.pendientes + e.evaluaciones + e.asistencias;
   });
 
-  // Lista filtrada y ordenada en tiempo real
   readonly usuariosFiltrados = computed(() => {
     let list = [...this.usuarios()];
     const tab = this.activeTab();
@@ -395,7 +388,6 @@ export class AdminPanel implements OnInit, AfterViewInit {
       this.copiadoId.set(true);
       setTimeout(() => this.copiadoId.set(false), 2000);
     } catch {
-      // Si el navegador bloquea clipboard, no falla silenciosamente
     }
   }
 
@@ -428,4 +420,3 @@ export class AdminPanel implements OnInit, AfterViewInit {
     return Array.from(trimmed)[0]?.toUpperCase() ?? 'U';
   }
 }
-

@@ -90,7 +90,6 @@ describe('Modal', () => {
 
   it('keeps Tab focus inside the dialog', () => {
     open();
-    // El diálogo trae su propio botón de cierre más los dos proyectados.
     const buttons = Array.from(dialog().querySelectorAll<HTMLButtonElement>('button'));
     expect(buttons).toHaveLength(3);
 

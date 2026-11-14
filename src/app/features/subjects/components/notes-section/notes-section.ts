@@ -37,7 +37,6 @@ function timestamp(value: string): string {
   }).format(date);
 }
 
-/** Orden de la lista: el apunte editido más reciente arriba. */
 function byLastModified(a: NoteResponse, b: NoteResponse): number {
   const left = Date.parse(a.actualizadoEn);
   const right = Date.parse(b.actualizadoEn);
@@ -46,13 +45,6 @@ function byLastModified(a: NoteResponse, b: NoteResponse): number {
   return right - left;
 }
 
-/**
- * APU-01/APU-03: sección Apuntes dentro del detalle de materia.
- *
- * Lista los apuntes de ESA materia (el backend ya filtra por materia y por
- * dueño) y abre el editor para crear, editar o eliminar. En pantallas anchas se
- * ven lista y editor a la par; en celular se navega de uno al otro.
- */
 @Component({
   selector: 'app-notes-section',
   imports: [NoteEditor],
@@ -70,7 +62,6 @@ export class NotesSection {
   private readonly notesApi = inject(NotesService);
   private readonly destroyRef = inject(DestroyRef);
 
-  /** Materia cuya lista ya se pidió: ver el comentario del constructor. */
   private loadedMateriaId: number | null = null;
   private requestVersion = 0;
 
@@ -81,14 +72,10 @@ export class NotesSection {
   readonly errorMessage = signal<string | null>(null);
   readonly count = computed(() => this.notes().length);
 
-  // Referencias para la plantilla.
   readonly primaryButtonClass = primaryButton;
   readonly secondaryButtonClass = secondaryButton;
 
   constructor() {
-    // Angular vuelve a ejecutar el efecto cuando termina la tarea pendiente que
-    // él mismo abrió (el pedido de la lista), así que con este centinela se pide
-    // una sola vez por materia y no se pisa el estado de error o de carga.
     effect(() => {
       const materiaId = this.materiaId();
       if (this.loadedMateriaId === materiaId) return;
@@ -114,7 +101,6 @@ export class NotesSection {
           if (requestVersion !== this.requestVersion) return;
           this.notes.set([...notes].sort(byLastModified));
           this.state.set('ready');
-          // Si el apunte abierto dejó de existir, se vuelve a la lista.
           const current = this.editing();
           if (current && !notes.some((note) => note.id === current.id)) {
             this.editing.set(null);

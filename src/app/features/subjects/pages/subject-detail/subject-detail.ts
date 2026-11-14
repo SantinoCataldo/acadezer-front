@@ -23,13 +23,6 @@ interface AttendanceTotals {
   justified: number;
 }
 
-/**
- * Contenedor del detalle de materia (/estudio/materias/:id).
- *
- * MAT-03: muestra la cursada, permite registrar asistencia y conserva el
- * historial asociado a la materia.
-  * APU-01: muestra un acceso de solo lectura a los apuntes recientes de la materia.
- */
 @Component({
   selector: 'app-subject-detail',
   imports: [

@@ -1,11 +1,8 @@
-/* APU-02: superficie editable. Los estilos del contenido dinámico viven en
-   styles.css porque contenteditable no agrega los atributos de encapsulación. */
 .note-content {
   overflow-y: auto;
   max-height: min(60vh, 32rem);
 }
 
-/* El div vacío conserva un <br> en varios navegadores. */
 .note-content:empty::before,
 .note-content[data-focused]:empty::before {
   content: attr(data-placeholder);

@@ -196,7 +196,6 @@ describe('RichTextEditor', () => {
     editable().dispatchEvent(new Event('input'));
 
     expect(emitted).toHaveBeenCalledWith('<p>Hola <b>mundo</b></p>');
-    // El valor no se reescribe: el cursor del usuario no salta al inicio.
     expect(editable().innerHTML).toBe('<p>Hola <b>mundo</b></p>');
   });
 

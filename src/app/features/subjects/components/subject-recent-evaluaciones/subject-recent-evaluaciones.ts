@@ -43,7 +43,6 @@ export class SubjectRecentEvaluaciones {
         next: (all) => {
           if (requestVersion !== this.requestVersion) return;
 
-          // Ordenar por fecha (las más próximas o recientes primero)
           const ordenadas = [...all].sort((a, b) => b.fecha.localeCompare(a.fecha));
           this.evaluaciones.set(ordenadas.slice(0, 3));
           this.state.set('ready');
@@ -58,4 +57,3 @@ export class SubjectRecentEvaluaciones {
     return fechaCorta(fecha);
   }
 }
-

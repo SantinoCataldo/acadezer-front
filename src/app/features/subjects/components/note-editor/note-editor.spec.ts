@@ -53,7 +53,6 @@ describe('NoteEditor', () => {
     ).find((button) => button.textContent?.includes(label)) as HTMLButtonElement;
   }
 
-  /** Los botones del diálogo de confirmación: el fondo tapa el resto de la pantalla. */
   function dialogButton(label: string): HTMLButtonElement {
     const dialog = fixture.nativeElement.querySelector('[role="dialog"]');
     return Array.from(dialog.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).find(
@@ -150,7 +149,6 @@ describe('NoteEditor', () => {
     fixture.detectChanges();
 
     expect(deleted).toHaveBeenCalled();
-    // El diálogo se cierra tras borrar.
     expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
   });
 

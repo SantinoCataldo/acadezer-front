@@ -7,13 +7,6 @@ import { Modal } from '../modal/modal';
 import { dangerButton, errorSurface, secondaryButton } from '../../dialog-styles';
 import { toast } from 'ngx-sonner';
 
-/**
- * Confirmación de borrado de materia.
- *
- * MAT-02: la advertencia explica que el backend borra en cascada apuntes,
- * pendientes, evaluaciones y asistencias. Si el borrado falla, el diálogo
- * sigue abierto con el error y la materia permanece en el listado.
- */
 @Component({
   selector: 'app-delete-subject-dialog',
   imports: [Modal],
@@ -31,7 +24,6 @@ export class DeleteSubjectDialog {
 
   readonly action = createRequestAction();
 
-  // Referencias para la plantilla.
   readonly dangerButtonClass = dangerButton;
   readonly secondaryButtonClass = secondaryButton;
   readonly errorSurfaceClass = errorSurface;

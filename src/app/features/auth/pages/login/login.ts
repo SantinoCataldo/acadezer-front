@@ -73,7 +73,6 @@ export class Login {
       .subscribe({
         next: () => {
           this.form.controls.password.reset();
-          // el búho festeja un momento antes de entrar
           this.buhoState.setEstado('feliz');
           const target = this.auth.hasRole('ADMIN') ? '/admin' : '/estudio';
           setTimeout(() => void this.router.navigateByUrl(target), 700);
@@ -90,7 +89,6 @@ export class Login {
   }
 
   escribirEmail(): void {
-    // cuanto más largo el correo, más a la derecha mira
     this.buhoState.setMirada(Math.min(this.form.controls.email.value.length / 30, 1));
   }
 
@@ -98,7 +96,6 @@ export class Login {
     this.buhoState.setEstado('tapado');
   }
 
-  // si tocás el ojito de "mostrar contraseña", el búho espía
   revisarEspia(event: Event): void {
     const campo = event.currentTarget as HTMLElement;
     setTimeout(() => this.buhoState.setEspiando(campo.querySelector('input')?.type === 'text'));

@@ -4,13 +4,6 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import type { NoteRequest, NoteResponse, PracticeQuestionsResponse } from '../models';
 
-/**
- * APU-01: CRUD de apuntes de una materia.
- *
- * El contrato lo expone el backend en `/api/materias/{materiaId}/apuntes` para
- * listar y crear, y en `/api/apuntes/{id}` para leer, editar y borrar. Todas las
- * rutas validan dueño: un apunte de otra materia responde 404.
- */
 @Injectable({ providedIn: 'root' })
 export class NotesService {
   private readonly http = inject(HttpClient);

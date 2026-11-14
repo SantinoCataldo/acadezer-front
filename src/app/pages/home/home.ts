@@ -34,9 +34,7 @@ interface DiaCalendario {
   evaluacion: boolean;
 }
 
-// cuántos controles tiene cada día de lunes a viernes (como en "Tu semana")
 const CONTROLES_POR_DIA = [2, 1, 1, 2, 0];
-// lo que se fue marcando, en orden, hasta hoy
 const MARCAS: EstadoControl[] = ['PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'AUSENTE', 'PRESENTE', 'PRESENTE',
   'JUSTIFICADA', 'PRESENTE', 'PRESENTE', 'AUSENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE', 'PRESENTE'];
 const HOY_CALENDARIO = 12;
@@ -251,7 +249,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
   private mapa: CanvasRenderingContext2D | null = null;
   private brillo: HTMLCanvasElement | null = null;
 
-  // colores de la pizarra, sacados del tema que eligió el usuario
   private colores = { fondo: [26, 26, 30], punto: [237, 237, 238], acento: [86, 91, 140], oscuro: true };
   private ultimaLectura = -1;
 
@@ -301,8 +298,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
       this.dibujarHero(2.95);
       return;
     }
-    // Sin IntersectionObserver (jsdom, navegadores viejos) el hero se anima igual:
-    // heroVisible arranca en true, así que sólo se saltea el observar.
     if (typeof IntersectionObserver === 'undefined') return;
     this.observer = new IntersectionObserver((es) => (this.heroVisible = es[0].isIntersecting));
     this.observer.observe(this.cuadro().nativeElement);
@@ -405,7 +400,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     const apoyo = seg(lt, 0.22, 0.3) * (1 - seg(lt, 1.35, 1.43));
     const ondas: [number, Punto, number][] = [[g.inicio + 1.45, g.c, 1], [g.inicio + 2.9, g.c, 0.8]];
 
-    // relee los colores cada medio segundo, por si cambiás el tema
     if (Math.floor(tiempo * 2) !== this.ultimaLectura) {
       this.ultimaLectura = Math.floor(tiempo * 2);
       this.leerColores();
@@ -452,7 +446,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         const dy = py + uy * 4 + ((py - fy) / (fd + 0.01)) * fa * 7;
         const reposo = (oscuro ? 0.13 : 0.18) + 0.03 * Math.sin(ambiente + px * 0.012 + py * 0.008);
         if (v > 0.03) {
-          // en modo oscuro los puntos más encendidos se aclaran un poco
           const calor = oscuro ? cl(v * 1.2) * 0.4 : 0;
           const color = rgb(acento.map((x) => Math.round(lerp(x, 255, calor))));
           ctx.globalAlpha = lerp(reposo, 1, cl(v * 1.35));
@@ -471,7 +464,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     ctx.globalAlpha = 1;
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    // en modo claro el brillo se suma más suave, si no se lava contra el fondo
     ctx.globalCompositeOperation = oscuro ? 'lighter' : 'source-over';
     ctx.globalAlpha = oscuro ? 1 : 0.35;
     ctx.filter = 'blur(' + Math.round(lienzo.width * 0.008) + 'px)';
@@ -499,8 +491,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
   private prepararScroll() {
     gsap.registerPlugin(ScrollTrigger);
-    // Lenis se apoya en ResizeObserver: si no está (jsdom, navegadores viejos) se
-    // deja el scroll nativo, que ya alcanza para las animaciones con ScrollTrigger.
     if (typeof ResizeObserver !== 'undefined') {
       this.lenis = new Lenis({ lerp: 0.09 });
       this.lenis.on('scroll', ScrollTrigger.update);
@@ -523,8 +513,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
         });
       });
 
-      // el calendario se va pintando día por día mientras scrolleás.
-      // En pantallas grandes queda fijo; en el celular no entra entero, así que se pinta mientras pasa.
       const pintarCalendario = (scrollTrigger: ScrollTrigger.Vars) => {
         const progreso = { n: 0 };
         return gsap.to(progreso, {
@@ -555,7 +543,6 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
 
     ScrollTrigger.sort();
     ScrollTrigger.refresh();
-    // Sin FontFaceSet no hay tipografías que esperar antes de rem edir.
     document.fonts?.ready.then(() => ScrollTrigger.refresh());
   }
 
@@ -563,13 +550,11 @@ export class HomeComponent implements AfterViewInit, OnDestroy {
     return this.hoy.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
   }
 
-  // los días que todavía no se "pintaron" con el scroll se ven pendientes
   estadosDia(dia: DiaCalendario, i: number): EstadoControl[] {
     if (i < this.diasVisibles()) return dia.controles;
     return dia.controles.map(() => 'PENDIENTE');
   }
 
-  // mismo criterio que el calendario de la app: un color si todo es igual, si no se parte en diagonal
   fondoDia(dia: DiaCalendario, i: number) {
     const estados = this.estadosDia(dia, i);
     const marcados = estados.filter((e) => e !== 'PENDIENTE');

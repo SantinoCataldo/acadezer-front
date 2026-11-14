@@ -2,7 +2,6 @@ import { Routes } from '@angular/router';
 import { authGuard } from '../../core/guards/auth-guard';
 import { canDeactivateUnsavedChangesGuard } from '../../core/guards/unsaved-changes.guard';
 
-/** Rutas privadas del espacio de estudio y sus materias. */
 export const subjectRoutes: Routes = [
   {
     path: 'estudio',

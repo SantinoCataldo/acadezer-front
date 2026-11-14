@@ -7,7 +7,6 @@ import { environment } from '../../../../../environments/environment';
 import type { SubjectResponse } from '../../models';
 import { SubjectList } from './subject-list';
 
-/** El router real lo conecta el equipo: acá solo se necesita un destino válido. */
 @Component({ selector: 'app-route-stub', template: '' })
 class RouteStub {}
 
@@ -54,7 +53,6 @@ describe('SubjectList', () => {
   }
 
   function nombreInput(): HTMLInputElement {
-    // El host de app-text-field también lleva el id: hay que buscar el input interno.
     return fixture.nativeElement.querySelector('app-text-field input') as HTMLInputElement;
   }
 

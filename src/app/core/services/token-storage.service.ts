@@ -17,12 +17,10 @@ export class TokenStorageService {
     try {
       this.clearLegacySessionKeys(localStorage);
     } catch {
-      // Storage can be unavailable in privacy-restricted contexts.
     }
     try {
       this.clearLegacySessionKeys(sessionStorage);
     } catch {
-      // Keep the memory session usable.
     }
   }
 
@@ -36,12 +34,12 @@ export class TokenStorageService {
 
   blockRestoration(): void {
     this.blocked = true;
-    try { sessionStorage.setItem(this.logoutKey, '1'); } catch { /* Storage can be unavailable. */ }
+    try { sessionStorage.setItem(this.logoutKey, '1'); } catch {}
   }
 
   allowRestoration(): void {
     this.blocked = false;
-    try { sessionStorage.removeItem(this.logoutKey); } catch { /* Storage can be unavailable. */ }
+    try { sessionStorage.removeItem(this.logoutKey); } catch {}
   }
 
   saveAccessToken(token: string): void {
@@ -49,7 +47,6 @@ export class TokenStorageService {
     try {
       sessionStorage.setItem(this.key, token);
     } catch {
-      /* Fall back to memory until this page closes. */
     }
   }
 
@@ -58,7 +55,6 @@ export class TokenStorageService {
     try {
       sessionStorage.removeItem(this.key);
     } catch {
-      /* The in-memory token is already cleared. */
     }
   }
 

@@ -76,7 +76,6 @@
 
     @case ('ready') {
       <div class="space-y-4">
-        <!-- Barra de navegación de preguntas -->
         <div class="flex flex-wrap items-center justify-between gap-2 pb-1">
           <div class="flex items-center gap-1.5" role="tablist" aria-label="Preguntas">
             @for (q of questions(); track $index; let idx = $index) {
@@ -110,7 +109,6 @@
         </div>
 
         @if (viewMode() === 'card') {
-          <!-- Modo Tarjeta (Flashcard) -->
           @if (currentQuestion(); as q) {
             <article
               #cardArticle
@@ -161,7 +159,6 @@
                 }
               </div>
 
-              <!-- Navegación entre tarjetas -->
               <div class="mt-6 flex items-center justify-between pt-2">
                 <button
                   type="button"
@@ -186,7 +183,6 @@
             </article>
           }
         } @else {
-          <!-- Modo Lista Completa -->
           <div class="max-h-96 space-y-3 overflow-y-auto pr-1">
             @for (q of questions(); track $index; let idx = $index) {
               <article class="rounded-[16px] border border-[var(--theme-border)]/50 bg-[var(--theme-surface)] p-4 shadow-none dark:border-transparent">
@@ -218,7 +214,6 @@
           </div>
         }
 
-        <!-- Footer con regenerar y cerrar -->
         <footer class="flex items-center justify-between pt-2 text-xs">
           <button
             type="button"
@@ -241,4 +236,3 @@
     }
   }
 </app-modal>
-

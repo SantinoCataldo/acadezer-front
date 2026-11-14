@@ -45,7 +45,6 @@ export const routes: Routes = [
   },
   ...subjectRoutes,
   {
-    // solo entran los usuarios con rol ADMIN
     path: 'admin',
     loadComponent: () => import('@features/admin/pages/admin-panel/admin-panel').then((m) => m.AdminPanel),
     canActivate: [roleGuard],

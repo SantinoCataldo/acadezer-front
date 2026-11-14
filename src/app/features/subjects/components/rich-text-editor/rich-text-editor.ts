@@ -89,9 +89,6 @@ export class RichTextEditor {
     if (action.command && typeof document.execCommand === 'function') {
       let cmdValue = action.value;
       if (action.command === 'formatBlock' && action.value) {
-        // El bloque activo se lee del último estado conocido con la selección
-        // dentro del editable: así el segundo click sobre el mismo título lo saca
-        // en lugar de volver a aplicarlo.
         const bloqueActivo =
           this.activeBlock() === action.value.toUpperCase() || this.queryCurrentBlock(action.value);
         cmdValue = bloqueActivo ? (action.clearValue ?? 'p') : action.value;

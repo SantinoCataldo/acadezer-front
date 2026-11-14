@@ -146,7 +146,6 @@ export class Register {
           this.autoLoginPending.set(false);
           this.form.controls.password.reset();
           this.form.controls.confirmPassword.reset();
-          // el búho festeja un momento antes de ir al onboarding
           setTimeout(() => void this.router.navigateByUrl('/onboarding'), 700);
         },
         error: (error: unknown) => {
@@ -176,7 +175,6 @@ export class Register {
   }
 
   escribir(campo: 'nombre' | 'email'): void {
-    // cuanto más largo el texto, más a la derecha mira
     this.buhoState.setMirada(Math.min(this.form.controls[campo].value.length / 30, 1));
   }
 
@@ -184,7 +182,6 @@ export class Register {
     this.buhoState.setEstado('tapado');
   }
 
-  // si tocás el ojito de "mostrar contraseña", el búho espía
   revisarEspia(event: Event): void {
     const campo = event.currentTarget as HTMLElement;
     setTimeout(() => this.buhoState.setEspiando(campo.querySelector('input')?.type === 'text'));

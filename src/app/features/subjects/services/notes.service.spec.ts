@@ -40,8 +40,6 @@ describe('NotesService', () => {
   });
 
   it('updates and deletes by note id', () => {
-    // Las dos peticiones salen juntas: `match` devuelve las dos y se responden en
-    // orden, sin depender de en qué momento el backend de prueba las recibe.
     service.update(3, { titulo: 'Variables y tipos', contenido: '<p>Tipos</p>' }).subscribe();
     service.delete(3).subscribe();
 

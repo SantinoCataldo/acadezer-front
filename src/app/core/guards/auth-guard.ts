@@ -11,7 +11,6 @@ export const authGuard: CanActivateFn = () => {
       if (!authenticated) {
         return auth.status() === 'unavailable' ? false : router.createUrlTree(['/login']);
       }
-      // Los usuarios con rol ADMIN sólo pueden acceder al panel de administración (/admin)
       if (auth.hasRole('ADMIN')) {
         return router.createUrlTree(['/admin']);
       }

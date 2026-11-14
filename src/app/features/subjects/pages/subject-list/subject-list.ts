@@ -21,13 +21,6 @@ const shortDayLabels: Record<DiaSemana, string> = {
   DOMINGO: 'dom',
 };
 
-/**
- * Listado de materias del usuario autenticado.
- *
- * MAT-03: lista las materias propias, ofrece crear la primera cuando no hay
- * ninguna y usa los estados de carga y error con recuperación (RNF-04).
- * Los diálogos de crear/editar y eliminar se reutilizan desde el detalle.
- */
 @Component({
   selector: 'app-subject-list',
   imports: [RouterLink, SubjectFormDialog, DeleteSubjectDialog, Almanac],
@@ -47,13 +40,11 @@ export class SubjectList {
   readonly state = signal<ListState>('loading');
   readonly activeView = signal<'subjects' | 'grid' | 'week'>('subjects');
 
-  /** null = cerrado; 'new' o una materia concreta = diálogo de formulario. */
   readonly formTarget = signal<SubjectResponse | 'new' | null>(null);
   readonly deleteTarget = signal<SubjectResponse | null>(null);
 
   readonly isEmpty = computed(() => this.state() === 'ready' && this.subjects().length === 0);
 
-  // Referencias para la plantilla.
   readonly primaryButtonClass = primaryButton;
   readonly iconButtonClass = iconButton;
   readonly dangerIconButtonClass = dangerIconButton;
@@ -143,7 +134,6 @@ export class SubjectList {
     this.deleteTarget.set(subject);
   }
 
-  /** MAT-01: refleja los datos confirmados por la API, no los del formulario. */
   onSubjectSaved(saved: SubjectResponse): void {
     this.formTarget.set(null);
     this.subjects.update((list) => {
